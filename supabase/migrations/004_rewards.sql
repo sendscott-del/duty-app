@@ -22,5 +22,5 @@ create table duty_redemptions (
   created_at timestamptz default now()
 );
 
-alter table rewards enable row level security;
+alter table duty_rewards enable row level security;
 alter table duty_redemptions enable row level security;
