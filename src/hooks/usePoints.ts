@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../lib/store'
 
@@ -8,7 +8,7 @@ export function usePoints(profileId?: string) {
   const [balance, setBalance] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchPoints = useCallback(async () => {
     if (!family?.id) return
 
     let query = supabase
@@ -19,28 +19,42 @@ export function usePoints(profileId?: string) {
 
     if (profileId) query = query.eq('profile_id', profileId)
 
-    query.then(({ data }) => {
-      const txns = data ?? []
-      setTransactions(txns)
-      setBalance(txns.reduce((sum: number, t: any) => sum + t.amount, 0))
-      setLoading(false)
-    })
+    const { data } = await query
+    const txns = data ?? []
+    setTransactions(txns)
+    setBalance(txns.reduce((sum: number, t: any) => sum + t.amount, 0))
+    setLoading(false)
+  }, [family?.id, profileId])
+
+  useEffect(() => {
+    fetchPoints()
+    if (!family?.id) return
 
     const channel = supabase
       .channel(`points-${profileId ?? 'all'}`)
       .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'duty_point_transactions',
+        event: '*', schema: 'public', table: 'duty_point_transactions',
         filter: `family_id=eq.${family.id}`
-      }, ({ new: row }) => {
-        const txn = row as any
-        if (profileId && txn.profile_id !== profileId) return
-        setTransactions(p => [txn, ...p])
-        setBalance(b => b + txn.amount)
+      }, ({ eventType, new: row, old }) => {
+        const txn = (row ?? old) as any
+        if (profileId && txn?.profile_id !== profileId) {
+          // Might be a delete where new is null — refetch to be safe
+          if (eventType === 'DELETE') fetchPoints()
+          return
+        }
+
+        if (eventType === 'INSERT') {
+          setTransactions(p => [txn, ...p])
+          setBalance(b => b + txn.amount)
+        } else if (eventType === 'DELETE') {
+          // Refetch for accuracy — delete events don't always have full data
+          fetchPoints()
+        }
       })
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [family?.id, profileId])
+  }, [family?.id, profileId, fetchPoints])
 
-  return { transactions, balance, loading }
+  return { transactions, balance, loading, refresh: fetchPoints }
 }

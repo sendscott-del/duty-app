@@ -48,7 +48,7 @@ export function Chores() {
         family_id: chore.family_id,
         amount: chore.points,
         reason: `Completed: ${chore.name}`,
-        reference_id: chore.id,
+        reference_id: comp.id,
         reference_type: 'chore',
         created_by: profile.id,
       })

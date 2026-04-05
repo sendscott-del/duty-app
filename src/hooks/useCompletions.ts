@@ -80,16 +80,21 @@ export function useCompletions() {
     const comp = getCompletion(choreId, date)
     if (!comp) return
 
-    // Remove the completion record
-    setCompletions(p => p.filter(c => c.id !== comp.id))
-    await supabase.from('duty_chore_completions').delete().eq('id', comp.id)
+    const completionId = comp.id
 
-    // Remove associated point transaction for this kid + chore
+    // Remove from local state immediately
+    setCompletions(p => p.filter(c => c.id !== completionId))
+
+    // Remove the completion record
+    await supabase.from('duty_chore_completions').delete().eq('id', completionId)
+
+    // Remove the specific point transaction linked to this completion
     await supabase.from('duty_point_transactions')
       .delete()
-      .eq('reference_id', choreId)
+      .eq('reference_id', completionId)
       .eq('reference_type', 'chore')
-      .eq('profile_id', comp.completed_by)
+
+    return completionId
   }
 
   return { completions, loading, getCompletion, completeChore, approveCompletion, undoCompletion, refresh: fetchCompletions }
