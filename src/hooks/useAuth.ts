@@ -19,13 +19,27 @@ export function useAuth() {
   }, [])
 
   async function loadProfile(userId: string) {
-    const { data: profile } = await supabase
+    let { data: profile } = await supabase
       .from('duty_profiles')
       .select('*')
       .eq('id', userId)
       .single()
 
-    if (!profile) return
+    // If no duty_profiles row exists, create one (user may exist from Magnify or old Duty)
+    if (!profile) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+      const { data: newProfile } = await supabase
+        .from('duty_profiles')
+        .insert({ id: userId, full_name: fullName, role: 'parent' })
+        .select()
+        .single()
+
+      if (!newProfile) return
+      profile = newProfile
+    }
 
     setProfile(profile)
 
