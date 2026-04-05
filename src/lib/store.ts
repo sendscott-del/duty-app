@@ -20,9 +20,11 @@ interface Store {
   profile: Profile | null
   family: Family | null
   kids: Profile[]
+  viewAsKid: Profile | null  // parent previewing a kid's view
   setProfile: (p: Profile | null) => void
   setFamily: (f: Family | null) => void
   setKids: (kids: Profile[]) => void
+  setViewAsKid: (kid: Profile | null) => void
   clear: () => void
 }
 
@@ -32,10 +34,12 @@ export const useStore = create<Store>()(
       profile: null,
       family: null,
       kids: [],
+      viewAsKid: null,
       setProfile: (profile) => set({ profile }),
       setFamily: (family) => set({ family }),
       setKids: (kids) => set({ kids }),
-      clear: () => set({ profile: null, family: null, kids: [] }),
+      setViewAsKid: (viewAsKid) => set({ viewAsKid }),
+      clear: () => set({ profile: null, family: null, kids: [], viewAsKid: null }),
     }),
     { name: 'duty-store' }
   )
