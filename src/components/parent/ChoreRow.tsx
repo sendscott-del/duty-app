@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Check, X, Clock, Trash2, Pencil, Repeat } from 'lucide-react'
+import { Check, X, Clock, Trash2, Pencil, Repeat, Undo2 } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Avatar } from '../ui/Avatar'
 
@@ -35,9 +35,10 @@ interface ChoreRowProps {
   onTap?: () => void
   onEdit?: (chore: any) => void
   onDelete?: (chore: any) => void
+  onUndo?: (chore: any) => void
 }
 
-export function ChoreRow({ chore, onTap, onEdit, onDelete }: ChoreRowProps) {
+export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo }: ChoreRowProps) {
   const isDone = chore.status === 'approved'
   const needsApproval = chore.status === 'submitted'
   const kid = chore.duty_profiles
@@ -78,8 +79,18 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete }: ChoreRowProps) {
         )}
       </motion.button>
 
-      {/* Edit + Delete — visible on hover */}
+      {/* Actions — visible on hover */}
       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {onUndo && (isDone || needsApproval) && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onUndo(chore) }}
+            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
+            style={{ color: 'var(--amber)' }}
+            title="Undo completion"
+          >
+            <Undo2 size={13} />
+          </button>
+        )}
         {onEdit && (
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(chore) }}

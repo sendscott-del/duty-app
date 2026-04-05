@@ -75,6 +75,16 @@ export function KidHome() {
     }).eq('id', chore.id)
   }
 
+  async function handleUndo(chore: any) {
+    await supabase.from('duty_chores').update({
+      status: 'pending',
+      completed_late: false,
+      approved_at: null,
+      approved_by: null,
+      proof_submitted_at: null,
+    }).eq('id', chore.id)
+  }
+
   function exitPreview() {
     setViewAsKid(null)
     navigate('/parent/overview')
@@ -146,7 +156,7 @@ export function KidHome() {
         <motion.div variants={list} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 mb-8" key={dateStr}>
           {myChores.map(chore => (
             <motion.div key={chore.id} variants={item}>
-              <ChoreCard chore={chore} onComplete={handleComplete} isPast={isPast} isNew={!chore.first_completed_at} />
+              <ChoreCard chore={chore} onComplete={handleComplete} onUndo={handleUndo} isPast={isPast} isNew={!chore.first_completed_at} />
             </motion.div>
           ))}
         </motion.div>

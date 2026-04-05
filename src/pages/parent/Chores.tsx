@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
 import { useStore } from '../../lib/store'
+import { supabase } from '../../lib/supabase'
 import { approveChore } from '../../lib/approveChore'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
@@ -22,6 +23,16 @@ export function Chores() {
   async function handleDelete(chore: any) {
     if (!window.confirm(`Delete "${chore.name}"?`)) return
     await deleteChore(chore.id)
+  }
+
+  async function handleUndo(chore: any) {
+    await supabase.from('duty_chores').update({
+      status: 'pending',
+      completed_late: false,
+      approved_at: null,
+      approved_by: null,
+      proof_submitted_at: null,
+    }).eq('id', chore.id)
   }
 
   function handleClose() {
@@ -53,6 +64,7 @@ export function Chores() {
               onTap={chore.status === 'submitted' && profile ? () => approveChore(chore, profile.id) : undefined}
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onUndo={handleUndo}
             />
           ))}
         </div>
