@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { useStore } from '../../lib/store'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 
@@ -11,8 +12,20 @@ export function Login() {
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, loadProfile } = useAuth()
+  const { profile } = useStore()
   const navigate = useNavigate()
+
+  // Redirect once profile loads in the store
+  useEffect(() => {
+    if (profile) {
+      if (!profile.family_id) {
+        navigate('/setup')
+      } else {
+        navigate(profile.role === 'parent' ? '/parent/overview' : '/kid')
+      }
+    }
+  }, [profile, navigate])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -20,13 +33,15 @@ export function Login() {
     setLoading(true)
 
     if (isSignUp) {
-      const { error } = await signUp(email, password, fullName)
+      const { error, data } = await signUp(email, password, fullName)
       if (error) { setError(error.message); setLoading(false); return }
-      navigate('/setup')
+      // loadProfile will be triggered by onAuthStateChange → useEffect redirects
+      if (data.user) await loadProfile(data.user.id)
     } else {
-      const { error } = await signIn(email, password)
+      const { error, data } = await signIn(email, password)
       if (error) { setError(error.message); setLoading(false); return }
-      navigate('/')
+      // Explicitly load profile to ensure store is set before redirect
+      if (data.user) await loadProfile(data.user.id)
     }
     setLoading(false)
   }
