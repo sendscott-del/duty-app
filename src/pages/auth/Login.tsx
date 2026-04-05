@@ -32,16 +32,25 @@ export function Login() {
     setError('')
     setLoading(true)
 
-    if (isSignUp) {
-      const { error, data } = await signUp(email, password, fullName)
-      if (error) { setError(error.message); setLoading(false); return }
-      // loadProfile will be triggered by onAuthStateChange → useEffect redirects
-      if (data.user) await loadProfile(data.user.id)
-    } else {
-      const { error, data } = await signIn(email, password)
-      if (error) { setError(error.message); setLoading(false); return }
-      // Explicitly load profile to ensure store is set before redirect
-      if (data.user) await loadProfile(data.user.id)
+    try {
+      if (isSignUp) {
+        const { error, data } = await signUp(email, password, fullName)
+        if (error) { setError(error.message); setLoading(false); return }
+        if (data.user) await loadProfile(data.user.id)
+      } else {
+        const { error, data } = await signIn(email, password)
+        if (error) { setError(error.message); setLoading(false); return }
+        if (data.user) {
+          setError(`DEBUG: auth OK, user=${data.user.id.slice(0,8)}... loading profile...`)
+          await loadProfile(data.user.id)
+          const store = useStore.getState()
+          setError(`DEBUG: profile=${store.profile ? store.profile.full_name : 'NULL'}, family_id=${store.profile?.family_id ?? 'NULL'}`)
+        } else {
+          setError('DEBUG: signIn returned no user')
+        }
+      }
+    } catch (e: any) {
+      setError(`DEBUG CATCH: ${e.message}`)
     }
     setLoading(false)
   }
