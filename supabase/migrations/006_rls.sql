@@ -7,7 +7,10 @@ create policy "family_insert" on duty_families for insert
 
 -- Profiles
 create policy "profiles_read" on duty_profiles for select
-  using (family_id in (select family_id from duty_profiles where id = auth.uid()));
+  using (
+    id = auth.uid()
+    or family_id in (select family_id from duty_profiles where id = auth.uid())
+  );
 create policy "profiles_update_own" on duty_profiles for update using (id = auth.uid());
 create policy "profiles_insert" on duty_profiles for insert with check (true);
 
