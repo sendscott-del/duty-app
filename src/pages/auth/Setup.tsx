@@ -52,25 +52,19 @@ export function Setup() {
     const { family } = useStore.getState()
     if (!family) return
 
+    // Insert kids as profile-only records (no auth accounts)
+    // Kids use PIN login via the kid-login screen, not email/password
     for (const kid of kids) {
-      const { data: authData } = await supabase.auth.signUp({
-        email: `${kid.name.toLowerCase().replace(/\s/g, '')}@${family.id}.duty`,
-        password: kid.pin.padEnd(6, '0'),
-        options: { data: { full_name: kid.name } }
+      await supabase.from('duty_profiles').insert({
+        id: crypto.randomUUID(),
+        full_name: kid.name,
+        role: 'kid',
+        family_id: family.id,
+        avatar_color: kid.color,
+        pin: kid.pin,
       })
-
-      if (authData.user) {
-        await supabase.from('duty_profiles').update({
-          family_id: family.id,
-          role: 'kid',
-          avatar_color: kid.color,
-          pin: kid.pin,
-          full_name: kid.name,
-        }).eq('id', authData.user.id)
-      }
     }
 
-    // Reload as parent
     if (profile) await loadProfile(profile.id)
     setSaving(false)
     setStep(2)
