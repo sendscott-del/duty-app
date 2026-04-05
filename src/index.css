@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --gold: #F5C842;
+  --gold-dim: rgba(245,200,66,0.15);
+  --gold-border: rgba(245,200,66,0.3);
+
+  --p-bg: #0f0f0f;
+  --p-surface: #141414;
+  --p-sidebar: #111111;
+  --p-card: rgba(255,255,255,0.04);
+  --p-border: rgba(255,255,255,0.08);
+  --p-text: rgba(255,255,255,0.88);
+  --p-muted: rgba(255,255,255,0.4);
+  --p-dim: rgba(255,255,255,0.18);
+
+  --green: #4ade80;
+  --green-dim: rgba(74,222,128,0.12);
+  --green-border: rgba(74,222,128,0.3);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --red: #f87171;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  margin: 0;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+.font-display { font-family: 'Syne', sans-serif; }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
