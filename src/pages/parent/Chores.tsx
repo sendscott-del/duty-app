@@ -1,19 +1,29 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
+import { useCompletions } from '../../hooks/useCompletions'
 import { useStore } from '../../lib/store'
 import { supabase } from '../../lib/supabase'
-import { approveChore } from '../../lib/approveChore'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
+import confetti from 'canvas-confetti'
 
 export function Chores() {
   const { chores, loading, deleteChore, refresh } = useChores()
+  const { getCompletion, approveCompletion, undoCompletion } = useCompletions()
   const { profile } = useStore()
   const [showForm, setShowForm] = useState(false)
   const [editChore, setEditChore] = useState<any>(null)
+
+  const today = new Date().toISOString().split('T')[0]
+
+  // Enrich chores with today's completion status
+  const enrichedChores = chores.map(c => {
+    const comp = getCompletion(c.id, today)
+    return { ...c, _completion: comp, _status: comp?.status ?? 'pending' }
+  })
 
   function handleEdit(chore: any) {
     setEditChore(chore)
@@ -25,14 +35,30 @@ export function Chores() {
     await deleteChore(chore.id)
   }
 
+  async function handleApprove(chore: any) {
+    const comp = chore._completion
+    if (!comp || !profile) return
+
+    await approveCompletion(comp.id, profile.id)
+
+    // Award points (only if not late)
+    if (!comp.completed_late) {
+      await supabase.from('duty_point_transactions').insert({
+        profile_id: comp.completed_by,
+        family_id: chore.family_id,
+        amount: chore.points,
+        reason: `Completed: ${chore.name}`,
+        reference_id: chore.id,
+        reference_type: 'chore',
+        created_by: profile.id,
+      })
+    }
+
+    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
+  }
+
   async function handleUndo(chore: any) {
-    await supabase.from('duty_chores').update({
-      status: 'pending',
-      completed_late: false,
-      approved_at: null,
-      approved_by: null,
-      proof_submitted_at: null,
-    }).eq('id', chore.id)
+    await undoCompletion(chore.id, today)
   }
 
   function handleClose() {
@@ -51,17 +77,17 @@ export function Chores() {
         </Button>
       </div>
 
-      {chores.length === 0 ? (
+      {enrichedChores.length === 0 ? (
         <div className="text-center py-12 text-sm" style={{ color: 'var(--p-muted)' }}>
           No chores yet. Lucky them. 👀
         </div>
       ) : (
         <div className="space-y-1">
-          {chores.map(chore => (
+          {enrichedChores.map(chore => (
             <ChoreRow
               key={chore.id}
-              chore={chore}
-              onTap={chore.status === 'submitted' && profile ? () => approveChore(chore, profile.id) : undefined}
+              chore={{ ...chore, status: chore._status }}
+              onTap={chore._status === 'submitted' ? () => handleApprove(chore) : undefined}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onUndo={handleUndo}
