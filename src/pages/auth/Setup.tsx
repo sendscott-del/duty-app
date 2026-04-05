@@ -50,22 +50,25 @@ export function Setup() {
   async function saveKids() {
     setSaving(true)
     const { family } = useStore.getState()
-    if (!family) return
+    if (!family) { setSaving(false); return }
 
-    // Insert kids as profile-only records (no auth accounts)
-    // Kids use PIN login via the kid-login screen, not email/password
-    for (const kid of kids) {
-      await supabase.from('duty_profiles').insert({
-        id: crypto.randomUUID(),
-        full_name: kid.name,
-        role: 'kid',
-        family_id: family.id,
-        avatar_color: kid.color,
-        pin: kid.pin,
-      })
+    try {
+      for (const kid of kids) {
+        const { error } = await supabase.from('duty_profiles').insert({
+          id: crypto.randomUUID(),
+          full_name: kid.name,
+          role: 'kid',
+          family_id: family.id,
+          avatar_color: kid.color,
+          pin: kid.pin,
+        })
+        if (error) console.warn('Kid insert error:', error.message)
+      }
+
+      if (profile) await loadProfile(profile.id)
+    } catch (e) {
+      console.warn('saveKids error:', e)
     }
-
-    if (profile) await loadProfile(profile.id)
     setSaving(false)
     setStep(2)
   }
