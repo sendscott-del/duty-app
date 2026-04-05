@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
 import { useStore } from '../../lib/store'
+import { supabase } from '../../lib/supabase'
 import { approveChore } from '../../lib/approveChore'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
@@ -12,6 +13,11 @@ export function Chores() {
   const { chores, loading } = useChores()
   const { profile } = useStore()
   const [showAdd, setShowAdd] = useState(false)
+
+  async function handleDelete(chore: any) {
+    if (!window.confirm(`Delete "${chore.name}"?`)) return
+    await supabase.from('duty_chores').delete().eq('id', chore.id)
+  }
 
   if (loading) return <Spinner size="lg" />
 
@@ -31,7 +37,12 @@ export function Chores() {
       ) : (
         <div className="space-y-1">
           {chores.map(chore => (
-            <ChoreRow key={chore.id} chore={chore} onTap={chore.status === 'submitted' && profile ? () => approveChore(chore, profile.id) : undefined} />
+            <ChoreRow
+              key={chore.id}
+              chore={chore}
+              onTap={chore.status === 'submitted' && profile ? () => approveChore(chore, profile.id) : undefined}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}

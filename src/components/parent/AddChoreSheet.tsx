@@ -14,6 +14,13 @@ interface AddChoreSheetProps {
 }
 
 const POINT_PRESETS = [10, 20, 25, 30, 40, 50]
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const RECURRENCE_OPTIONS = [
+  { value: 'none', label: 'One time' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+] as const
 
 export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
   const { family, kids, profile } = useStore()
@@ -22,6 +29,8 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
   const [points, setPoints] = useState(10)
   const [assignedTo, setAssignedTo] = useState<string>('')
   const [dueDate, setDueDate] = useState(new Date().toISOString().split('T')[0])
+  const [recurrence, setRecurrence] = useState<string>('none')
+  const [recurrenceDays, setRecurrenceDays] = useState<number[]>([])
   const [requiresProof, setRequiresProof] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -29,6 +38,12 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
     setName(preset.name)
     setEmoji(preset.emoji)
     setPoints(preset.points)
+  }
+
+  function toggleDay(day: number) {
+    setRecurrenceDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    )
   }
 
   async function handleSave() {
@@ -42,7 +57,9 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
       name: name.trim(),
       emoji,
       points,
-      due_date: dueDate || null,
+      due_date: recurrence === 'none' ? (dueDate || null) : null,
+      recurrence,
+      recurrence_days: recurrence === 'weekly' && recurrenceDays.length > 0 ? recurrenceDays : null,
       requires_proof: requiresProof,
     })
 
@@ -51,6 +68,8 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
     setEmoji('✅')
     setPoints(10)
     setAssignedTo('')
+    setRecurrence('none')
+    setRecurrenceDays([])
     setRequiresProof(false)
     onSaved()
     onClose()
@@ -62,7 +81,7 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
         {/* Preset chips */}
         <div>
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Quick add</label>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
             {CHORE_PRESETS.map(p => (
               <button
                 key={p.name}
@@ -99,7 +118,7 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
         {/* Assign to */}
         <div>
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Assign to</label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {kids.map(kid => (
               <button
                 key={kid.id}
@@ -131,8 +150,49 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
           </div>
         </div>
 
-        {/* Due date */}
-        <Input label="Due date" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        {/* Recurrence */}
+        <div>
+          <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Frequency</label>
+          <div className="flex gap-1.5">
+            {RECURRENCE_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setRecurrence(opt.value)}
+                className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${recurrence === opt.value ? 'ring-2 ring-[var(--gold)]' : ''}`}
+                style={{ background: recurrence === opt.value ? 'var(--gold-dim)' : 'var(--p-card)', color: recurrence === opt.value ? 'var(--gold)' : 'var(--p-muted)' }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Day of week picker (weekly only) */}
+        {recurrence === 'weekly' && (
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Which days?</label>
+            <div className="flex gap-1.5">
+              {DAYS.map((day, i) => {
+                const selected = recurrenceDays.includes(i)
+                return (
+                  <button
+                    key={i}
+                    onClick={() => toggleDay(i)}
+                    className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${selected ? 'ring-2 ring-[var(--gold)]' : ''}`}
+                    style={{ background: selected ? 'var(--gold-dim)' : 'var(--p-card)', color: selected ? 'var(--gold)' : 'var(--p-muted)' }}
+                  >
+                    {day}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Due date (one-time only) */}
+        {recurrence === 'none' && (
+          <Input label="Due date" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+        )}
 
         {/* Require proof */}
         <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--p-text)' }}>

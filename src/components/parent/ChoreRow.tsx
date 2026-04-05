@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Check, X, Clock } from 'lucide-react'
+import { Check, X, Clock, Trash2, Repeat } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Avatar } from '../ui/Avatar'
 
@@ -22,39 +22,72 @@ const STATUS_CIRCLE: Record<string, React.ReactNode> = {
   ),
 }
 
+const RECURRENCE_LABELS: Record<string, string> = {
+  daily: 'Daily',
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+}
+
+const DAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
 interface ChoreRowProps {
   chore: any
   onTap?: () => void
+  onDelete?: (chore: any) => void
 }
 
-export function ChoreRow({ chore, onTap }: ChoreRowProps) {
+export function ChoreRow({ chore, onTap, onDelete }: ChoreRowProps) {
   const isDone = chore.status === 'approved'
   const needsApproval = chore.status === 'submitted'
   const kid = chore.duty_profiles
 
+  const recurrenceLabel = RECURRENCE_LABELS[chore.recurrence]
+  const daysList = chore.recurrence === 'weekly' && chore.recurrence_days?.length
+    ? chore.recurrence_days.map((d: number) => DAY_ABBR[d]).join(', ')
+    : null
+
   return (
-    <motion.button
-      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors min-h-[52px] hover:bg-white/[0.03]"
-      onClick={onTap}
-      whileTap={{ scale: 0.99 }}
-    >
-      {STATUS_CIRCLE[chore.status]}
+    <div className="flex items-center gap-1 group">
+      <motion.button
+        className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors min-h-[52px] hover:bg-white/[0.03]"
+        onClick={onTap}
+        whileTap={{ scale: 0.99 }}
+      >
+        {STATUS_CIRCLE[chore.status]}
 
-      <div className="flex-1 min-w-0">
-        <div className={`text-sm ${isDone ? 'line-through' : ''}`} style={{ color: isDone ? 'var(--p-dim)' : 'var(--p-text)' }}>
-          {chore.emoji} {chore.name}
+        <div className="flex-1 min-w-0">
+          <div className={`text-sm ${isDone ? 'line-through' : ''}`} style={{ color: isDone ? 'var(--p-dim)' : 'var(--p-text)' }}>
+            {chore.emoji} {chore.name}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            {kid && <Avatar name={kid.full_name} color={kid.avatar_color} size="sm" />}
+            <span className="text-xs" style={{ color: 'var(--p-muted)' }}>{kid?.full_name}</span>
+            {recurrenceLabel && (
+              <span className="flex items-center gap-0.5 text-[10px]" style={{ color: 'var(--p-dim)' }}>
+                <Repeat size={9} /> {recurrenceLabel}{daysList ? ` (${daysList})` : ''}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
-          {kid && <Avatar name={kid.full_name} color={kid.avatar_color} size="sm" />}
-          <span className="text-xs" style={{ color: 'var(--p-muted)' }}>{kid?.full_name}</span>
-        </div>
-      </div>
 
-      {needsApproval ? (
-        <Badge variant="amber">Needs approval</Badge>
-      ) : (
-        <Badge variant={isDone ? 'green' : 'gold'}>+{chore.points} pts</Badge>
+        {needsApproval ? (
+          <Badge variant="amber">Needs approval</Badge>
+        ) : (
+          <Badge variant={isDone ? 'green' : 'gold'}>+{chore.points} pts</Badge>
+        )}
+      </motion.button>
+
+      {/* Delete button — visible on hover (desktop) or always subtly visible (mobile) */}
+      {onDelete && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(chore) }}
+          className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity lg:opacity-0"
+          style={{ color: 'var(--red)' }}
+          title="Delete chore"
+        >
+          <Trash2 size={14} />
+        </button>
       )}
-    </motion.button>
+    </div>
   )
 }
