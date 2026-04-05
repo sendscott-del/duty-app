@@ -80,6 +80,25 @@ export function Settings() {
         <div className="text-lg font-medium" style={{ color: 'var(--p-text)' }}>{family?.name}</div>
       </div>
 
+      {/* Kid Login Link */}
+      {family && (
+        <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+          <div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--p-dim)' }}>Kid Login Link</div>
+          <p className="text-xs mb-2" style={{ color: 'var(--p-muted)' }}>Share this link with your kids so they can log in with their PIN.</p>
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/kid-login?f=${family.id}`
+              navigator.clipboard.writeText(url)
+              alert('Link copied!')
+            }}
+            className="text-sm font-medium px-3 py-2 rounded-lg"
+            style={{ background: 'var(--gold-dim)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}
+          >
+            Copy Kid Login Link
+          </button>
+        </div>
+      )}
+
       {/* Kids */}
       <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
         <div className="flex items-center justify-between mb-3">
