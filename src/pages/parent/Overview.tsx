@@ -1,7 +1,8 @@
-
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
+import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 
 import { StatCard } from '../../components/parent/StatCard'
 import { ChoreRow } from '../../components/parent/ChoreRow'
@@ -13,6 +14,7 @@ const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transiti
 
 export function Overview() {
   const { chores, loading } = useChores()
+  const [showAddChore, setShowAddChore] = useState(false)
   const today = new Date().toISOString().split('T')[0]
 
   const todayChores = chores.filter(c => c.due_date === today || !c.due_date)
@@ -32,7 +34,7 @@ export function Overview() {
             {pendingApprovals > 0 && ` · ${pendingApprovals} pending`}
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowAddChore(true)}>
           <Plus size={16} /> Add Chore
         </Button>
       </div>
@@ -62,6 +64,7 @@ export function Overview() {
           ))}
         </motion.div>
       )}
+      <AddChoreSheet open={showAddChore} onClose={() => setShowAddChore(false)} onSaved={() => {}} />
     </div>
   )
 }
