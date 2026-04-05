@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useStore } from '../../lib/store'
 import { Modal } from '../ui/Modal'
@@ -11,6 +11,7 @@ interface AddChoreSheetProps {
   open: boolean
   onClose: () => void
   onSaved: () => void
+  editChore?: any
 }
 
 const POINT_PRESETS = [10, 20, 25, 30, 40, 50]
@@ -22,7 +23,7 @@ const RECURRENCE_OPTIONS = [
   { value: 'monthly', label: 'Monthly' },
 ] as const
 
-export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
+export function AddChoreSheet({ open, onClose, onSaved, editChore }: AddChoreSheetProps) {
   const { family, kids, profile } = useStore()
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('✅')
@@ -33,6 +34,28 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
   const [recurrenceDays, setRecurrenceDays] = useState<number[]>([])
   const [requiresProof, setRequiresProof] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (editChore) {
+      setName(editChore.name)
+      setEmoji(editChore.emoji)
+      setPoints(editChore.points)
+      setAssignedTo(editChore.assigned_to || '')
+      setDueDate(editChore.due_date || new Date().toISOString().split('T')[0])
+      setRecurrence(editChore.recurrence || 'none')
+      setRecurrenceDays(editChore.recurrence_days || [])
+      setRequiresProof(editChore.requires_proof || false)
+    } else {
+      setName('')
+      setEmoji('✅')
+      setPoints(10)
+      setAssignedTo('')
+      setDueDate(new Date().toISOString().split('T')[0])
+      setRecurrence('none')
+      setRecurrenceDays([])
+      setRequiresProof(false)
+    }
+  }, [editChore, open])
 
   function applyPreset(preset: typeof CHORE_PRESETS[0]) {
     setName(preset.name)
@@ -50,36 +73,37 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
     if (!name.trim() || !family) return
     setSaving(true)
 
-    await supabase.from('duty_chores').insert({
-      family_id: family.id,
-      assigned_to: assignedTo || null,
-      assigned_by: profile?.id,
+    const data = {
       name: name.trim(),
       emoji,
       points,
+      assigned_to: assignedTo || null,
       due_date: recurrence === 'none' ? (dueDate || null) : null,
       recurrence,
       recurrence_days: recurrence === 'weekly' && recurrenceDays.length > 0 ? recurrenceDays : null,
       requires_proof: requiresProof,
-    })
+    }
+
+    if (editChore) {
+      await supabase.from('duty_chores').update(data).eq('id', editChore.id)
+    } else {
+      await supabase.from('duty_chores').insert({
+        ...data,
+        family_id: family.id,
+        assigned_by: profile?.id,
+      })
+    }
 
     setSaving(false)
-    setName('')
-    setEmoji('✅')
-    setPoints(10)
-    setAssignedTo('')
-    setRecurrence('none')
-    setRecurrenceDays([])
-    setRequiresProof(false)
     onSaved()
     onClose()
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Add Chore">
+    <Modal open={open} onClose={onClose} title={editChore ? 'Edit Chore' : 'Add Chore'}>
       <div className="space-y-4">
-        {/* Preset chips */}
-        <div>
+        {/* Preset chips (new only) */}
+        {!editChore && <div>
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Quick add</label>
           <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
             {CHORE_PRESETS.map(p => (
@@ -93,7 +117,7 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
               </button>
             ))}
           </div>
-        </div>
+        </div>}
 
         {/* Name */}
         <Input label="Chore name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Take out trash" />
@@ -206,7 +230,7 @@ export function AddChoreSheet({ open, onClose, onSaved }: AddChoreSheetProps) {
         </label>
 
         <Button fullWidth onClick={handleSave} loading={saving} disabled={!name.trim()}>
-          Add Chore
+          {editChore ? 'Save Changes' : 'Add Chore'}
         </Button>
       </div>
     </Modal>

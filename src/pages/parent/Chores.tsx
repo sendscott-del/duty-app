@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
 import { useStore } from '../../lib/store'
-import { supabase } from '../../lib/supabase'
 import { approveChore } from '../../lib/approveChore'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
@@ -10,13 +9,24 @@ import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
 
 export function Chores() {
-  const { chores, loading } = useChores()
+  const { chores, loading, deleteChore, refresh } = useChores()
   const { profile } = useStore()
-  const [showAdd, setShowAdd] = useState(false)
+  const [showForm, setShowForm] = useState(false)
+  const [editChore, setEditChore] = useState<any>(null)
+
+  function handleEdit(chore: any) {
+    setEditChore(chore)
+    setShowForm(true)
+  }
 
   async function handleDelete(chore: any) {
     if (!window.confirm(`Delete "${chore.name}"?`)) return
-    await supabase.from('duty_chores').delete().eq('id', chore.id)
+    await deleteChore(chore.id)
+  }
+
+  function handleClose() {
+    setShowForm(false)
+    setEditChore(null)
   }
 
   if (loading) return <Spinner size="lg" />
@@ -25,7 +35,7 @@ export function Chores() {
     <div className="p-5 lg:p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-xl font-bold" style={{ color: 'var(--p-text)' }}>Chores</h1>
-        <Button onClick={() => setShowAdd(true)}>
+        <Button onClick={() => { setEditChore(null); setShowForm(true) }}>
           <Plus size={16} /> Add Chore
         </Button>
       </div>
@@ -41,13 +51,14 @@ export function Chores() {
               key={chore.id}
               chore={chore}
               onTap={chore.status === 'submitted' && profile ? () => approveChore(chore, profile.id) : undefined}
+              onEdit={handleEdit}
               onDelete={handleDelete}
             />
           ))}
         </div>
       )}
 
-      <AddChoreSheet open={showAdd} onClose={() => setShowAdd(false)} onSaved={() => {}} />
+      <AddChoreSheet open={showForm} onClose={handleClose} onSaved={refresh} editChore={editChore} />
     </div>
   )
 }

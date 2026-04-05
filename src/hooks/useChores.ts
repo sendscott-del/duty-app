@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../lib/store'
 
@@ -7,15 +7,21 @@ export function useChores() {
   const [chores, setChores] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const fetchChores = useCallback(async () => {
     if (!family?.id) return
-
-    supabase
+    const { data } = await supabase
       .from('duty_chores')
       .select('*, duty_profiles!assigned_to(full_name, avatar_color)')
       .eq('family_id', family.id)
       .order('created_at', { ascending: false })
-      .then(({ data }) => { setChores(data ?? []); setLoading(false) })
+    setChores(data ?? [])
+    setLoading(false)
+  }, [family?.id])
+
+  useEffect(() => {
+    fetchChores()
+
+    if (!family?.id) return
 
     const channel = supabase
       .channel('chores')
@@ -30,7 +36,12 @@ export function useChores() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [family?.id])
+  }, [family?.id, fetchChores])
 
-  return { chores, loading }
+  async function deleteChore(id: string) {
+    setChores(p => p.filter(c => c.id !== id))
+    await supabase.from('duty_chores').delete().eq('id', id)
+  }
+
+  return { chores, loading, deleteChore, refresh: fetchChores }
 }

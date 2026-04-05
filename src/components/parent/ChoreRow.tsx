@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Check, X, Clock, Trash2, Repeat } from 'lucide-react'
+import { Check, X, Clock, Trash2, Pencil, Repeat } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Avatar } from '../ui/Avatar'
 
@@ -33,10 +33,11 @@ const DAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 interface ChoreRowProps {
   chore: any
   onTap?: () => void
+  onEdit?: (chore: any) => void
   onDelete?: (chore: any) => void
 }
 
-export function ChoreRow({ chore, onTap, onDelete }: ChoreRowProps) {
+export function ChoreRow({ chore, onTap, onEdit, onDelete }: ChoreRowProps) {
   const isDone = chore.status === 'approved'
   const needsApproval = chore.status === 'submitted'
   const kid = chore.duty_profiles
@@ -77,17 +78,29 @@ export function ChoreRow({ chore, onTap, onDelete }: ChoreRowProps) {
         )}
       </motion.button>
 
-      {/* Delete button — visible on hover (desktop) or always subtly visible (mobile) */}
-      {onDelete && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(chore) }}
-          className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity lg:opacity-0"
-          style={{ color: 'var(--red)' }}
-          title="Delete chore"
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
+      {/* Edit + Delete — visible on hover */}
+      <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {onEdit && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(chore) }}
+            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
+            style={{ color: 'var(--p-muted)' }}
+            title="Edit chore"
+          >
+            <Pencil size={13} />
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(chore) }}
+            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
+            style={{ color: 'var(--red)' }}
+            title="Delete chore"
+          >
+            <Trash2 size={13} />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
