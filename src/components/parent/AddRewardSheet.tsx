@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useStore } from '../../lib/store'
 import { Modal } from '../ui/Modal'
@@ -10,9 +10,10 @@ interface AddRewardSheetProps {
   open: boolean
   onClose: () => void
   onSaved: () => void
+  editReward?: any
 }
 
-const REWARD_EMOJIS = ['🎮', '🌙', '🍕', '🎬', '😴', '💵', '🎁', '🍦', '🎨', '🏊', '🎯', '⭐']
+const REWARD_EMOJIS = ['🎮', '🌙', '🍕', '🎬', '😴', '💵', '🎁', '🍦', '🎨', '🏊', '🎯', '⭐', '🎲', '🛝', '🎳', '📚']
 const POINT_PRESETS = [100, 150, 200, 300, 400, 500]
 const TYPE_OPTIONS = [
   { value: 'experience', label: 'Experience' },
@@ -20,13 +21,27 @@ const TYPE_OPTIONS = [
   { value: 'item', label: 'Item' },
 ]
 
-export function AddRewardSheet({ open, onClose, onSaved }: AddRewardSheetProps) {
+export function AddRewardSheet({ open, onClose, onSaved, editReward }: AddRewardSheetProps) {
   const { family } = useStore()
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🎁')
   const [pointsCost, setPointsCost] = useState(200)
   const [rewardType, setRewardType] = useState('experience')
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (editReward) {
+      setName(editReward.name)
+      setEmoji(editReward.emoji)
+      setPointsCost(editReward.points_cost)
+      setRewardType(editReward.reward_type)
+    } else {
+      setName('')
+      setEmoji('🎁')
+      setPointsCost(200)
+      setRewardType('experience')
+    }
+  }, [editReward, open])
 
   function applyPreset(preset: typeof REWARD_PRESETS[0]) {
     setName(preset.name)
@@ -39,47 +54,52 @@ export function AddRewardSheet({ open, onClose, onSaved }: AddRewardSheetProps) 
     if (!name.trim() || !family) return
     setSaving(true)
 
-    await supabase.from('duty_rewards').insert({
-      family_id: family.id,
-      name: name.trim(),
-      emoji,
-      points_cost: pointsCost,
-      reward_type: rewardType,
-    })
+    if (editReward) {
+      await supabase.from('duty_rewards').update({
+        name: name.trim(),
+        emoji,
+        points_cost: pointsCost,
+        reward_type: rewardType,
+      }).eq('id', editReward.id)
+    } else {
+      await supabase.from('duty_rewards').insert({
+        family_id: family.id,
+        name: name.trim(),
+        emoji,
+        points_cost: pointsCost,
+        reward_type: rewardType,
+      })
+    }
 
     setSaving(false)
-    setName('')
-    setEmoji('🎁')
-    setPointsCost(200)
-    setRewardType('experience')
     onSaved()
     onClose()
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Add Reward">
+    <Modal open={open} onClose={onClose} title={editReward ? 'Edit Reward' : 'Add Reward'}>
       <div className="space-y-4">
-        {/* Preset chips */}
-        <div>
-          <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Quick add</label>
-          <div className="flex flex-wrap gap-1.5">
-            {REWARD_PRESETS.map(p => (
-              <button
-                key={p.name}
-                onClick={() => applyPreset(p)}
-                className="px-2.5 py-1.5 rounded-lg text-xs transition-colors"
-                style={{ background: 'var(--p-card)', color: 'var(--p-text)', border: '1px solid var(--p-border)' }}
-              >
-                {p.emoji} {p.name}
-              </button>
-            ))}
+        {/* Preset chips (only for new) */}
+        {!editReward && (
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Quick add</label>
+            <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+              {REWARD_PRESETS.map(p => (
+                <button
+                  key={p.name}
+                  onClick={() => applyPreset(p)}
+                  className="px-2.5 py-1.5 rounded-lg text-xs transition-colors"
+                  style={{ background: 'var(--p-card)', color: 'var(--p-text)', border: '1px solid var(--p-border)' }}
+                >
+                  {p.emoji} {p.name}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Name */}
         <Input label="Reward name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Extra screen time" />
 
-        {/* Emoji picker */}
         <div>
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Icon</label>
           <div className="flex flex-wrap gap-1.5">
@@ -96,7 +116,6 @@ export function AddRewardSheet({ open, onClose, onSaved }: AddRewardSheetProps) 
           </div>
         </div>
 
-        {/* Points cost */}
         <div>
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Points cost</label>
           <div className="flex gap-1.5">
@@ -113,7 +132,6 @@ export function AddRewardSheet({ open, onClose, onSaved }: AddRewardSheetProps) 
           </div>
         </div>
 
-        {/* Type */}
         <div>
           <label className="block text-xs font-medium mb-2" style={{ color: 'var(--p-muted)' }}>Type</label>
           <div className="flex gap-1.5">
@@ -131,7 +149,7 @@ export function AddRewardSheet({ open, onClose, onSaved }: AddRewardSheetProps) 
         </div>
 
         <Button fullWidth onClick={handleSave} loading={saving} disabled={!name.trim()}>
-          Add Reward
+          {editReward ? 'Save Changes' : 'Add Reward'}
         </Button>
       </div>
     </Modal>
