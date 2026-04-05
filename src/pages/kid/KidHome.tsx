@@ -35,19 +35,8 @@ export function KidHome() {
       return
     }
     await supabase.from('duty_chores').update({
-      status: 'approved',
-      approved_at: new Date().toISOString(),
+      status: 'submitted',
     }).eq('id', chore.id)
-
-    await supabase.from('duty_point_transactions').insert({
-      profile_id: profile!.id,
-      family_id: profile!.family_id,
-      amount: chore.points,
-      reason: `Completed: ${chore.name}`,
-      reference_id: chore.id,
-      reference_type: 'chore',
-      created_by: profile!.id,
-    })
   }
 
   return (

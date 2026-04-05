@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
+import { useStore } from '../../lib/store'
+import { approveChore } from '../../lib/approveChore'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 
 import { StatCard } from '../../components/parent/StatCard'
@@ -14,6 +16,7 @@ const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transiti
 
 export function Overview() {
   const { chores, loading } = useChores()
+  const { profile } = useStore()
   const [showAddChore, setShowAddChore] = useState(false)
   const today = new Date().toISOString().split('T')[0]
 
@@ -59,7 +62,7 @@ export function Overview() {
         <motion.div variants={list} initial="hidden" animate="show" className="space-y-1">
           {todayChores.map(chore => (
             <motion.div key={chore.id} variants={item}>
-              <ChoreRow chore={chore} />
+              <ChoreRow chore={chore} onTap={chore.status === 'submitted' && profile ? () => approveChore(chore, profile.id) : undefined} />
             </motion.div>
           ))}
         </motion.div>

@@ -12,7 +12,7 @@ export function useChores() {
 
     supabase
       .from('duty_chores')
-      .select('*, profiles!assigned_to(full_name, avatar_color)')
+      .select('*, duty_profiles!assigned_to(full_name, avatar_color)')
       .eq('family_id', family.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => { setChores(data ?? []); setLoading(false) })

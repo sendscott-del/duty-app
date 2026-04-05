@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useRewards } from '../../hooks/useRewards'
+import { AddRewardSheet } from '../../components/parent/AddRewardSheet'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
@@ -6,6 +8,7 @@ import { Plus } from 'lucide-react'
 
 export function Rewards() {
   const { rewards, redemptions, loading } = useRewards()
+  const [showAdd, setShowAdd] = useState(false)
   const pending = redemptions.filter(r => r.status === 'pending')
 
   if (loading) return <Spinner size="lg" />
@@ -14,7 +17,7 @@ export function Rewards() {
     <div className="p-5 lg:p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-xl font-bold" style={{ color: 'var(--p-text)' }}>Rewards</h1>
-        <Button><Plus size={16} /> Add Reward</Button>
+        <Button onClick={() => setShowAdd(true)}><Plus size={16} /> Add Reward</Button>
       </div>
 
       {/* Pending redemptions */}
@@ -25,7 +28,7 @@ export function Rewards() {
           </div>
           {pending.map(r => (
             <div key={r.id} className="text-sm py-1" style={{ color: 'var(--p-text)' }}>
-              {r.profiles?.full_name} wants {r.rewards?.name} ({r.rewards?.emoji})
+              {r.duty_profiles?.full_name} wants {r.duty_rewards?.name} ({r.duty_rewards?.emoji})
             </div>
           ))}
         </div>
@@ -49,6 +52,8 @@ export function Rewards() {
           ))}
         </div>
       )}
+
+      <AddRewardSheet open={showAdd} onClose={() => setShowAdd(false)} onSaved={() => {}} />
     </div>
   )
 }

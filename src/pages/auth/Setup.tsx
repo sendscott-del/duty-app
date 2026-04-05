@@ -19,6 +19,8 @@ export function Setup() {
   const [kidColor, setKidColor] = useState('purple')
   const [kidPin, setKidPin] = useState('')
   const [saving, setSaving] = useState(false)
+  const [selectedChores, setSelectedChores] = useState<Set<string>>(new Set())
+  const [selectedRewards, setSelectedRewards] = useState<Set<string>>(new Set())
   const { profile, setFamily } = useStore()
   const { loadProfile } = useAuth()
   const navigate = useNavigate()
@@ -34,6 +36,7 @@ export function Setup() {
     if (family && profile) {
       await supabase.from('duty_profiles').update({ family_id: family.id }).eq('id', profile.id)
       setFamily(family)
+      useStore.getState().setProfile({ ...profile, family_id: family.id })
     }
     setSaving(false)
     setStep(1)
@@ -73,7 +76,39 @@ export function Setup() {
     setStep(2)
   }
 
+  async function saveChores() {
+    const { family } = useStore.getState()
+    if (!family) { setStep(3); return }
+    setSaving(true)
+    const choresToInsert = CHORE_PRESETS.filter(p => selectedChores.has(p.name))
+    for (const c of choresToInsert) {
+      await supabase.from('duty_chores').insert({
+        family_id: family.id,
+        name: c.name,
+        emoji: c.emoji,
+        points: c.points,
+        assigned_by: profile?.id,
+      })
+    }
+    setSaving(false)
+    setStep(3)
+  }
+
   async function finish() {
+    const { family } = useStore.getState()
+    if (family) {
+      setSaving(true)
+      const rewardsToInsert = REWARD_PRESETS.filter(p => selectedRewards.has(p.name))
+      for (const r of rewardsToInsert) {
+        await supabase.from('duty_rewards').insert({
+          family_id: family.id,
+          name: r.name,
+          emoji: r.emoji,
+          points_cost: r.points_cost,
+        })
+      }
+      setSaving(false)
+    }
     navigate('/parent/overview')
   }
 
@@ -143,13 +178,19 @@ export function Setup() {
             <h2 className="font-display text-xl font-bold mb-1" style={{ color: 'var(--p-text)' }}>Add some chores</h2>
             <p className="text-sm mb-6" style={{ color: 'var(--p-muted)' }}>You can always add more later.</p>
             <div className="flex flex-wrap gap-2 mb-6">
-              {CHORE_PRESETS.map(p => (
-                <button key={p.name} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: 'var(--p-card)', color: 'var(--p-text)', border: '1px solid var(--p-border)' }}>
-                  {p.emoji} {p.name}
-                </button>
-              ))}
+              {CHORE_PRESETS.map(p => {
+                const active = selectedChores.has(p.name)
+                return (
+                  <button key={p.name}
+                    onClick={() => setSelectedChores(prev => { const n = new Set(prev); active ? n.delete(p.name) : n.add(p.name); return n })}
+                    className="px-3 py-1.5 rounded-lg text-xs"
+                    style={{ background: active ? 'var(--gold-dim)' : 'var(--p-card)', color: active ? 'var(--gold)' : 'var(--p-text)', border: active ? '1px solid var(--gold)' : '1px solid var(--p-border)' }}>
+                    {p.emoji} {p.name}
+                  </button>
+                )
+              })}
             </div>
-            <Button fullWidth onClick={() => setStep(3)}>Next</Button>
+            <Button fullWidth onClick={saveChores} loading={saving}>Next</Button>
             <button onClick={() => setStep(3)} className="w-full text-center text-xs mt-3" style={{ color: 'var(--p-dim)' }}>Skip</button>
           </div>
         )}
@@ -160,14 +201,20 @@ export function Setup() {
             <h2 className="font-display text-xl font-bold mb-1" style={{ color: 'var(--p-text)' }}>Add some rewards</h2>
             <p className="text-sm mb-6" style={{ color: 'var(--p-muted)' }}>Give them something to work toward.</p>
             <div className="flex flex-wrap gap-2 mb-6">
-              {REWARD_PRESETS.map(p => (
-                <button key={p.name} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: 'var(--p-card)', color: 'var(--p-text)', border: '1px solid var(--p-border)' }}>
-                  {p.emoji} {p.name} ({p.points_cost} pts)
-                </button>
-              ))}
+              {REWARD_PRESETS.map(p => {
+                const active = selectedRewards.has(p.name)
+                return (
+                  <button key={p.name}
+                    onClick={() => setSelectedRewards(prev => { const n = new Set(prev); active ? n.delete(p.name) : n.add(p.name); return n })}
+                    className="px-3 py-1.5 rounded-lg text-xs"
+                    style={{ background: active ? 'var(--gold-dim)' : 'var(--p-card)', color: active ? 'var(--gold)' : 'var(--p-text)', border: active ? '1px solid var(--gold)' : '1px solid var(--p-border)' }}>
+                    {p.emoji} {p.name} ({p.points_cost} pts)
+                  </button>
+                )
+              })}
             </div>
-            <Button fullWidth onClick={finish}>Start using Duty 💩</Button>
-            <button onClick={finish} className="w-full text-center text-xs mt-3" style={{ color: 'var(--p-dim)' }}>Skip</button>
+            <Button fullWidth onClick={finish} loading={saving}>Start using Duty 💩</Button>
+            <button onClick={() => navigate('/parent/overview')} className="w-full text-center text-xs mt-3" style={{ color: 'var(--p-dim)' }}>Skip</button>
           </div>
         )}
       </div>

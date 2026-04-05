@@ -30,7 +30,7 @@ interface ChoreRowProps {
 export function ChoreRow({ chore, onTap }: ChoreRowProps) {
   const isDone = chore.status === 'approved'
   const needsApproval = chore.status === 'submitted'
-  const kid = chore.profiles
+  const kid = chore.duty_profiles
 
   return (
     <motion.button
