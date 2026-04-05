@@ -3,9 +3,11 @@ import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
 import { useCompletions } from '../../hooks/useCompletions'
+import { useChallenges } from '../../hooks/useChallenges'
 import { useStore } from '../../lib/store'
 import { supabase } from '../../lib/supabase'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
+import { WeeklyChallenge } from '../../components/WeeklyChallenge'
 import { StatCard } from '../../components/parent/StatCard'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { Button } from '../../components/ui/Button'
@@ -17,7 +19,8 @@ const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transiti
 
 export function Overview() {
   const { chores, loading } = useChores()
-  const { getCompletion, approveCompletion, undoCompletion } = useCompletions()
+  const { getCompletion, approveCompletion, undoCompletion, completions } = useCompletions()
+  const { challenge, selectChallenge } = useChallenges()
   const { profile } = useStore()
   const [showAddChore, setShowAddChore] = useState(false)
   const today = new Date().toISOString().split('T')[0]
@@ -82,6 +85,16 @@ export function Overview() {
         <StatCard label="Chores done today" value={`${doneToday}/${todayChores.length}`} />
         <StatCard label="Pending approvals" value={pendingApprovals} />
         <StatCard label="Total chores" value={chores.length} />
+      </div>
+
+      {/* Weekly Challenge */}
+      <div className="mb-6">
+        <WeeklyChallenge
+          challenge={challenge}
+          progress={completions.filter(c => c.status === 'approved').length}
+          isParent={true}
+          onSelect={selectChallenge}
+        />
       </div>
 
       <div className="mb-2 text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--p-dim)' }}>

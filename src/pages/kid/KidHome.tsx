@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
 import { useStore } from '../../lib/store'
 import { useChores } from '../../hooks/useChores'
 import { useCompletions } from '../../hooks/useCompletions'
+import { useChallenges } from '../../hooks/useChallenges'
+import { WeeklyChallenge } from '../../components/WeeklyChallenge'
 import { usePoints } from '../../hooks/usePoints'
 import { useRewards } from '../../hooks/useRewards'
 import { ChoreCard } from '../../components/kid/ChoreCard'
@@ -35,7 +37,8 @@ export function KidHome() {
   const activeProfile = viewAsKid || profile
   const isParentPreview = !!viewAsKid
   const { chores, loading: choresLoading } = useChores()
-  const { getCompletion, completeChore, undoCompletion, loading: compLoading } = useCompletions()
+  const { getCompletion, completeChore, undoCompletion, completions, loading: compLoading } = useCompletions()
+  const { challenge, selectChallenge } = useChallenges()
   const { balance } = usePoints(activeProfile?.id)
   const { rewards } = useRewards()
   const navigate = useNavigate()
@@ -141,6 +144,18 @@ export function KidHome() {
             </span>
           </div>
           <ProgressBar value={progress} color="green" />
+        </div>
+      )}
+
+      {/* Weekly Challenge */}
+      {challenge && (
+        <div className="mb-6">
+          <WeeklyChallenge
+            challenge={challenge}
+            progress={completions.filter(c => c.status === 'approved').length}
+            isParent={false}
+            onSelect={selectChallenge}
+          />
         </div>
       )}
 
