@@ -53,11 +53,22 @@ export function useAuth() {
   }
 
   async function signUp(email: string, password: string, fullName: string) {
-    return supabase.auth.signUp({
+    const result = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName } }
     })
+
+    // Manually create duty_profiles row (no trigger since we share auth.users with Magnify)
+    if (result.data.user && !result.error) {
+      await supabase.from('duty_profiles').insert({
+        id: result.data.user.id,
+        full_name: fullName,
+        role: 'parent',
+      })
+    }
+
+    return result
   }
 
   async function signOut() {
