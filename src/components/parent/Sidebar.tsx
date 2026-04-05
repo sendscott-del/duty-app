@@ -24,7 +24,10 @@ export function Sidebar() {
   return (
     <div className="flex flex-col h-full w-[200px] border-r" style={{ background: 'var(--p-sidebar)', borderColor: 'var(--p-border)' }}>
       <div className="px-5 pt-6 pb-4">
-        <div className="font-display text-xl font-extrabold" style={{ color: 'var(--gold)' }}>💩 Duty</div>
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="Duty" className="w-9 h-9 rounded-lg" />
+          <span className="font-display text-xl font-extrabold" style={{ color: 'var(--gold)' }}>Duty</span>
+        </div>
         <div className="text-[11px] mt-0.5" style={{ color: 'var(--p-dim)' }}>family chore hub</div>
       </div>
 

@@ -48,8 +48,9 @@ export function Login() {
     <div className="min-h-dvh flex items-center justify-center px-5" style={{ background: 'var(--p-bg)' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
-          <div className="font-display text-4xl font-extrabold mb-1" style={{ color: 'var(--gold)' }}>💩 Duty</div>
-          <p className="text-sm" style={{ color: 'var(--p-muted)' }}>Do your duty. Earn your rewards.</p>
+          <img src="/logo.png" alt="Duty" className="w-20 h-20 rounded-2xl mx-auto mb-3" />
+          <div className="font-display text-3xl font-extrabold" style={{ color: 'var(--gold)' }}>Duty</div>
+          <p className="text-sm mt-1" style={{ color: 'var(--p-muted)' }}>Do your duty. Earn your rewards.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -66,7 +66,7 @@ export function KidPin() {
   if (noFamily) {
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'linear-gradient(145deg, #1a0e2e, #0d1a2e, #0e2212)' }}>
-        <div className="font-display text-3xl font-bold mb-3" style={{ color: 'var(--gold)' }}>💩 Duty</div>
+        <img src="/logo.png" alt="Duty" className="w-16 h-16 rounded-2xl mb-3" />
         <p className="text-sm text-center mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
           Ask your parent for the kid login link.
         </p>
@@ -80,8 +80,8 @@ export function KidPin() {
   if (!selected) {
     return (
       <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'linear-gradient(145deg, #1a0e2e, #0d1a2e, #0e2212)' }}>
-        <div className="font-display text-3xl font-bold mb-1" style={{ color: 'var(--gold)' }}>💩 Duty</div>
-        {familyName && <p className="text-xs mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{familyName}</p>}
+        <img src="/logo.png" alt="Duty" className="w-16 h-16 rounded-2xl mb-2" />
+        {familyName && <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{familyName}</p>}
         <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>Who are you?</p>
 
         <div className="grid grid-cols-2 gap-4 w-full max-w-[300px]">
