@@ -21,7 +21,7 @@ export function useRewards() {
     })
 
     const channel = supabase
-      .channel('duty-redemptions')
+      .channel(`duty-redemptions-${Date.now()}`)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_redemptions',
         filter: `family_id=eq.${family.id}`

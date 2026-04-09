@@ -14,27 +14,23 @@ import { KidShell } from './components/kid/KidShell'
 import { KidHome } from './pages/kid/KidHome'
 import { KidShop } from './pages/kid/KidShop'
 
+function AuthLoading() {
+  return (
+    <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--p-bg)' }}>
+      <div className="text-sm" style={{ color: 'var(--p-muted)' }}>Loading...</div>
+    </div>
+  )
+}
+
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { profile } = useStore()
-  const { ready } = useAuth()
   const location = useLocation()
-
-  // While auth is initializing, show loading (not a redirect)
-  if (!ready) {
-    return (
-      <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--p-bg)' }}>
-        <div className="text-sm" style={{ color: 'var(--p-muted)' }}>Loading...</div>
-      </div>
-    )
-  }
-
   if (!profile) return <Navigate to="/login" replace state={{ from: location }} />
   return children
 }
 
 function AppRoutes() {
   const { profile } = useStore()
-  const { ready } = useAuth()
 
   return (
     <Routes>
@@ -59,11 +55,7 @@ function AppRoutes() {
       <Route
         path="/"
         element={
-          !ready ? (
-            <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--p-bg)' }}>
-              <div className="text-sm" style={{ color: 'var(--p-muted)' }}>Loading...</div>
-            </div>
-          ) : !profile
+          !profile
             ? <Navigate to="/login" replace />
             : profile.role === 'parent'
             ? <Navigate to="/parent/overview" replace />
@@ -76,23 +68,13 @@ function AppRoutes() {
   )
 }
 
-function DebugOverlay() {
-  const { profile, family } = useStore()
-  const { ready } = useAuth()
-  const location = useLocation()
-  return (
-    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99999, background: '#000', color: '#0f0', padding: 8, fontSize: 11, fontFamily: 'monospace' }}>
-      ready={String(ready)} | profile={profile?.full_name ?? 'null'} | family={family?.name ?? 'null'} | path={location.pathname}
-    </div>
-  )
-}
-
 export default function App() {
-  useAuth()
+  const { ready } = useAuth()
+
+  if (!ready) return <AuthLoading />
 
   return (
     <BrowserRouter>
-      <DebugOverlay />
       <AppRoutes />
     </BrowserRouter>
   )

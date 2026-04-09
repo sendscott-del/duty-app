@@ -31,7 +31,7 @@ export function usePoints(profileId?: string) {
     if (!family?.id) return
 
     const channel = supabase
-      .channel(`points-${profileId ?? 'all'}`)
+      .channel(`points-${profileId ?? 'all'}-${Date.now()}`)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_point_transactions',
         filter: `family_id=eq.${family.id}`

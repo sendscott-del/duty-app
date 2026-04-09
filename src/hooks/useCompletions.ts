@@ -34,8 +34,9 @@ export function useCompletions() {
     fetchCompletions()
     if (!family?.id) return
 
+    const channelName = `completions-${family.id}-${Date.now()}`
     const channel = supabase
-      .channel('completions')
+      .channel(channelName)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_chore_completions',
       }, ({ eventType, new: updated, old }) => {

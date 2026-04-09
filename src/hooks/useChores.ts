@@ -23,8 +23,9 @@ export function useChores() {
 
     if (!family?.id) return
 
+    const channelName = `chores-${family.id}-${Date.now()}`
     const channel = supabase
-      .channel('chores')
+      .channel(channelName)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_chores',
         filter: `family_id=eq.${family.id}`
