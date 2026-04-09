@@ -1,5 +1,12 @@
 # Duty Release Notes
 
+## v1.1.2 — April 9, 2026
+
+### Bug Fixes
+- **Fixed kid profile picture uploads.** Photos selected for kid avatars now actually save and display. Root cause: the Supabase storage bucket was private (blocking public URL access) and the RLS insert policy required the upload path to match the user's auth ID, which didn't match the `avatars/` folder structure. Fixed by making the bucket public and adding proper policies for the avatars folder.
+
+---
+
 ## v1.1.1 — April 9, 2026
 
 ### Bug Fixes

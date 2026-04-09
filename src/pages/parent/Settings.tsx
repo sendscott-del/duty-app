@@ -48,18 +48,24 @@ export function Settings() {
     if (!file) return
     setUploading(true)
 
+    // Use a stable ID so re-uploads overwrite the same file
     const kidId = editKid?.id || crypto.randomUUID()
-    const ext = file.name.split('.').pop()
+    // Always use .webp-safe extension from the file
+    const ext = file.name.split('.').pop() || 'jpg'
     const path = `avatars/${kidId}.${ext}`
 
     const { error } = await supabase.storage
       .from('chore-proofs')
       .upload(path, file, { upsert: true })
 
-    if (!error) {
+    if (error) {
+      console.error('Avatar upload failed:', error.message)
+    } else {
       const { data } = supabase.storage.from('chore-proofs').getPublicUrl(path)
       setKidAvatarUrl(data.publicUrl + '?t=' + Date.now())
     }
+    // Reset input so selecting the same file again triggers onChange
+    if (fileRef.current) fileRef.current.value = ''
     setUploading(false)
   }
 
