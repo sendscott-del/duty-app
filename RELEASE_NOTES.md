@@ -1,10 +1,14 @@
 # Duty Release Notes
 
-## v1.1.1 — April 8, 2026
+## v1.1.1 — April 9, 2026
 
 ### Bug Fixes
-- **Fixed blank white screen on Safari.** The v1.1.0 CSS change that prevented overscroll bounce accidentally applied `overflow: hidden` to the body on ALL Safari browsers, not just standalone PWA mode. Now correctly scoped to `display-mode: standalone` only.
-- **Fixed broken custom fonts.** Hardcoded Google Fonts woff2 URLs were returning 404. Reverted to the Google Fonts CSS API which always serves current URLs.
+- **Fixed app crash (blank white screen) after login.** Supabase Realtime channels were reusing the same names across React re-renders, causing an uncaught "cannot add postgres_changes callbacks after subscribe()" error that killed the entire app.
+- **Fixed Safari overflow CSS.** The overscroll-bounce prevention was applying to all Safari browsers instead of just standalone PWA mode.
+- **Fixed render-blocking fonts.** Google Fonts now load asynchronously so the page renders immediately.
+- **Fixed infinite loading spinner.** Data hooks no longer get stuck when the Zustand store hasn't hydrated yet.
+- **Added auth guards.** Protected routes now redirect to login instead of rendering a blank shell.
+- **Sign out works.** Now does a full page redirect to clear all state properly.
 
 ---
 
