@@ -219,7 +219,7 @@ export function Settings() {
             <FileText size={16} style={{ color: 'var(--gold)' }} />
             <div>
               <div className="text-sm" style={{ color: 'var(--p-text)' }}>Release Notes</div>
-              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.1.3</div>
+              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.1.4</div>
             </div>
           </Link>
         </div>

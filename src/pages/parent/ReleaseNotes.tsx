@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.1.4',
+    date: 'April 9, 2026',
+    fixes: [],
+    features: [
+      'App icon badge — shows pending approval count on the dock/taskbar icon when installed as a PWA.',
+    ],
+  },
+  {
     version: '1.1.3',
     date: 'April 9, 2026',
     fixes: [

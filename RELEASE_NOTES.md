@@ -1,5 +1,12 @@
 # Duty Release Notes
 
+## v1.1.4 — April 9, 2026
+
+### New Features
+- **App icon badge.** When Duty is installed as a PWA (added to home screen/dock), the app icon now shows a red badge with the total count of pending chore approvals and reward requests.
+
+---
+
 ## v1.1.3 — April 9, 2026
 
 ### Bug Fixes
