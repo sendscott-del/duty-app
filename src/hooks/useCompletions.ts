@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, channelName } from '../lib/supabase'
 import { useStore } from '../lib/store'
 
 export interface ChoreCompletion {
@@ -34,9 +34,8 @@ export function useCompletions() {
     fetchCompletions()
     if (!family?.id) return
 
-    const channelName = `completions-${family.id}-${Date.now()}`
     const channel = supabase
-      .channel(channelName)
+      .channel(channelName('completions'))
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_chore_completions',
       }, ({ eventType, new: updated, old }) => {

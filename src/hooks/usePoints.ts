@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, channelName } from '../lib/supabase'
 import { useStore } from '../lib/store'
 
 export function usePoints(profileId?: string) {
@@ -31,7 +31,7 @@ export function usePoints(profileId?: string) {
     if (!family?.id) return
 
     const channel = supabase
-      .channel(`points-${profileId ?? 'all'}-${Date.now()}`)
+      .channel(channelName('points'))
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_point_transactions',
         filter: `family_id=eq.${family.id}`

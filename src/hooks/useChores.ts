@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, channelName } from '../lib/supabase'
 import { useStore } from '../lib/store'
 
 export function useChores() {
@@ -23,9 +23,8 @@ export function useChores() {
 
     if (!family?.id) return
 
-    const channelName = `chores-${family.id}-${Date.now()}`
     const channel = supabase
-      .channel(channelName)
+      .channel(channelName('chores'))
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'duty_chores',
         filter: `family_id=eq.${family.id}`

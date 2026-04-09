@@ -8,3 +8,9 @@ if (!url || !key) {
 }
 
 export const supabase = createClient(url || '', key || '')
+
+// Unique channel name generator to avoid Supabase realtime collisions
+let _channelSeq = 0
+export function channelName(prefix: string) {
+  return `${prefix}-${++_channelSeq}`
+}
