@@ -1,34 +1,6 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
 
-/* Load fonts non-blocking — preconnect hints are in index.html */
-@font-face {
-  font-family: 'DM Sans';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAkJxh.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'DM Sans';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAkJxh.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Syne';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_0KuT6kR47NCV5Z.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Syne';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('https://fonts.gstatic.com/s/syne/v22/8vIS7w4qzmVxsWxjBZRjr0FKM_0KuT6kR47NCV5Z.woff2') format('woff2');
-}
+@import "tailwindcss";
 
 :root {
   --gold: #F5C842;
@@ -64,8 +36,8 @@ body {
   min-height: 100dvh;
 }
 
-/* Safari standalone: prevent overscroll bounce that can freeze the UI */
-@supports (-webkit-touch-callout: none) {
+/* Safari standalone (home screen PWA): prevent overscroll bounce */
+@media all and (display-mode: standalone) {
   html, body {
     height: 100%;
     overflow: hidden;

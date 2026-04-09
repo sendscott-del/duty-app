@@ -1,4 +1,3 @@
-import { Component, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useStore } from './lib/store'
 import { useAuth } from './hooks/useAuth'
@@ -14,21 +13,6 @@ import { Settings } from './pages/parent/Settings'
 import { KidShell } from './components/kid/KidShell'
 import { KidHome } from './pages/kid/KidHome'
 import { KidShop } from './pages/kid/KidShop'
-
-class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
-  state = { error: null as Error | null }
-  static getDerivedStateFromError(error: Error) { return { error } }
-  render() {
-    if (this.state.error) {
-      return (
-        <pre style={{ background: '#ff0000', color: '#fff', padding: 16, whiteSpace: 'pre-wrap', fontSize: 12 }}>
-          REACT ERROR: {this.state.error.message}{'\n'}{this.state.error.stack}
-        </pre>
-      )
-    }
-    return this.props.children
-  }
-}
 
 function AppRoutes() {
   const { profile } = useStore()
@@ -73,10 +57,8 @@ export default function App() {
   useAuth()
 
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </ErrorBoundary>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   )
 }
