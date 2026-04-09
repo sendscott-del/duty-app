@@ -1,9 +1,17 @@
 # Duty Release Notes
 
+## v1.1.3 — April 9, 2026
+
+### Bug Fixes
+- **Fixed kid profile picture uploads (for real this time).** Switched from Supabase storage upload to client-side image resize + base64 stored directly in the database. The storage approach had silent RLS failures. Now photos resize to 200px, convert to JPEG, and save inline — no external storage needed.
+- **Improved iOS photo picker.** Explicit MIME types give iOS Safari better access to the photo library.
+
+---
+
 ## v1.1.2 — April 9, 2026
 
 ### Bug Fixes
-- **Fixed kid profile picture uploads.** Photos selected for kid avatars now actually save and display. Root cause: the Supabase storage bucket was private (blocking public URL access) and the RLS insert policy required the upload path to match the user's auth ID, which didn't match the `avatars/` folder structure. Fixed by making the bucket public and adding proper policies for the avatars folder.
+- **Storage policy fix for avatars.** Made Supabase storage bucket public and added proper RLS policies (upload still failed silently — superseded by v1.1.3).
 
 ---
 

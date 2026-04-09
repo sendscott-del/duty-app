@@ -3,10 +3,18 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.1.3',
+    date: 'April 9, 2026',
+    fixes: [
+      { title: 'Fixed kid profile picture uploads', desc: 'Photos now resize client-side and save directly — no more silent upload failures.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.1.2',
     date: 'April 9, 2026',
     fixes: [
-      { title: 'Fixed kid profile picture uploads', desc: 'Photos selected for kid avatars now actually save and display.' },
+      { title: 'Storage policy fix for avatars', desc: 'Updated Supabase storage bucket and RLS policies.' },
     ],
     features: [],
   },

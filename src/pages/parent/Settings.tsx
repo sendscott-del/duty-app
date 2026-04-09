@@ -49,25 +49,36 @@ export function Settings() {
     if (!file) return
     setUploading(true)
 
-    // Use a stable ID so re-uploads overwrite the same file
-    const kidId = editKid?.id || crypto.randomUUID()
-    // Always use .webp-safe extension from the file
-    const ext = file.name.split('.').pop() || 'jpg'
-    const path = `avatars/${kidId}.${ext}`
-
-    const { error } = await supabase.storage
-      .from('chore-proofs')
-      .upload(path, file, { upsert: true })
-
-    if (error) {
-      console.error('Avatar upload failed:', error.message)
-    } else {
-      const { data } = supabase.storage.from('chore-proofs').getPublicUrl(path)
-      setKidAvatarUrl(data.publicUrl + '?t=' + Date.now())
+    try {
+      const dataUrl = await resizeImage(file, 200)
+      setKidAvatarUrl(dataUrl)
+    } catch (err) {
+      alert('Could not load photo. Please try a different image.')
     }
     // Reset input so selecting the same file again triggers onChange
     if (fileRef.current) fileRef.current.value = ''
     setUploading(false)
+  }
+
+  function resizeImage(file: File, maxSize: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let w = img.width
+        let h = img.height
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+        else { w = Math.round(w * maxSize / h); h = maxSize }
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { reject(new Error('No canvas context')); return }
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = URL.createObjectURL(file)
+    })
   }
 
   async function handleSaveKid() {
@@ -208,7 +219,7 @@ export function Settings() {
             <FileText size={16} style={{ color: 'var(--gold)' }} />
             <div>
               <div className="text-sm" style={{ color: 'var(--p-text)' }}>Release Notes</div>
-              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.1.2</div>
+              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.1.3</div>
             </div>
           </Link>
         </div>
@@ -234,7 +245,7 @@ export function Settings() {
                 <Camera size={12} />
               </button>
             </div>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp" className="hidden" onChange={handleAvatarUpload} />
             {uploading && <span className="text-[10px]" style={{ color: 'var(--p-muted)' }}>Uploading...</span>}
           </div>
 
