@@ -14,6 +14,12 @@ import { KidShell } from './components/kid/KidShell'
 import { KidHome } from './pages/kid/KidHome'
 import { KidShop } from './pages/kid/KidShop'
 
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { profile } = useStore()
+  if (!profile) return <Navigate to="/login" replace />
+  return children
+}
+
 function AppRoutes() {
   const { profile } = useStore()
 
@@ -23,7 +29,7 @@ function AppRoutes() {
       <Route path="/setup" element={<Setup />} />
       <Route path="/kid-login" element={<KidPin />} />
 
-      <Route path="/parent" element={<ParentShell />}>
+      <Route path="/parent" element={<RequireAuth><ParentShell /></RequireAuth>}>
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<Overview />} />
         <Route path="chores" element={<Chores />} />
@@ -32,7 +38,7 @@ function AppRoutes() {
         <Route path="settings" element={<Settings />} />
       </Route>
 
-      <Route path="/kid" element={<KidShell />}>
+      <Route path="/kid" element={<RequireAuth><KidShell /></RequireAuth>}>
         <Route index element={<KidHome />} />
         <Route path="shop" element={<KidShop />} />
       </Route>

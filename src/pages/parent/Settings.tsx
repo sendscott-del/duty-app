@@ -183,7 +183,7 @@ export function Settings() {
         </p>
       </div>
 
-      <Button variant="red" fullWidth onClick={signOut}>
+      <Button variant="red" fullWidth onClick={async () => { await signOut(); window.location.href = '/login' }}>
         <LogOut size={16} /> Sign Out
       </Button>
 
