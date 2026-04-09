@@ -76,11 +76,23 @@ function AppRoutes() {
   )
 }
 
+function DebugOverlay() {
+  const { profile, family } = useStore()
+  const { ready } = useAuth()
+  const location = useLocation()
+  return (
+    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99999, background: '#000', color: '#0f0', padding: 8, fontSize: 11, fontFamily: 'monospace' }}>
+      ready={String(ready)} | profile={profile?.full_name ?? 'null'} | family={family?.name ?? 'null'} | path={location.pathname}
+    </div>
+  )
+}
+
 export default function App() {
   useAuth()
 
   return (
     <BrowserRouter>
+      <DebugOverlay />
       <AppRoutes />
     </BrowserRouter>
   )
