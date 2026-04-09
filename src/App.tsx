@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useStore } from './lib/store'
 import { useAuth } from './hooks/useAuth'
 import { Login } from './pages/auth/Login'
@@ -16,12 +17,25 @@ import { KidShop } from './pages/kid/KidShop'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { profile } = useStore()
-  if (!profile) return <Navigate to="/login" replace />
+  const { ready } = useAuth()
+  const location = useLocation()
+
+  // While auth is initializing, show loading (not a redirect)
+  if (!ready) {
+    return (
+      <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--p-bg)' }}>
+        <div className="text-sm" style={{ color: 'var(--p-muted)' }}>Loading...</div>
+      </div>
+    )
+  }
+
+  if (!profile) return <Navigate to="/login" replace state={{ from: location }} />
   return children
 }
 
 function AppRoutes() {
   const { profile } = useStore()
+  const { ready } = useAuth()
 
   return (
     <Routes>
@@ -46,7 +60,11 @@ function AppRoutes() {
       <Route
         path="/"
         element={
-          !profile
+          !ready ? (
+            <div className="min-h-dvh flex items-center justify-center" style={{ background: 'var(--p-bg)' }}>
+              <div className="text-sm" style={{ color: 'var(--p-muted)' }}>Loading...</div>
+            </div>
+          ) : !profile
             ? <Navigate to="/login" replace />
             : profile.role === 'parent'
             ? <Navigate to="/parent/overview" replace />

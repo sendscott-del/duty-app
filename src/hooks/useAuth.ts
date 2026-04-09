@@ -1,18 +1,36 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../lib/store'
 
+// Shared ready state so all consumers see the same value
+let _ready = false
+let _readyListeners: (() => void)[] = []
+function setReady() {
+  _ready = true
+  _readyListeners.forEach(l => l())
+  _readyListeners = []
+}
+
 export function useAuth() {
   const { setProfile, setFamily, setKids, clear } = useStore()
+  const [ready, setReadyState] = useState(_ready)
 
   useEffect(() => {
+    if (!_ready) {
+      _readyListeners.push(() => setReadyState(true))
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) loadProfile(session.user.id)
+      if (session?.user) {
+        loadProfile(session.user.id).then(setReady)
+      } else {
+        setReady()
+      }
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) loadProfile(session.user.id)
-      else clear()
+      if (session?.user) loadProfile(session.user.id).then(() => { if (!_ready) setReady() })
+      else { clear(); if (!_ready) setReady() }
     })
 
     return () => subscription.unsubscribe()
@@ -73,7 +91,6 @@ export function useAuth() {
       options: { data: { full_name: fullName } }
     })
 
-    // Manually create duty_profiles row (no trigger since we share auth.users with Magnify)
     if (result.data.user && !result.error) {
       await supabase.from('duty_profiles').insert({
         id: result.data.user.id,
@@ -90,5 +107,5 @@ export function useAuth() {
     return supabase.auth.signOut()
   }
 
-  return { signIn, signUp, signOut, loadProfile }
+  return { signIn, signUp, signOut, loadProfile, ready }
 }
