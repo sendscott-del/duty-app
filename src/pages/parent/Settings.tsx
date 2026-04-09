@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useStore } from '../../lib/store'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { AVATAR_COLORS } from '../../lib/utils'
-import { LogOut, Plus, Pencil, Trash2 } from 'lucide-react'
+import { LogOut, Plus, Pencil, Trash2, Camera } from 'lucide-react'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
@@ -20,13 +20,17 @@ export function Settings() {
   const [kidName, setKidName] = useState('')
   const [kidColor, setKidColor] = useState('purple')
   const [kidPin, setKidPin] = useState('')
+  const [kidAvatarUrl, setKidAvatarUrl] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   function openAddKid() {
     setEditKid(null)
     setKidName('')
     setKidColor(COLOR_OPTIONS[kids.length % COLOR_OPTIONS.length])
     setKidPin('')
+    setKidAvatarUrl(null)
     setShowKidForm(true)
   }
 
@@ -35,7 +39,28 @@ export function Settings() {
     setKidName(kid.full_name)
     setKidColor(kid.avatar_color)
     setKidPin(kid.pin || '')
+    setKidAvatarUrl(kid.avatar_url || null)
     setShowKidForm(true)
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+
+    const kidId = editKid?.id || crypto.randomUUID()
+    const ext = file.name.split('.').pop()
+    const path = `avatars/${kidId}.${ext}`
+
+    const { error } = await supabase.storage
+      .from('chore-proofs')
+      .upload(path, file, { upsert: true })
+
+    if (!error) {
+      const { data } = supabase.storage.from('chore-proofs').getPublicUrl(path)
+      setKidAvatarUrl(data.publicUrl + '?t=' + Date.now())
+    }
+    setUploading(false)
   }
 
   async function handleSaveKid() {
@@ -46,6 +71,7 @@ export function Settings() {
       await supabase.from('duty_profiles').update({
         full_name: kidName.trim(),
         avatar_color: kidColor,
+        avatar_url: kidAvatarUrl,
         pin: kidPin || null,
       }).eq('id', editKid.id)
     } else {
@@ -55,6 +81,7 @@ export function Settings() {
         role: 'kid',
         family_id: family.id,
         avatar_color: kidColor,
+        avatar_url: kidAvatarUrl,
         pin: kidPin || null,
       })
     }
@@ -114,7 +141,7 @@ export function Settings() {
         <div className="space-y-2">
           {kids.map(kid => (
             <div key={kid.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/[0.03] group">
-              <Avatar name={kid.full_name} color={kid.avatar_color} />
+              <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} />
               <div className="flex-1 min-w-0">
                 <div className="text-sm" style={{ color: 'var(--p-text)' }}>{kid.full_name}</div>
                 <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>
@@ -163,6 +190,23 @@ export function Settings() {
       {/* Add/Edit Kid Modal */}
       <Modal open={showKidForm} onClose={() => setShowKidForm(false)} title={editKid ? 'Edit Kid' : 'Add Kid'}>
         <div className="space-y-4">
+          {/* Profile pic */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative">
+              <Avatar name={kidName || '?'} color={kidColor} avatarUrl={kidAvatarUrl} size="lg" />
+              <button
+                onClick={() => fileRef.current?.click()}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--gold)', color: '#000' }}
+                disabled={uploading}
+              >
+                <Camera size={12} />
+              </button>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            {uploading && <span className="text-[10px]" style={{ color: 'var(--p-muted)' }}>Uploading...</span>}
+          </div>
+
           <Input label="Name" value={kidName} onChange={e => setKidName(e.target.value)} placeholder="e.g. Olivia" />
           <Input label="4-digit PIN" value={kidPin} onChange={e => setKidPin(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="1234" maxLength={4} />
 

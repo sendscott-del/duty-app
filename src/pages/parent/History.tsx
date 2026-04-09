@@ -23,7 +23,7 @@ export function History() {
             const kid = kids.find(k => k.id === t.profile_id)
             return (
               <div key={t.id} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: 'var(--p-card)' }}>
-                {kid && <Avatar name={kid.full_name} color={kid.avatar_color} size="sm" />}
+                {kid && <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />}
                 <div className="flex-1 min-w-0">
                   <div className="text-sm truncate" style={{ color: 'var(--p-text)' }}>{t.reason}</div>
                   <div className="text-[11px]" style={{ color: 'var(--p-muted)' }}>

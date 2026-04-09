@@ -14,6 +14,8 @@ import { RewardCard } from '../../components/kid/RewardCard'
 import { CoinsPill } from '../../components/kid/CoinsPill'
 import { ProgressBar } from '../../components/ui/ProgressBar'
 import { Spinner } from '../../components/ui/Spinner'
+import { toLocalDateStr } from '../../lib/utils'
+import { calcChallengeProgress } from '../../lib/challenges'
 
 const list = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' as const } } }
@@ -28,12 +30,8 @@ function formatDateLabel(date: Date): string {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 
-function toDateStr(date: Date): string {
-  return date.toISOString().split('T')[0]
-}
-
 export function KidHome() {
-  const { profile, viewAsKid, setViewAsKid } = useStore()
+  const { profile, viewAsKid, setViewAsKid, kids } = useStore()
   const activeProfile = viewAsKid || profile
   const isParentPreview = !!viewAsKid
   const { chores, loading: choresLoading } = useChores()
@@ -46,8 +44,8 @@ export function KidHome() {
 
   if (choresLoading || compLoading || !activeProfile) return <Spinner size="lg" />
 
-  const dateStr = toDateStr(viewDate)
-  const today = toDateStr(new Date())
+  const dateStr = toLocalDateStr(viewDate)
+  const today = toLocalDateStr(new Date())
   const isToday = dateStr === today
   const isPast = dateStr < today
 
@@ -102,6 +100,18 @@ export function KidHome() {
         </button>
       )}
 
+      {/* Approved chores notification for kid */}
+      {(() => {
+        const approvedToday = enrichedChores.filter(c => c._status === 'approved').length
+        return approvedToday > 0 && isToday ? (
+          <div className="mt-2 px-4 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2"
+            style={{ background: 'rgba(74,222,128,0.12)', color: 'var(--green)', border: '1px solid var(--green-border)' }}>
+            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'var(--green)' }}>{approvedToday}</span>
+            {approvedToday === 1 ? 'chore approved' : 'chores approved'} — nice work!
+          </div>
+        ) : null
+      })()}
+
       <div className="flex items-start justify-between pt-4 mb-4">
         <div>
           <h1 className="font-display text-2xl font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>
@@ -152,7 +162,7 @@ export function KidHome() {
         <div className="mb-6">
           <WeeklyChallenge
             challenge={challenge}
-            progress={completions.filter(c => c.status === 'approved').length}
+            progress={challenge ? calcChallengeProgress(challenge, completions, chores, kids.map(k => k.id)) : 0}
             isParent={false}
             onSelect={selectChallenge}
           />

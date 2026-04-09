@@ -4,7 +4,7 @@ import { BottomNav } from './BottomNav'
 
 export function ParentShell() {
   return (
-    <div className="flex h-dvh overflow-hidden" style={{ background: 'var(--p-bg)' }}>
+    <div className="flex h-[100vh] h-dvh overflow-hidden" style={{ background: 'var(--p-bg)' }}>
       {/* Sidebar — desktop only */}
       <div className="hidden lg:flex lg:flex-shrink-0">
         <Sidebar />

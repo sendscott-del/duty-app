@@ -11,7 +11,7 @@ export function useChores() {
     if (!family?.id) return
     const { data } = await supabase
       .from('duty_chores')
-      .select('*, duty_profiles!assigned_to(full_name, avatar_color)')
+      .select('*, duty_profiles!assigned_to(full_name, avatar_color, avatar_url)')
       .eq('family_id', family.id)
       .order('created_at', { ascending: false })
     setChores(data ?? [])

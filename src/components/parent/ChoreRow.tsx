@@ -62,7 +62,7 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo }: ChoreRowPro
             {chore.emoji} {chore.name}
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            {kid && <Avatar name={kid.full_name} color={kid.avatar_color} size="sm" />}
+            {kid && <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />}
             <span className="text-xs" style={{ color: 'var(--p-muted)' }}>{kid?.full_name}</span>
             {recurrenceLabel && (
               <span className="flex items-center gap-0.5 text-[10px]" style={{ color: 'var(--p-dim)' }}>

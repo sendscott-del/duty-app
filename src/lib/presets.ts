@@ -9,6 +9,9 @@ export const CHORE_PRESETS = [
   { name: 'Set the table', emoji: '🍴', points: 10 },
   { name: 'Sweep or mop', emoji: '🧺', points: 30 },
   { name: 'Water plants', emoji: '🌱', points: 15 },
+  { name: 'Practice piano', emoji: '🎹', points: 20 },
+  { name: 'Practice guitar', emoji: '🎸', points: 20 },
+  { name: 'Practice instrument', emoji: '🎵', points: 20 },
 ]
 
 export const REWARD_PRESETS = [
@@ -23,4 +26,5 @@ export const REWARD_PRESETS = [
 export const CHORE_EMOJIS = [
   '🛏️', '🗑️', '🍽️', '🧹', '🚽', '🐾', '👕', '🍴', '🧺', '🌱',
   '🧽', '🫧', '📦', '🧻', '💡', '🌿', '📬', '💩', '🐶', '🎒',
+  '🎹', '🎸', '🎵', '🎶', '🎻', '🥁', '🎺', '🎷', '📖', '✏️',
 ]

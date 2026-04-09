@@ -3,18 +3,26 @@ import { LayoutDashboard, ListChecks, Gift, Clock, Settings, Eye } from 'lucide-
 import { useStore } from '../../lib/store'
 import { Avatar } from '../ui/Avatar'
 import { usePoints } from '../../hooks/usePoints'
+import { useCompletions } from '../../hooks/useCompletions'
+import { useRewards } from '../../hooks/useRewards'
 
 const NAV = [
-  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview' },
-  { to: '/parent/chores', icon: ListChecks, label: 'Chores' },
-  { to: '/parent/rewards', icon: Gift, label: 'Rewards' },
-  { to: '/parent/history', icon: Clock, label: 'History' },
-  { to: '/parent/settings', icon: Settings, label: 'Settings' },
-]
+  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: 'chores' },
+  { to: '/parent/chores', icon: ListChecks, label: 'Chores', badgeKey: null },
+  { to: '/parent/rewards', icon: Gift, label: 'Rewards', badgeKey: 'rewards' },
+  { to: '/parent/history', icon: Clock, label: 'History', badgeKey: null },
+  { to: '/parent/settings', icon: Settings, label: 'Settings', badgeKey: null },
+] as const
 
 export function Sidebar() {
   const { kids, setViewAsKid } = useStore()
   const navigate = useNavigate()
+  const { completions } = useCompletions()
+  const { redemptions } = useRewards()
+
+  const pendingApprovals = completions.filter(c => c.status === 'submitted').length
+  const pendingRedemptions = redemptions.filter((r: any) => r.status === 'pending').length
+  const badges: Record<string, number> = { chores: pendingApprovals, rewards: pendingRedemptions }
 
   function handleViewAsKid(kid: any) {
     setViewAsKid(kid)
@@ -32,7 +40,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 space-y-0.5">
-        {NAV.map(({ to, icon: Icon, label }) => (
+        {NAV.map(({ to, icon: Icon, label, badgeKey }) => (
           <NavLink
             key={to}
             to={to}
@@ -44,7 +52,12 @@ export function Sidebar() {
             style={({ isActive }) => ({ color: isActive ? 'var(--p-text)' : 'var(--p-muted)' })}
           >
             <Icon size={16} />
-            {label}
+            <span className="flex-1">{label}</span>
+            {badgeKey && badges[badgeKey] > 0 && (
+              <span className="min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'var(--red)' }}>
+                {badges[badgeKey]}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
@@ -63,7 +76,7 @@ function KidRow({ kid, onViewAs }: { kid: any; onViewAs: () => void }) {
   const { balance } = usePoints(kid.id)
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg group">
-      <Avatar name={kid.full_name} color={kid.avatar_color} size="sm" />
+      <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />
       <div className="flex-1 min-w-0">
         <div className="text-xs truncate" style={{ color: 'var(--p-text)' }}>{kid.full_name}</div>
       </div>

@@ -4,6 +4,7 @@ import { useChores } from '../../hooks/useChores'
 import { useCompletions } from '../../hooks/useCompletions'
 import { useStore } from '../../lib/store'
 import { supabase } from '../../lib/supabase'
+import { toLocalDateStr } from '../../lib/utils'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { Button } from '../../components/ui/Button'
@@ -17,7 +18,7 @@ export function Chores() {
   const [showForm, setShowForm] = useState(false)
   const [editChore, setEditChore] = useState<any>(null)
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = toLocalDateStr(new Date())
 
   // Enrich chores with today's completion status
   const enrichedChores = chores.map(c => {

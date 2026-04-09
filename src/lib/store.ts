@@ -7,6 +7,7 @@ export interface Profile {
   role: 'parent' | 'kid'
   family_id: string | null
   avatar_color: string
+  avatar_url: string | null
   pin: string | null
 }
 

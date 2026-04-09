@@ -150,7 +150,7 @@ export function AddChoreSheet({ open, onClose, onSaved, editChore }: AddChoreShe
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${assignedTo === kid.id ? 'ring-2 ring-[var(--gold)]' : ''}`}
                 style={{ background: assignedTo === kid.id ? 'var(--gold-dim)' : 'var(--p-card)', color: 'var(--p-text)', border: '1px solid var(--p-border)' }}
               >
-                <Avatar name={kid.full_name} color={kid.avatar_color} size="sm" />
+                <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />
                 {kid.full_name.split(' ')[0]}
               </button>
             ))}
