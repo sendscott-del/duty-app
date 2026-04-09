@@ -9,7 +9,7 @@ export function useRewards() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!family?.id) return
+    if (!family?.id) { setLoading(false); return }
 
     Promise.all([
       supabase.from('duty_rewards').select('*').eq('family_id', family.id).eq('is_active', true),

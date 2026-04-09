@@ -24,7 +24,7 @@ export function useChallenges() {
   const { weekStart, weekEnd } = getWeekBounds()
 
   const fetchChallenge = useCallback(async () => {
-    if (!family?.id) return
+    if (!family?.id) { setLoading(false); return }
     const { data } = await supabase
       .from('duty_challenges')
       .select('*')

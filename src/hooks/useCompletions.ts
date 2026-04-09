@@ -21,7 +21,7 @@ export function useCompletions() {
   const [loading, setLoading] = useState(true)
 
   const fetchCompletions = useCallback(async () => {
-    if (!family?.id) return
+    if (!family?.id) { setLoading(false); return }
     const { data } = await supabase
       .from('duty_chore_completions')
       .select('*')

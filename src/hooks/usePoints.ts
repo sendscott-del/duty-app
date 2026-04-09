@@ -9,7 +9,7 @@ export function usePoints(profileId?: string) {
   const [loading, setLoading] = useState(true)
 
   const fetchPoints = useCallback(async () => {
-    if (!family?.id) return
+    if (!family?.id) { setLoading(false); return }
 
     let query = supabase
       .from('duty_point_transactions')

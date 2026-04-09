@@ -8,7 +8,7 @@ export function useChores() {
   const [loading, setLoading] = useState(true)
 
   const fetchChores = useCallback(async () => {
-    if (!family?.id) return
+    if (!family?.id) { setLoading(false); return }
     const { data } = await supabase
       .from('duty_chores')
       .select('*, duty_profiles!assigned_to(full_name, avatar_color, avatar_url)')
