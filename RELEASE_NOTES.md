@@ -1,5 +1,13 @@
 # Duty Release Notes
 
+## v1.1.1 — April 8, 2026
+
+### Bug Fixes
+- **Fixed blank white screen on Safari.** The v1.1.0 CSS change that prevented overscroll bounce accidentally applied `overflow: hidden` to the body on ALL Safari browsers, not just standalone PWA mode. Now correctly scoped to `display-mode: standalone` only.
+- **Fixed broken custom fonts.** Hardcoded Google Fonts woff2 URLs were returning 404. Reverted to the Google Fonts CSS API which always serves current URLs.
+
+---
+
 ## v1.1.0 — April 8, 2026
 
 ### Bug Fixes
