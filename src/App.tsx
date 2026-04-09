@@ -10,6 +10,8 @@ import { Chores } from './pages/parent/Chores'
 import { Rewards } from './pages/parent/Rewards'
 import { History } from './pages/parent/History'
 import { Settings } from './pages/parent/Settings'
+import { ReleaseNotes } from './pages/parent/ReleaseNotes'
+import { Guide } from './pages/parent/Guide'
 import { KidShell } from './components/kid/KidShell'
 import { KidHome } from './pages/kid/KidHome'
 import { KidShop } from './pages/kid/KidShop'
@@ -45,6 +47,8 @@ function AppRoutes() {
         <Route path="rewards" element={<Rewards />} />
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="release-notes" element={<ReleaseNotes />} />
+        <Route path="guide" element={<Guide />} />
       </Route>
 
       <Route path="/kid" element={<RequireAuth><KidShell /></RequireAuth>}>

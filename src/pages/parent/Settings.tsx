@@ -7,7 +7,8 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { AVATAR_COLORS } from '../../lib/utils'
-import { LogOut, Plus, Pencil, Trash2, Camera } from 'lucide-react'
+import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
@@ -187,6 +188,30 @@ export function Settings() {
         <p className="text-[11px]" style={{ color: 'var(--p-dim)' }}>
           As an Amazon Associate, Duty earns from qualifying purchases.
         </p>
+      </div>
+
+      {/* Help & Info */}
+      <div className="rounded-xl p-4 mb-6" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+        <div className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--p-dim)' }}>Help & Info</div>
+        <div className="space-y-2">
+          <Link
+            to="/parent/guide"
+            className="flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-white/[0.03]"
+          >
+            <BookOpen size={16} style={{ color: 'var(--gold)' }} />
+            <span className="text-sm" style={{ color: 'var(--p-text)' }}>User Guide</span>
+          </Link>
+          <Link
+            to="/parent/release-notes"
+            className="flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-white/[0.03]"
+          >
+            <FileText size={16} style={{ color: 'var(--gold)' }} />
+            <div>
+              <div className="text-sm" style={{ color: 'var(--p-text)' }}>Release Notes</div>
+              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.1.2</div>
+            </div>
+          </Link>
+        </div>
       </div>
 
       <Button variant="red" fullWidth onClick={async () => { await signOut(); window.location.href = '/login' }}>

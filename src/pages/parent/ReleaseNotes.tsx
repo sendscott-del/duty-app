@@ -1,0 +1,105 @@
+import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
+
+const RELEASES = [
+  {
+    version: '1.1.2',
+    date: 'April 9, 2026',
+    fixes: [
+      { title: 'Fixed kid profile picture uploads', desc: 'Photos selected for kid avatars now actually save and display.' },
+    ],
+    features: [],
+  },
+  {
+    version: '1.1.1',
+    date: 'April 9, 2026',
+    fixes: [
+      { title: 'Fixed app crash after login', desc: 'Supabase Realtime channels were colliding on re-render.' },
+      { title: 'Fixed Safari overflow CSS', desc: 'Overscroll bounce only applies in standalone PWA mode now.' },
+      { title: 'Fixed render-blocking fonts', desc: 'Google Fonts load asynchronously.' },
+      { title: 'Fixed infinite loading spinner', desc: 'Data hooks no longer stall before store hydration.' },
+      { title: 'Added auth guards', desc: 'Protected routes redirect to login instead of blank screen.' },
+      { title: 'Sign out works', desc: 'Full page redirect clears all state.' },
+    ],
+    features: [],
+  },
+  {
+    version: '1.1.0',
+    date: 'April 8, 2026',
+    fixes: [
+      { title: 'Chore completion status fixed', desc: 'Parent overview now correctly reflects done/approved chores.' },
+      { title: 'Weekly streak counts correctly', desc: 'Streak Squad requires ALL kids to complete ALL chores for a day.' },
+      { title: 'Safari Home Screen fixed', desc: 'No longer freezes with web app manifest and font fixes.' },
+    ],
+    features: [
+      'Day navigation on parent overview',
+      'Edit and delete chores from overview',
+      'Profile pictures for kids',
+      'Red badge notifications for approvals',
+      'Kid approved chore notification',
+      'Reward wallet for kids',
+      'Parent reward fulfillment flow',
+      'Instrument practice chore icons',
+    ],
+  },
+  {
+    version: '1.0.0',
+    date: 'Initial Release',
+    fixes: [],
+    features: [
+      'Family chore tracking with parent/kid roles',
+      'PIN login for kids',
+      'Daily, weekly, and monthly recurring chores',
+      'Points system and reward shop',
+      'Photo proof for chores',
+      'Weekly family challenges',
+    ],
+  },
+]
+
+export function ReleaseNotes() {
+  return (
+    <div className="p-5 lg:p-8 max-w-3xl">
+      <Link to="/parent/settings" className="inline-flex items-center gap-1.5 text-xs mb-4" style={{ color: 'var(--p-muted)' }}>
+        <ArrowLeft size={14} /> Back to Settings
+      </Link>
+      <h1 className="font-display text-xl font-bold mb-6" style={{ color: 'var(--p-text)' }}>Release Notes</h1>
+
+      <div className="space-y-6">
+        {RELEASES.map(r => (
+          <div key={r.version} className="rounded-xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="font-display font-bold text-base" style={{ color: 'var(--gold)' }}>v{r.version}</span>
+              <span className="text-xs" style={{ color: 'var(--p-dim)' }}>{r.date}</span>
+            </div>
+
+            {r.fixes.length > 0 && (
+              <div className="mb-3">
+                <div className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--p-dim)' }}>Bug Fixes</div>
+                <ul className="space-y-1.5">
+                  {r.fixes.map((f, i) => (
+                    <li key={i} className="text-sm" style={{ color: 'var(--p-text)' }}>
+                      <span className="font-medium">{f.title}.</span>{' '}
+                      <span style={{ color: 'var(--p-muted)' }}>{f.desc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {r.features.length > 0 && (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--p-dim)' }}>New Features</div>
+                <ul className="space-y-1">
+                  {r.features.map((f, i) => (
+                    <li key={i} className="text-sm" style={{ color: 'var(--p-text)' }}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
