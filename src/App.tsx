@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useStore } from './lib/store'
 import { useAuth } from './hooks/useAuth'
