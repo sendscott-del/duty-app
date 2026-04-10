@@ -35,6 +35,7 @@ export function ParentShell() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="lg:hidden safe-top" style={{ background: 'var(--p-bg)' }} />
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>

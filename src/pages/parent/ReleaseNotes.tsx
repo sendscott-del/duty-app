@@ -3,6 +3,15 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.2.5',
+    date: 'April 9, 2026',
+    fixes: [
+      { title: 'Fixed status bar overlap on mobile', desc: 'Content no longer hides behind the phone status bar (time, Wi-Fi, battery).' },
+      { title: 'Add Chore button works on mobile', desc: 'Button was covered by the status bar.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.2.4',
     date: 'April 9, 2026',
     fixes: [],

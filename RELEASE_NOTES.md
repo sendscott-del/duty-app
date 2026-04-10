@@ -1,5 +1,13 @@
 # Duty Release Notes
 
+## v1.2.5 — April 9, 2026
+
+### Bug Fixes
+- **Fixed status bar overlap on mobile.** Content no longer hides behind the time, Wi-Fi, and battery indicators on phones. Added safe area padding at the top of the parent view.
+- **Add Chore button works on mobile.** The button was being covered by the phone's status bar, making it untappable.
+
+---
+
 ## v1.2.4 — April 9, 2026
 
 ### New Features
