@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Check, X, Clock, Trash2, Pencil, Repeat, Undo2 } from 'lucide-react'
+import { Check, X, Clock, Trash2, Pencil, Repeat, Undo2, ThumbsDown } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Avatar } from '../ui/Avatar'
 
@@ -36,11 +36,14 @@ interface ChoreRowProps {
   onEdit?: (chore: any) => void
   onDelete?: (chore: any) => void
   onUndo?: (chore: any) => void
+  onReject?: (chore: any) => void
+  onUnapprove?: (chore: any) => void
 }
 
-export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo }: ChoreRowProps) {
+export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onUnapprove }: ChoreRowProps) {
   const isDone = chore.status === 'approved'
   const needsApproval = chore.status === 'submitted'
+  const isRejected = chore.status === 'rejected'
   const kid = chore.duty_profiles
 
   const recurrenceLabel = RECURRENCE_LABELS[chore.recurrence]
@@ -74,6 +77,8 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo }: ChoreRowPro
 
         {needsApproval ? (
           <Badge variant="amber">Needs approval</Badge>
+        ) : isRejected ? (
+          <Badge variant="red">Rejected</Badge>
         ) : (
           <Badge variant={isDone ? 'green' : 'gold'}>+{chore.points} pts</Badge>
         )}
@@ -81,14 +86,34 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo }: ChoreRowPro
 
       {/* Actions — visible on hover */}
       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        {onUndo && (isDone || needsApproval) && (
+        {onReject && needsApproval && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onReject(chore) }}
+            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
+            style={{ color: 'var(--red)' }}
+            title="Reject — send back to kid"
+          >
+            <ThumbsDown size={13} />
+          </button>
+        )}
+        {onUnapprove && isDone && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onUnapprove(chore) }}
+            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
+            style={{ color: 'var(--amber)' }}
+            title="Undo approval — reverts points"
+          >
+            <Undo2 size={13} />
+          </button>
+        )}
+        {onUndo && (needsApproval || isRejected) && (
           <button
             onClick={(e) => { e.stopPropagation(); onUndo(chore) }}
             className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
-            style={{ color: 'var(--amber)' }}
-            title="Undo completion"
+            style={{ color: 'var(--p-muted)' }}
+            title="Clear completion entirely"
           >
-            <Undo2 size={13} />
+            <X size={13} />
           </button>
         )}
         {onEdit && (

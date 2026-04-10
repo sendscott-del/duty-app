@@ -76,6 +76,34 @@ export function useCompletions() {
     }).eq('id', completionId)
   }
 
+  async function rejectCompletion(completionId: string) {
+    // Set status to rejected — kid sees "Try again"
+    const { data } = await supabase.from('duty_chore_completions').update({
+      status: 'rejected',
+      approved_at: null,
+      approved_by: null,
+    }).eq('id', completionId).select().single()
+
+    if (data) setCompletions(p => p.map(c => c.id === completionId ? (data as any) : c))
+  }
+
+  async function unapproveCompletion(completionId: string) {
+    // Revert from approved back to submitted — remove points but keep the completion
+    const { data } = await supabase.from('duty_chore_completions').update({
+      status: 'submitted',
+      approved_at: null,
+      approved_by: null,
+    }).eq('id', completionId).select().single()
+
+    if (data) setCompletions(p => p.map(c => c.id === completionId ? (data as any) : c))
+
+    // Remove the points that were awarded
+    await supabase.from('duty_point_transactions')
+      .delete()
+      .eq('reference_id', completionId)
+      .eq('reference_type', 'chore')
+  }
+
   async function undoCompletion(choreId: string, date: string) {
     const comp = getCompletion(choreId, date)
     if (!comp) return
@@ -97,5 +125,5 @@ export function useCompletions() {
     return completionId
   }
 
-  return { completions, loading, getCompletion, completeChore, approveCompletion, undoCompletion, refresh: fetchCompletions }
+  return { completions, loading, getCompletion, completeChore, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion, refresh: fetchCompletions }
 }

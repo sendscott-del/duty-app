@@ -13,7 +13,7 @@ import confetti from 'canvas-confetti'
 
 export function Chores() {
   const { chores, loading, deleteChore, refresh } = useChores()
-  const { getCompletion, approveCompletion, undoCompletion } = useCompletions()
+  const { getCompletion, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion } = useCompletions()
   const { profile } = useStore()
   const [showForm, setShowForm] = useState(false)
   const [editChore, setEditChore] = useState<any>(null)
@@ -58,6 +58,18 @@ export function Chores() {
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
   }
 
+  async function handleReject(chore: any) {
+    const comp = chore._completion
+    if (!comp) return
+    await rejectCompletion(comp.id)
+  }
+
+  async function handleUnapprove(chore: any) {
+    const comp = chore._completion
+    if (!comp) return
+    await unapproveCompletion(comp.id)
+  }
+
   async function handleUndo(chore: any) {
     await undoCompletion(chore.id, today)
   }
@@ -92,6 +104,8 @@ export function Chores() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onUndo={handleUndo}
+              onReject={handleReject}
+              onUnapprove={handleUnapprove}
             />
           ))}
         </div>

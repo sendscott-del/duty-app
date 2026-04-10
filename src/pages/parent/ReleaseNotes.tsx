@@ -3,6 +3,16 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.2.2',
+    date: 'April 9, 2026',
+    fixes: [],
+    features: [
+      'Reject chores — send a submitted chore back to the kid to redo.',
+      'Undo approval — revert an approved chore and remove awarded points.',
+      'Clear completion — fully reset a chore to pending.',
+    ],
+  },
+  {
     version: '1.2.1',
     date: 'April 9, 2026',
     fixes: [

@@ -1,5 +1,14 @@
 # Duty Release Notes
 
+## v1.2.2 — April 9, 2026
+
+### New Features
+- **Reject chores.** When a kid submits a chore, parents can now reject it (thumbs-down icon on hover). The kid sees "Try again" and can redo the chore.
+- **Undo approval.** After approving a chore, parents can undo it (undo icon on hover). This reverts the status back to "Needs approval" and removes the points that were awarded.
+- **Clear completion.** Parents can fully clear a submitted or rejected chore (X icon on hover), resetting it to pending as if the kid never marked it done.
+
+---
+
 ## v1.2.1 — April 9, 2026
 
 ### Bug Fixes

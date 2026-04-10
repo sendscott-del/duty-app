@@ -31,7 +31,7 @@ function formatDateLabel(date: Date): string {
 
 export function Overview() {
   const { chores, loading, deleteChore, refresh } = useChores()
-  const { getCompletion, approveCompletion, undoCompletion, completions } = useCompletions()
+  const { getCompletion, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion, completions } = useCompletions()
   const { challenge, selectChallenge } = useChallenges()
   const { profile, kids } = useStore()
   const [showAddChore, setShowAddChore] = useState(false)
@@ -78,6 +78,18 @@ export function Overview() {
       })
     }
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
+  }
+
+  async function handleReject(chore: any) {
+    const comp = chore._completion
+    if (!comp) return
+    await rejectCompletion(comp.id)
+  }
+
+  async function handleUnapprove(chore: any) {
+    const comp = chore._completion
+    if (!comp) return
+    await unapproveCompletion(comp.id)
   }
 
   async function handleUndo(chore: any) {
@@ -170,6 +182,8 @@ export function Overview() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onUndo={handleUndo}
+                onReject={handleReject}
+                onUnapprove={handleUnapprove}
               />
             </motion.div>
           ))}
