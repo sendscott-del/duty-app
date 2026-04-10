@@ -1,6 +1,9 @@
 import { Outlet } from 'react-router-dom'
+import { useNotificationWatcher } from '../../hooks/useNotifications'
 
 export function KidShell() {
+  useNotificationWatcher()
+
   return (
     <div
       className="min-h-[100vh] min-h-dvh flex flex-col"

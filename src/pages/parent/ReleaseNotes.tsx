@@ -3,11 +3,15 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
-    version: '1.1.4',
+    version: '1.2.0',
     date: 'April 9, 2026',
     fixes: [],
     features: [
-      'App icon badge — shows pending approval count on the dock/taskbar icon when installed as a PWA.',
+      'Push notifications — get notified when kids complete chores or request rewards. Toggle on/off in Settings.',
+      'Kid notifications — kids get notified when their chores are approved.',
+      'Notification settings — control whether you receive notifications from the Settings page.',
+      'Install app guide — Settings now shows step-by-step instructions to install Duty as an app on your phone or computer.',
+      'App icon badge — shows pending approval count on the dock/home screen icon.',
     ],
   },
   {

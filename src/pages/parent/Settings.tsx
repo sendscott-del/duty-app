@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useStore } from '../../lib/store'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
@@ -7,7 +7,8 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { AVATAR_COLORS } from '../../lib/utils'
-import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText } from 'lucide-react'
+import { getNotifPref, setNotifPref, requestNotifPermission, getNotifPermission } from '../../hooks/useNotifications'
+import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, Download } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
@@ -25,6 +26,59 @@ export function Settings() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  // Notification state
+  const [notifEnabled, setNotifEnabled] = useState(getNotifPref)
+  const [notifPermission, setNotifPermission] = useState(getNotifPermission)
+
+  // PWA install detection
+  const [isInstalled, setIsInstalled] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
+  const deferredPrompt = useRef<any>(null)
+
+  useEffect(() => {
+    // Check if running as installed PWA
+    const standalone = window.matchMedia('(display-mode: standalone)').matches
+      || (navigator as any).standalone === true
+    setIsInstalled(standalone)
+
+    // Detect iOS
+    const ua = navigator.userAgent
+    setIsIOS(/iPad|iPhone|iPod/.test(ua) || (ua.includes('Mac') && 'ontouchend' in document))
+
+    // Capture install prompt for Android/Chrome
+    const handler = (e: Event) => { e.preventDefault(); deferredPrompt.current = e }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  async function toggleNotifications() {
+    if (!notifEnabled) {
+      const granted = await requestNotifPermission()
+      if (granted) {
+        setNotifPref(true)
+        setNotifEnabled(true)
+        setNotifPermission('granted')
+      } else {
+        setNotifPermission(getNotifPermission())
+        if (getNotifPermission() === 'denied') {
+          alert('Notifications are blocked. Go to your browser settings to allow notifications for this site.')
+        }
+      }
+    } else {
+      setNotifPref(false)
+      setNotifEnabled(false)
+    }
+  }
+
+  async function handleInstall() {
+    if (deferredPrompt.current) {
+      deferredPrompt.current.prompt()
+      const result = await deferredPrompt.current.userChoice
+      if (result.outcome === 'accepted') setIsInstalled(true)
+      deferredPrompt.current = null
+    }
+  }
 
   function openAddKid() {
     setEditKid(null)
@@ -201,6 +255,93 @@ export function Settings() {
         </p>
       </div>
 
+      {/* Notifications */}
+      <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Bell size={14} style={{ color: 'var(--gold)' }} />
+          <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--p-dim)' }}>Notifications</div>
+        </div>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <div className="text-sm" style={{ color: 'var(--p-text)' }}>Push notifications</div>
+            <div className="text-[11px]" style={{ color: 'var(--p-muted)' }}>
+              Get notified when kids complete chores or request rewards
+            </div>
+          </div>
+          <button
+            onClick={toggleNotifications}
+            className="relative w-11 h-6 rounded-full transition-colors"
+            style={{ background: notifEnabled ? 'var(--gold)' : 'var(--p-border)' }}
+          >
+            <div
+              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+              style={{ transform: notifEnabled ? 'translateX(22px)' : 'translateX(2px)' }}
+            />
+          </button>
+        </div>
+        {notifPermission === 'denied' && (
+          <p className="text-[11px] mt-2" style={{ color: 'var(--red)' }}>
+            Notifications are blocked. Open your browser/phone settings to allow notifications for this site.
+          </p>
+        )}
+        {notifPermission === 'unsupported' && (
+          <p className="text-[11px] mt-2" style={{ color: 'var(--p-muted)' }}>
+            Notifications aren't supported in this browser.
+          </p>
+        )}
+        {notifEnabled && (
+          <div className="mt-3 pt-3 space-y-1" style={{ borderTop: '1px solid var(--p-border)' }}>
+            <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>You'll be notified when:</div>
+            <div className="text-[11px]" style={{ color: 'var(--p-muted)' }}>- A kid marks a chore as done (needs approval)</div>
+            <div className="text-[11px]" style={{ color: 'var(--p-muted)' }}>- A kid requests a reward</div>
+            <div className="text-[11px]" style={{ color: 'var(--p-muted)' }}>- App icon badge shows pending count</div>
+          </div>
+        )}
+      </div>
+
+      {/* Install App */}
+      {!isInstalled && (
+        <div className="rounded-xl p-4 mb-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Download size={14} style={{ color: 'var(--gold)' }} />
+            <div className="text-xs uppercase tracking-wider" style={{ color: 'var(--p-dim)' }}>Install App</div>
+          </div>
+          <p className="text-sm mb-3" style={{ color: 'var(--p-muted)' }}>
+            Install Duty on your device for the best experience — app icon badges, notifications, and fullscreen mode.
+          </p>
+          {deferredPrompt.current ? (
+            <button
+              onClick={handleInstall}
+              className="text-sm font-medium px-3 py-2 rounded-lg"
+              style={{ background: 'var(--gold-dim)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}
+            >
+              Install Duty
+            </button>
+          ) : isIOS ? (
+            <div className="rounded-lg p-3" style={{ background: 'var(--p-bg)', border: '1px solid var(--p-border)' }}>
+              <div className="text-xs font-medium mb-2" style={{ color: 'var(--p-text)' }}>On iPhone / iPad:</div>
+              <ol className="text-[11px] space-y-1.5" style={{ color: 'var(--p-muted)' }}>
+                <li>1. Open this page in <strong style={{ color: 'var(--p-text)' }}>Safari</strong> (not Chrome)</li>
+                <li>2. Tap the <strong style={{ color: 'var(--p-text)' }}>Share</strong> button (square with arrow at bottom)</li>
+                <li>3. Scroll down and tap <strong style={{ color: 'var(--p-text)' }}>Add to Home Screen</strong></li>
+                <li>4. Tap <strong style={{ color: 'var(--p-text)' }}>Add</strong></li>
+              </ol>
+              <p className="text-[10px] mt-2" style={{ color: 'var(--p-dim)' }}>
+                This gives you app icon badges, notifications, and fullscreen mode.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg p-3" style={{ background: 'var(--p-bg)', border: '1px solid var(--p-border)' }}>
+              <div className="text-xs font-medium mb-2" style={{ color: 'var(--p-text)' }}>On Desktop (Chrome / Edge):</div>
+              <ol className="text-[11px] space-y-1.5" style={{ color: 'var(--p-muted)' }}>
+                <li>1. Click the <strong style={{ color: 'var(--p-text)' }}>install icon</strong> in the address bar (or the three-dot menu)</li>
+                <li>2. Click <strong style={{ color: 'var(--p-text)' }}>Install</strong></li>
+              </ol>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Help & Info */}
       <div className="rounded-xl p-4 mb-6" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
         <div className="text-xs uppercase tracking-wider mb-3" style={{ color: 'var(--p-dim)' }}>Help & Info</div>
@@ -219,7 +360,7 @@ export function Settings() {
             <FileText size={16} style={{ color: 'var(--gold)' }} />
             <div>
               <div className="text-sm" style={{ color: 'var(--p-text)' }}>Release Notes</div>
-              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.1.4</div>
+              <div className="text-[11px]" style={{ color: 'var(--p-dim)' }}>v1.2.0</div>
             </div>
           </Link>
         </div>

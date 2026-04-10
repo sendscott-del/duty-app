@@ -74,6 +74,24 @@ const PARENT_SECTIONS: Section[] = [
       'Photos appear throughout the app in place of color initials.',
     ],
   },
+  {
+    title: 'Notifications',
+    items: [
+      'Toggle push notifications on or off in Settings.',
+      'Get notified when a kid finishes a chore or requests a reward.',
+      'Notifications work best when Duty is installed as an app.',
+    ],
+  },
+  {
+    title: 'Installing Duty as an App',
+    items: [
+      'iPhone/iPad: Open in Safari, tap Share, then "Add to Home Screen".',
+      'Android: Tap the install banner or use the browser menu.',
+      'Desktop (Chrome/Edge): Click the install icon in the address bar.',
+      'Installing gives you app icon badges, notifications, and fullscreen mode.',
+      'Settings will show install instructions if the app isn\'t installed yet.',
+    ],
+  },
 ]
 
 const KID_SECTIONS: Section[] = [

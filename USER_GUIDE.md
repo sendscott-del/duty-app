@@ -64,10 +64,24 @@ Duty is a family chore tracking app that gamifies household responsibilities wit
 - View all point transactions (earned and spent)
 - Shows kid avatar, reason, date, and amount
 
+### Notifications
+- Toggle push notifications on/off in Settings
+- Parents are notified when a kid finishes a chore or requests a reward
+- Kids are notified when their chore is approved
+- Notifications work best when Duty is installed as an app (see below)
+
+### Installing Duty as an App
+- **iPhone/iPad**: Open in Safari, tap Share, then "Add to Home Screen"
+- **Android**: Tap the install banner or use the browser menu > "Add to Home Screen"
+- **Desktop (Chrome/Edge)**: Click the install icon in the address bar
+- Installing gives you: app icon badges, notifications, and fullscreen mode
+- Settings will show install instructions if the app isn't installed yet
+
 ### Settings
 - Edit family name
 - Copy Kid Login Link to share
 - Add/edit/delete kids (name, color, profile picture, PIN)
+- Notification preferences (on/off toggle)
 - Amazon Associates tag for affiliate rewards
 
 ## For Kids

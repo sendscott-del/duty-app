@@ -1,9 +1,19 @@
 # Duty Release Notes
 
+## v1.2.0 — April 9, 2026
+
+### New Features
+- **Push notifications.** Parents get notified when kids complete chores or request rewards. Kids get notified when their chores are approved. Works when the app is open or in the background (installed PWA).
+- **Notification settings.** New toggle in Settings to enable/disable notifications. Shows current permission status and what you'll be notified about.
+- **Install app guide.** Settings now detects whether Duty is installed as an app and shows step-by-step instructions for iPhone, Android, and desktop if it's not.
+- **App icon badge.** When Duty is installed as a PWA, the app icon shows a red badge with the total pending count.
+
+---
+
 ## v1.1.4 — April 9, 2026
 
 ### New Features
-- **App icon badge.** When Duty is installed as a PWA (added to home screen/dock), the app icon now shows a red badge with the total count of pending chore approvals and reward requests.
+- **App icon badge.** (Moved to v1.2.0 as part of the full notifications feature.)
 
 ---
 

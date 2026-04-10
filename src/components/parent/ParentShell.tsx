@@ -4,10 +4,13 @@ import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { useCompletions } from '../../hooks/useCompletions'
 import { useRewards } from '../../hooks/useRewards'
+import { useNotificationWatcher } from '../../hooks/useNotifications'
 
 export function ParentShell() {
   const { completions } = useCompletions()
   const { redemptions } = useRewards()
+
+  useNotificationWatcher()
 
   const totalBadge =
     completions.filter(c => c.status === 'submitted').length +
