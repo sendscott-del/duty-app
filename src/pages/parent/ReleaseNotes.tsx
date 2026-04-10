@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.2.3',
+    date: 'April 9, 2026',
+    fixes: [],
+    features: [
+      'Mobile action sheet — tap any chore row to see all actions (Approve, Reject, Undo, Edit, Delete).',
+    ],
+  },
+  {
     version: '1.2.2',
     date: 'April 9, 2026',
     fixes: [],

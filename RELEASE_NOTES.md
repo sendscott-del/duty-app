@@ -1,5 +1,13 @@
 # Duty Release Notes
 
+## v1.2.3 — April 9, 2026
+
+### Improvements
+- **Mobile action sheet for chores.** Tapping a chore row on mobile now opens a bottom sheet with all available actions (Approve, Reject, Undo Approval, Edit, Delete, etc.). Previously these were only available on hover, which doesn't work on phones.
+- Desktop still uses hover-to-reveal icons.
+
+---
+
 ## v1.2.2 — April 9, 2026
 
 ### New Features
