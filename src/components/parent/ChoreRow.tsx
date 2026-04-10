@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, X, Clock, Trash2, Pencil, Repeat, Undo2, ThumbsDown, CheckCircle } from 'lucide-react'
+import { Check, X, Clock, Trash2, Pencil, Repeat, Undo2, ThumbsDown, CheckCircle, MoreVertical } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { Avatar } from '../ui/Avatar'
 
@@ -60,7 +60,7 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
     ? chore.recurrence_days.map((d: number) => DAY_ABBR[d]).join(', ')
     : null
 
-  // Build action list for the mobile sheet
+  // Build action list for the action sheet
   const actions: ActionItem[] = []
   if (onTap && needsApproval) {
     actions.push({ label: 'Approve', icon: <CheckCircle size={16} />, color: 'var(--green)', action: () => { onTap(); setShowActions(false) } })
@@ -81,22 +81,12 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
     actions.push({ label: 'Delete Chore', icon: <Trash2 size={16} />, color: 'var(--red)', action: () => { onDelete(chore); setShowActions(false) } })
   }
 
-  function handleRowTap() {
-    // Desktop: use onTap directly (approve submitted chores)
-    // Mobile: always open action sheet if there are actions
-    if (window.innerWidth >= 1024) {
-      onTap?.()
-    } else {
-      if (actions.length > 0) setShowActions(true)
-    }
-  }
-
   return (
     <>
       <div className="flex items-center gap-1 group">
         <motion.button
           className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors min-h-[52px] hover:bg-white/[0.03]"
-          onClick={handleRowTap}
+          onClick={onTap}
           whileTap={{ scale: 0.99 }}
         >
           {STATUS_CIRCLE[chore.status]}
@@ -125,7 +115,18 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
           )}
         </motion.button>
 
-        {/* Desktop: actions visible on hover */}
+        {/* More button — always visible, opens action sheet */}
+        {actions.length > 0 && (
+          <button
+            onClick={() => setShowActions(true)}
+            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06] shrink-0"
+            style={{ color: 'var(--p-dim)' }}
+          >
+            <MoreVertical size={16} />
+          </button>
+        )}
+
+        {/* Desktop: extra icons on hover */}
         <div className="hidden lg:flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           {onReject && needsApproval && (
             <button
@@ -180,23 +181,27 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
         </div>
       </div>
 
-      {/* Mobile: action sheet */}
+      {/* Action sheet */}
       <AnimatePresence>
         {showActions && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+              className="fixed inset-0 z-40 bg-black/50"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setShowActions(false)}
             />
             <motion.div
-              className="fixed inset-x-0 bottom-0 z-50 lg:hidden"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              className="fixed z-50 inset-x-0 bottom-0 lg:inset-0 lg:flex lg:items-center lg:justify-center"
+              initial={{ y: '100%', opacity: 0.8 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             >
-              <div className="rounded-t-2xl border-t" style={{ background: 'var(--p-surface)', borderColor: 'var(--p-border)' }}>
+              <div
+                className="rounded-t-2xl lg:rounded-2xl w-full lg:max-w-sm border-t lg:border"
+                style={{ background: 'var(--p-surface)', borderColor: 'var(--p-border)' }}
+                onClick={(e) => e.stopPropagation()}
+              >
                 {/* Header */}
                 <div className="px-5 pt-4 pb-2">
                   <div className="text-sm font-medium" style={{ color: 'var(--p-text)' }}>{chore.emoji} {chore.name}</div>
@@ -209,7 +214,7 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
                     <button
                       key={a.label}
                       onClick={a.action}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors active:bg-white/[0.06]"
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors active:bg-white/[0.06] hover:bg-white/[0.03]"
                     >
                       <span style={{ color: a.color }}>{a.icon}</span>
                       <span className="text-sm" style={{ color: a.color }}>{a.label}</span>
