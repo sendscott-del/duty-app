@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import { useStore } from '../lib/store'
 import { useCompletions } from './useCompletions'
 import { useRewards } from './useRewards'
