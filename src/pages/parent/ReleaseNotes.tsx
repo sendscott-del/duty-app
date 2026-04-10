@@ -3,6 +3,15 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.2.1',
+    date: 'April 9, 2026',
+    fixes: [
+      { title: 'Auto-update for installed PWA', desc: 'App checks for updates every 60 seconds and reloads automatically. No more manual reinstalls.' },
+      { title: 'Fixed service worker not loading', desc: 'Vercel rewrite was serving index.html instead of sw.js.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.2.0',
     date: 'April 9, 2026',
     fixes: [],

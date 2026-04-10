@@ -1,5 +1,13 @@
 # Duty Release Notes
 
+## v1.2.1 — April 9, 2026
+
+### Bug Fixes
+- **Auto-update for installed PWA.** The app now checks for updates every 60 seconds and automatically reloads when a new version is available. No more needing to delete and reinstall from the home screen.
+- **Fixed service worker not loading.** Vercel's catch-all rewrite was serving `index.html` instead of `sw.js`, so the service worker never registered. Added explicit rewrite rules for `sw.js` and `manifest.json`.
+
+---
+
 ## v1.2.0 — April 9, 2026
 
 ### New Features
