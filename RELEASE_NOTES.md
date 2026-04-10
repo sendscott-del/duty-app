@@ -1,5 +1,15 @@
 # Duty Release Notes
 
+## v1.2.4 — April 9, 2026
+
+### New Features
+- **View as Kid on mobile.** A kid picker strip now appears above the bottom navigation bar. Tap any kid's name to switch to their view — same as the sidebar feature on desktop.
+
+### Improvements
+- **Sidebar eye icon always visible.** The "View as" eye icon in the desktop sidebar is now always visible instead of only on hover.
+
+---
+
 ## v1.2.3 — April 9, 2026
 
 ### Improvements

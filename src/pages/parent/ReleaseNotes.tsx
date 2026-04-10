@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.2.4',
+    date: 'April 9, 2026',
+    fixes: [],
+    features: [
+      'View as Kid on mobile — kid picker strip above the bottom nav lets you switch to any kid\'s view.',
+    ],
+  },
+  {
     version: '1.2.3',
     date: 'April 9, 2026',
     fixes: [],

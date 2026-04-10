@@ -83,7 +83,7 @@ function KidRow({ kid, onViewAs }: { kid: any; onViewAs: () => void }) {
       <div className="text-[11px] font-medium" style={{ color: 'var(--gold)' }}>{balance}</div>
       <button
         onClick={onViewAs}
-        className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+        className="p-1 rounded opacity-60 hover:opacity-100 transition-opacity"
         style={{ color: 'var(--p-muted)' }}
         title={`View as ${kid.full_name}`}
       >

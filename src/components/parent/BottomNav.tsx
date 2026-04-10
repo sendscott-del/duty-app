@@ -1,7 +1,9 @@
-import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, ListChecks, Gift, Clock, Settings } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, ListChecks, Gift, Clock, Settings, Eye } from 'lucide-react'
 import { useCompletions } from '../../hooks/useCompletions'
 import { useRewards } from '../../hooks/useRewards'
+import { useStore } from '../../lib/store'
+import { Avatar } from '../ui/Avatar'
 
 const TABS = [
   { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: 'chores' },
@@ -14,6 +16,8 @@ const TABS = [
 export function BottomNav() {
   const { completions } = useCompletions()
   const { redemptions } = useRewards()
+  const { kids, setViewAsKid } = useStore()
+  const navigate = useNavigate()
 
   const pendingApprovals = completions.filter(c => c.status === 'submitted').length
   const pendingRedemptions = redemptions.filter((r: any) => r.status === 'pending').length
@@ -23,8 +27,32 @@ export function BottomNav() {
     rewards: pendingRedemptions,
   }
 
+  function handleViewAsKid(kid: any) {
+    setViewAsKid(kid)
+    navigate('/kid')
+  }
+
   return (
-    <nav className="flex h-14">
+    <div>
+      {/* Kid strip */}
+      {kids.length > 0 && (
+        <div className="flex items-center gap-1 px-3 py-1.5 border-b" style={{ borderColor: 'var(--p-border)' }}>
+          <Eye size={10} style={{ color: 'var(--p-dim)' }} />
+          <span className="text-[10px] mr-1" style={{ color: 'var(--p-dim)' }}>View as</span>
+          {kids.map(kid => (
+            <button
+              key={kid.id}
+              onClick={() => handleViewAsKid(kid)}
+              className="flex items-center gap-1 px-2 py-1 rounded-full transition-colors active:bg-white/[0.06]"
+              style={{ background: 'var(--p-card)' }}
+            >
+              <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />
+              <span className="text-[10px]" style={{ color: 'var(--p-text)' }}>{kid.full_name.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <nav className="flex h-14">
       {TABS.map(({ to, icon: Icon, label, badgeKey }) => (
         <NavLink
           key={to}
@@ -47,5 +75,6 @@ export function BottomNav() {
         </NavLink>
       ))}
     </nav>
+    </div>
   )
 }
