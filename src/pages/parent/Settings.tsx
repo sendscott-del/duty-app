@@ -106,6 +106,19 @@ export function Settings() {
     try {
       const dataUrl = await resizeImage(file, 200)
       setKidAvatarUrl(dataUrl)
+
+      // If editing an existing kid, save the photo immediately
+      if (editKid) {
+        const { error } = await supabase.from('duty_profiles')
+          .update({ avatar_url: dataUrl })
+          .eq('id', editKid.id)
+        if (error) {
+          alert('Failed to save photo. Please try again.')
+          setKidAvatarUrl(editKid.avatar_url || null)
+        } else if (profile) {
+          await loadProfile(profile.id)
+        }
+      }
     } catch (err) {
       alert('Could not load photo. Please try a different image.')
     }
@@ -140,14 +153,15 @@ export function Settings() {
     setSaving(true)
 
     if (editKid) {
-      await supabase.from('duty_profiles').update({
+      const { error } = await supabase.from('duty_profiles').update({
         full_name: kidName.trim(),
         avatar_color: kidColor,
         avatar_url: kidAvatarUrl,
         pin: kidPin || null,
       }).eq('id', editKid.id)
+      if (error) { alert('Failed to save: ' + error.message); setSaving(false); return }
     } else {
-      await supabase.from('duty_profiles').insert({
+      const { error } = await supabase.from('duty_profiles').insert({
         id: crypto.randomUUID(),
         full_name: kidName.trim(),
         role: 'kid',
@@ -156,6 +170,7 @@ export function Settings() {
         avatar_url: kidAvatarUrl,
         pin: kidPin || null,
       })
+      if (error) { alert('Failed to save: ' + error.message); setSaving(false); return }
     }
 
     if (profile) await loadProfile(profile.id)
