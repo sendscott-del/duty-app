@@ -1,5 +1,12 @@
 # Duty Release Notes
 
+## v1.2.6 — April 20, 2026
+
+### Bug Fixes
+- **Add Chore button now reachable on iPhone.** The bottom-sheet modal was being cut off below the iOS home indicator / dynamic toolbar, hiding the Add Chore button. Modal now uses dynamic viewport height and respects `safe-area-inset-bottom`. The title header is also pinned while the form scrolls.
+
+---
+
 ## v1.2.5 — April 9, 2026
 
 ### Bug Fixes

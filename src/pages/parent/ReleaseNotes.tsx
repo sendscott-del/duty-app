@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.2.6',
+    date: 'April 20, 2026',
+    fixes: [
+      { title: 'Add Chore button reachable on iPhone', desc: 'Bottom sheet now respects the iOS safe area and dynamic toolbar, so the Add Chore button is always scrollable into view. Header stays pinned while the form scrolls.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.2.5',
     date: 'April 9, 2026',
     fixes: [

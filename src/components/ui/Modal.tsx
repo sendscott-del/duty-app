@@ -23,7 +23,8 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
             className="fixed z-50 inset-x-0 bottom-0 lg:inset-0 lg:flex lg:items-center lg:justify-center"
           >
             <motion.div
-              className="bg-[var(--p-surface)] rounded-t-2xl lg:rounded-2xl w-full lg:max-w-lg max-h-[85vh] overflow-y-auto border-t border-[var(--p-border)] lg:border"
+              className="bg-[var(--p-surface)] rounded-t-2xl lg:rounded-2xl w-full lg:max-w-lg overflow-y-auto border-t border-[var(--p-border)] lg:border"
+              style={{ maxHeight: 'min(85dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 16px))' }}
               initial={{ y: '100%', opacity: 0.8 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
@@ -31,14 +32,14 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {title && (
-                <div className="flex items-center justify-between px-5 pt-5 pb-3">
+                <div className="flex items-center justify-between px-5 pt-5 pb-3 sticky top-0 z-10" style={{ background: 'var(--p-surface)' }}>
                   <h3 className="text-base font-medium" style={{ color: 'var(--p-text)' }}>{title}</h3>
                   <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--p-card)]" style={{ color: 'var(--p-muted)' }}>
                     <X size={18} />
                   </button>
                 </div>
               )}
-              <div className="px-5 pb-5">
+              <div className="px-5" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
                 {children}
               </div>
             </motion.div>
