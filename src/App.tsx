@@ -7,6 +7,7 @@ import { KidPin } from './pages/auth/KidPin'
 import { ParentShell } from './components/parent/ParentShell'
 import { Overview } from './pages/parent/Overview'
 import { Chores } from './pages/parent/Chores'
+import { Approvals } from './pages/parent/Approvals'
 import { Rewards } from './pages/parent/Rewards'
 import { History } from './pages/parent/History'
 import { Settings } from './pages/parent/Settings'
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<Overview />} />
         <Route path="chores" element={<Chores />} />
+        <Route path="approvals" element={<Approvals />} />
         <Route path="rewards" element={<Rewards />} />
         <Route path="history" element={<History />} />
         <Route path="settings" element={<Settings />} />

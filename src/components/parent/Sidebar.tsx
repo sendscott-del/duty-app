@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ListChecks, Gift, Clock, Settings, Eye } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Inbox, Gift, Clock, Settings, Eye } from 'lucide-react'
 import { useStore } from '../../lib/store'
 import { Avatar } from '../ui/Avatar'
 import { usePoints } from '../../hooks/usePoints'
@@ -7,7 +7,8 @@ import { useCompletions } from '../../hooks/useCompletions'
 import { useRewards } from '../../hooks/useRewards'
 
 const NAV = [
-  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: 'chores' },
+  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: null },
+  { to: '/parent/approvals', icon: Inbox, label: 'Approvals', badgeKey: 'approvals' },
   { to: '/parent/chores', icon: ListChecks, label: 'Chores', badgeKey: null },
   { to: '/parent/rewards', icon: Gift, label: 'Rewards', badgeKey: 'rewards' },
   { to: '/parent/history', icon: Clock, label: 'History', badgeKey: null },
@@ -22,7 +23,7 @@ export function Sidebar() {
 
   const pendingApprovals = completions.filter(c => c.status === 'submitted').length
   const pendingRedemptions = redemptions.filter((r: any) => r.status === 'pending').length
-  const badges: Record<string, number> = { chores: pendingApprovals, rewards: pendingRedemptions }
+  const badges: Record<string, number> = { approvals: pendingApprovals, rewards: pendingRedemptions }
 
   function handleViewAsKid(kid: any) {
     setViewAsKid(kid)

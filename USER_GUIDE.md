@@ -20,7 +20,7 @@ Duty is a family chore tracking app that gamifies household responsibilities wit
 ### Overview
 - See today's chores across all kids with completion status
 - **Day navigation**: Tap the left/right arrows to view past or future days
-- **Stat cards**: Chores done, pending approvals, total chores
+- **Stat cards**: Chores done, pending approvals (all dates — tap to open the queue), total chores
 - **Weekly Challenge**: Pick a family challenge for bonus points
 - **Red badges**: Overview tab shows count of chores needing approval
 
@@ -38,6 +38,15 @@ Duty is a family chore tracking app that gamifies household responsibilities wit
 - Tap the chore row to approve — points are awarded and confetti fires
 - Hover and tap the undo button to reverse an approval
 - Late completions are marked but don't earn points
+
+### Approvals Queue
+- Tap the **Approvals** tab (inbox icon) to see every pending approval across all dates in one place
+- Items are grouped by day (Today, Yesterday, Monday, etc.) with most recent first
+- Each row shows the chore, kid, points, "Late" flag if applicable, and the photo proof (if any)
+- Per-row buttons: **Approve** (green), **Reject — send back for redo** (red thumbs down), **Clear** (X to wipe the completion)
+- **Approve all** button in the header approves every pending chore in one tap — great for catching up after being away
+- The red count badge on the Approvals tab tells you how many items are waiting
+- The Pending Approvals tile on the Overview also shows the all-dates total; tap it to jump straight to the queue
 
 ### Rewards
 - **Create rewards**: Name, emoji, point cost, type (experience/privilege/item/Amazon)

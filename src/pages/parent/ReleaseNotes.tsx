@@ -3,6 +3,16 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.3.0',
+    date: 'April 20, 2026',
+    fixes: [],
+    features: [
+      'Approvals queue — new Approvals tab collects every submitted chore across all dates in one place. Groups by day (Today, Yesterday, earlier), shows photo proof inline, and has per-row Approve / Reject / Clear actions.',
+      'Approve all button — one tap approves every pending chore in the queue. Useful after being away.',
+      'Pending-approvals tile on Overview now shows the total across all dates and is tappable to jump straight to the queue. It glows amber when there are items waiting.',
+    ],
+  },
+  {
     version: '1.2.6',
     date: 'April 20, 2026',
     fixes: [

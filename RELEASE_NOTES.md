@@ -1,5 +1,17 @@
 # Duty Release Notes
 
+## v1.3.0 — April 20, 2026
+
+### New Features
+- **Approvals queue.** A new **Approvals** tab collects every submitted chore across all dates into one list. No more scrolling day-by-day to find chores waiting for your thumbs up. Items are grouped by day (Today, Yesterday, earlier) with photo proof shown inline and per-row Approve / Reject / Clear actions.
+- **Approve all.** A single button approves every pending chore in the queue at once — useful after being out of town.
+- **Tappable "Pending" tile on Overview.** The Pending Approvals stat card on the Overview now shows the total across *all* dates, glows amber when you have pending items, and tapping it jumps straight to the Approvals queue.
+
+### Navigation
+- Approvals tab sits in both the desktop sidebar and the mobile bottom nav (second slot) with a live count badge so you always know what's waiting.
+
+---
+
 ## v1.2.6 — April 20, 2026
 
 ### Bug Fixes

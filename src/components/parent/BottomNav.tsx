@@ -1,12 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, ListChecks, Gift, Clock, Settings, Eye } from 'lucide-react'
+import { LayoutDashboard, ListChecks, Inbox, Gift, Clock, Settings, Eye } from 'lucide-react'
 import { useCompletions } from '../../hooks/useCompletions'
 import { useRewards } from '../../hooks/useRewards'
 import { useStore } from '../../lib/store'
 import { Avatar } from '../ui/Avatar'
 
 const TABS = [
-  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: 'chores' },
+  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: null },
+  { to: '/parent/approvals', icon: Inbox, label: 'Approvals', badgeKey: 'approvals' },
   { to: '/parent/chores', icon: ListChecks, label: 'Chores', badgeKey: null },
   { to: '/parent/rewards', icon: Gift, label: 'Rewards', badgeKey: 'rewards' },
   { to: '/parent/history', icon: Clock, label: 'History', badgeKey: null },
@@ -23,7 +24,7 @@ export function BottomNav() {
   const pendingRedemptions = redemptions.filter((r: any) => r.status === 'pending').length
 
   const badges: Record<string, number> = {
-    chores: pendingApprovals,
+    approvals: pendingApprovals,
     rewards: pendingRedemptions,
   }
 

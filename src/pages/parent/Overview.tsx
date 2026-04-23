@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useChores } from '../../hooks/useChores'
@@ -34,6 +35,7 @@ export function Overview() {
   const { getCompletion, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion, completions } = useCompletions()
   const { challenge, selectChallenge } = useChallenges()
   const { profile, kids } = useStore()
+  const navigate = useNavigate()
   const [showAddChore, setShowAddChore] = useState(false)
   const [editChore, setEditChore] = useState<any>(null)
   const [viewDate, setViewDate] = useState(new Date())
@@ -60,6 +62,7 @@ export function Overview() {
 
   const doneCount = dayChores.filter(c => c._status === 'approved').length
   const pendingApprovals = dayChores.filter(c => c._status === 'submitted').length
+  const totalPendingAll = completions.filter(c => c.status === 'submitted').length
 
   async function handleApprove(chore: any) {
     const comp = chore._completion
@@ -150,7 +153,12 @@ export function Overview() {
 
       <div className="flex gap-3 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
         <StatCard label={isToday ? 'Chores done today' : 'Chores done'} value={`${doneCount}/${dayChores.length}`} />
-        <StatCard label="Pending approvals" value={pendingApprovals} />
+        <StatCard
+          label={totalPendingAll === pendingApprovals ? 'Pending approvals' : 'Pending (all dates)'}
+          value={totalPendingAll}
+          onClick={() => navigate('/parent/approvals')}
+          highlight={totalPendingAll > 0}
+        />
         <StatCard label="Total chores" value={chores.length} />
       </div>
 
