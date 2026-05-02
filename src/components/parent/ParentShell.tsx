@@ -18,30 +18,24 @@ export function ParentShell() {
 
   useEffect(() => {
     if ('setAppBadge' in navigator) {
-      if (totalBadge > 0) {
-        navigator.setAppBadge(totalBadge)
-      } else {
-        navigator.clearAppBadge()
-      }
+      if (totalBadge > 0) navigator.setAppBadge(totalBadge)
+      else navigator.clearAppBadge()
     }
   }, [totalBadge])
 
   return (
-    <div className="flex h-[100vh] h-dvh overflow-hidden" style={{ background: 'var(--p-bg)' }}>
-      {/* Sidebar — desktop only */}
+    <div className="flex h-[100vh] h-dvh overflow-hidden" style={{ background: 'var(--cream)' }}>
       <div className="hidden lg:flex lg:flex-shrink-0">
         <Sidebar />
       </div>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lg:hidden safe-top" style={{ background: 'var(--p-bg)' }} />
+        <div className="lg:hidden safe-top" style={{ background: 'var(--cream)' }} />
         <div className="flex-1 overflow-y-auto">
           <Outlet />
         </div>
 
-        {/* Bottom nav — mobile only */}
-        <div className="lg:hidden safe-bottom" style={{ background: 'var(--p-sidebar)', borderTop: '0.5px solid var(--p-border)' }}>
+        <div className="lg:hidden safe-bottom" style={{ background: 'var(--ink)' }}>
           <BottomNav />
         </div>
       </div>

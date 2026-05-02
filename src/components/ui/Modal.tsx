@@ -14,17 +14,24 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/50"
+            className="fixed inset-0 z-40"
+            style={{ background: 'rgba(26,20,17,0.55)', backdropFilter: 'blur(2px)' }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          {/* Mobile: bottom sheet. Desktop: centered modal */}
           <motion.div
             className="fixed z-50 inset-x-0 bottom-0 lg:inset-0 lg:flex lg:items-center lg:justify-center"
           >
             <motion.div
-              className="bg-[var(--p-surface)] rounded-t-2xl lg:rounded-2xl w-full lg:max-w-lg overflow-y-auto border-t border-[var(--p-border)] lg:border"
-              style={{ maxHeight: 'min(85dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 16px))' }}
+              className="w-full lg:max-w-lg overflow-y-auto"
+              style={{
+                background: 'var(--cream)',
+                border: '3px solid var(--ink)',
+                borderBottom: 'none',
+                borderTopLeftRadius: 'var(--r-2xl)',
+                borderTopRightRadius: 'var(--r-2xl)',
+                maxHeight: 'min(85dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 16px))',
+              }}
               initial={{ y: '100%', opacity: 0.8 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: '100%', opacity: 0 }}
@@ -32,14 +39,33 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {title && (
-                <div className="flex items-center justify-between px-5 pt-5 pb-3 sticky top-0 z-10" style={{ background: 'var(--p-surface)' }}>
-                  <h3 className="text-base font-medium" style={{ color: 'var(--p-text)' }}>{title}</h3>
-                  <button onClick={onClose} className="p-1 rounded-lg hover:bg-[var(--p-card)]" style={{ color: 'var(--p-muted)' }}>
-                    <X size={18} />
+                <div
+                  className="flex items-center justify-between sticky top-0 z-10"
+                  style={{
+                    background: 'var(--cream)',
+                    borderBottom: '2.5px solid var(--ink)',
+                    padding: '14px 18px 12px',
+                  }}
+                >
+                  <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--ink)', letterSpacing: '-0.03em' }}>{title}</h3>
+                  <button
+                    onClick={onClose}
+                    aria-label="Close"
+                    style={{
+                      width: 32, height: 32,
+                      borderRadius: 8,
+                      border: '2.5px solid var(--ink)',
+                      background: '#fff',
+                      color: 'var(--ink)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <X size={16} strokeWidth={3} />
                   </button>
                 </div>
               )}
-              <div className="px-5" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}>
+              <div className="px-5" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)', paddingTop: 14 }}>
                 {children}
               </div>
             </motion.div>

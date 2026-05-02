@@ -1,24 +1,56 @@
 import { AVATAR_COLORS, getInitials } from '../../lib/utils'
 
-const SIZES = { sm: 'w-6 h-6 text-[10px]', md: 'w-9 h-9 text-xs', lg: 'w-12 h-12 text-sm' }
+const SIZES = {
+  sm: { wh: 28, fs: 11 },
+  md: { wh: 40, fs: 14 },
+  lg: { wh: 56, fs: 18 },
+  xl: { wh: 80, fs: 28 },
+} as const
 
-export function Avatar({ name, color = 'purple', avatarUrl, size = 'md' }: { name: string; color?: string; avatarUrl?: string | null; size?: 'sm' | 'md' | 'lg' }) {
+interface AvatarProps {
+  name: string
+  color?: string
+  avatarUrl?: string | null
+  size?: keyof typeof SIZES
+}
+
+export function Avatar({ name, color = 'purple', avatarUrl, size = 'md' }: AvatarProps) {
   const c = AVATAR_COLORS[color] ?? AVATAR_COLORS.purple
+  const s = SIZES[size]
 
   if (avatarUrl) {
     return (
       <img
         src={avatarUrl}
         alt={name}
-        className={`${SIZES[size]} rounded-full object-cover shrink-0`}
+        style={{
+          width: s.wh,
+          height: s.wh,
+          borderRadius: '50%',
+          border: '2.5px solid var(--ink)',
+          objectFit: 'cover',
+          flexShrink: 0,
+        }}
       />
     )
   }
 
   return (
     <div
-      className={`${SIZES[size]} rounded-full flex items-center justify-center font-medium shrink-0`}
-      style={{ background: c.bg, color: c.text }}
+      style={{
+        width: s.wh,
+        height: s.wh,
+        borderRadius: '50%',
+        border: '2.5px solid var(--ink)',
+        background: c.bg,
+        color: c.text,
+        fontWeight: 800,
+        fontSize: s.fs,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}
     >
       {getInitials(name)}
     </div>

@@ -3,6 +3,19 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.4.0',
+    date: 'May 1, 2026',
+    fixes: [],
+    features: [
+      'Stadium redesign — completely new visual language. Loud, chunky, arcade-y. Cream backgrounds, hard-edge ink borders, chunky drop-shadows, three new typefaces (Bagel Fat One for shouts, Bricolage Grotesque for body, JetBrains Mono for numbers).',
+      'Sir Flush mascot — new character throughout the app. Crowned-toilet inline SVG that scales infinitely. Appears on hero cards, login, celebrations, and the parent sidebar.',
+      'Per-kid age skin — every kid has a "vibe" toggle in Settings. **Younger** (8–10) gets a big mascot, picture-first chore tiles, more confetti, "Flush it!" copy. **Teen** (11+) gets dark mode, stat-forward layout, dense rows, neutral copy.',
+      'Celebrate overlay — completing a chore now triggers a full-screen confetti pop with Sir Flush.',
+      'New Stadium primitives — PointChip, StreakBadge, StatCard, PinPad, Confetti, plus refreshed Button / Badge / Modal / Input / ProgressBar.',
+      'Chunky redesign of every screen — Login, KidPin, KidHome, KidShop, Overview, Chores, Approvals, Rewards, History, Settings.',
+    ],
+  },
+  {
     version: '1.3.0',
     date: 'April 20, 2026',
     fixes: [],
@@ -15,16 +28,14 @@ const RELEASES = [
   {
     version: '1.2.6',
     date: 'April 20, 2026',
-    fixes: [
-      { title: 'Add Chore button reachable on iPhone', desc: 'Bottom sheet now respects the iOS safe area and dynamic toolbar, so the Add Chore button is always scrollable into view. Header stays pinned while the form scrolls.' },
-    ],
+    fixes: [{ title: 'Add Chore button reachable on iPhone', desc: 'Bottom sheet now respects the iOS safe area and dynamic toolbar.' }],
     features: [],
   },
   {
     version: '1.2.5',
     date: 'April 9, 2026',
     fixes: [
-      { title: 'Fixed status bar overlap on mobile', desc: 'Content no longer hides behind the phone status bar (time, Wi-Fi, battery).' },
+      { title: 'Fixed status bar overlap on mobile', desc: 'Content no longer hides behind the phone status bar.' },
       { title: 'Add Chore button works on mobile', desc: 'Button was covered by the status bar.' },
     ],
     features: [],
@@ -33,17 +44,13 @@ const RELEASES = [
     version: '1.2.4',
     date: 'April 9, 2026',
     fixes: [],
-    features: [
-      'View as Kid on mobile — kid picker strip above the bottom nav lets you switch to any kid\'s view.',
-    ],
+    features: ['View as Kid on mobile — kid picker strip above the bottom nav lets you switch to any kid\'s view.'],
   },
   {
     version: '1.2.3',
     date: 'April 9, 2026',
     fixes: [],
-    features: [
-      'Mobile action sheet — tap any chore row to see all actions (Approve, Reject, Undo, Edit, Delete).',
-    ],
+    features: ['Mobile action sheet — tap any chore row to see all actions (Approve, Reject, Undo, Edit, Delete).'],
   },
   {
     version: '1.2.2',
@@ -59,7 +66,7 @@ const RELEASES = [
     version: '1.2.1',
     date: 'April 9, 2026',
     fixes: [
-      { title: 'Auto-update for installed PWA', desc: 'App checks for updates every 60 seconds and reloads automatically. No more manual reinstalls.' },
+      { title: 'Auto-update for installed PWA', desc: 'App checks for updates every 60 seconds and reloads automatically.' },
       { title: 'Fixed service worker not loading', desc: 'Vercel rewrite was serving index.html instead of sw.js.' },
     ],
     features: [],
@@ -69,27 +76,23 @@ const RELEASES = [
     date: 'April 9, 2026',
     fixes: [],
     features: [
-      'Push notifications — get notified when kids complete chores or request rewards. Toggle on/off in Settings.',
+      'Push notifications — get notified when kids complete chores or request rewards.',
       'Kid notifications — kids get notified when their chores are approved.',
       'Notification settings — control whether you receive notifications from the Settings page.',
-      'Install app guide — Settings now shows step-by-step instructions to install Duty as an app on your phone or computer.',
+      'Install app guide — Settings now shows step-by-step instructions to install Duty as an app.',
       'App icon badge — shows pending approval count on the dock/home screen icon.',
     ],
   },
   {
     version: '1.1.3',
     date: 'April 9, 2026',
-    fixes: [
-      { title: 'Fixed kid profile picture uploads', desc: 'Photos now resize client-side and save directly — no more silent upload failures.' },
-    ],
+    fixes: [{ title: 'Fixed kid profile picture uploads', desc: 'Photos now resize client-side and save directly.' }],
     features: [],
   },
   {
     version: '1.1.2',
     date: 'April 9, 2026',
-    fixes: [
-      { title: 'Storage policy fix for avatars', desc: 'Updated Supabase storage bucket and RLS policies.' },
-    ],
+    fixes: [{ title: 'Storage policy fix for avatars', desc: 'Updated Supabase storage bucket and RLS policies.' }],
     features: [],
   },
   {
@@ -142,27 +145,32 @@ const RELEASES = [
 export function ReleaseNotes() {
   return (
     <div className="p-5 lg:p-8 max-w-3xl">
-      <Link to="/parent/settings" className="inline-flex items-center gap-1.5 text-xs mb-4" style={{ color: 'var(--p-muted)' }}>
-        <ArrowLeft size={14} /> Back to Settings
+      <Link to="/parent/settings" className="inline-flex items-center gap-1.5 text-xs font-bold mb-4" style={{ color: 'var(--ink)' }}>
+        <ArrowLeft size={14} strokeWidth={3} /> Back to Settings
       </Link>
-      <h1 className="font-display text-xl font-bold mb-6" style={{ color: 'var(--p-text)' }}>Release Notes</h1>
+      <div className="stadium-eyebrow">CHANGELOG</div>
+      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, color: 'var(--ink)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4, marginBottom: 24 }}>
+        Release Notes
+      </h1>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {RELEASES.map(r => (
-          <div key={r.version} className="rounded-xl p-4" style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}>
+          <div key={r.version}
+            style={{ background: '#fff', border: '2.5px solid var(--ink)', borderRadius: 14, padding: 16, boxShadow: 'var(--shadow-sm)', color: 'var(--ink)' }}>
             <div className="flex items-baseline gap-2 mb-3">
-              <span className="font-display font-bold text-base" style={{ color: 'var(--gold)' }}>v{r.version}</span>
-              <span className="text-xs" style={{ color: 'var(--p-dim)' }}>{r.date}</span>
+              <span style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 6, padding: '2px 8px', fontFamily: 'var(--font-display)', fontSize: 16 }}>
+                v{r.version}
+              </span>
+              <span className="stadium-eyebrow">{r.date}</span>
             </div>
 
             {r.fixes.length > 0 && (
               <div className="mb-3">
-                <div className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--p-dim)' }}>Bug Fixes</div>
+                <div className="stadium-eyebrow mb-1.5">BUG FIXES</div>
                 <ul className="space-y-1.5">
                   {r.fixes.map((f, i) => (
-                    <li key={i} className="text-sm" style={{ color: 'var(--p-text)' }}>
-                      <span className="font-medium">{f.title}.</span>{' '}
-                      <span style={{ color: 'var(--p-muted)' }}>{f.desc}</span>
+                    <li key={i} className="text-sm" style={{ color: 'var(--ink)' }}>
+                      <strong>{f.title}.</strong> <span style={{ color: 'var(--ink-50)' }}>{f.desc}</span>
                     </li>
                   ))}
                 </ul>
@@ -171,10 +179,10 @@ export function ReleaseNotes() {
 
             {r.features.length > 0 && (
               <div>
-                <div className="text-[10px] uppercase tracking-wider font-medium mb-1.5" style={{ color: 'var(--p-dim)' }}>New Features</div>
+                <div className="stadium-eyebrow mb-1.5">NEW FEATURES</div>
                 <ul className="space-y-1">
                   {r.features.map((f, i) => (
-                    <li key={i} className="text-sm" style={{ color: 'var(--p-text)' }}>{f}</li>
+                    <li key={i} className="text-sm" style={{ color: 'var(--ink)' }}>{f}</li>
                   ))}
                 </ul>
               </div>

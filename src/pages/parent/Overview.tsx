@@ -11,7 +11,7 @@ import { toLocalDateStr } from '../../lib/utils'
 import { calcChallengeProgress } from '../../lib/challenges'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { WeeklyChallenge } from '../../components/WeeklyChallenge'
-import { StatCard } from '../../components/parent/StatCard'
+import { StatCard } from '../../components/ui/StatCard'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
@@ -44,12 +44,10 @@ export function Overview() {
   const todayStr = toLocalDateStr(new Date())
   const isToday = dateStr === todayStr
 
-  // Enrich with selected day's completion
   const enriched = chores.map(c => {
     const comp = getCompletion(c.id, dateStr)
     return { ...c, _completion: comp, _status: comp?.status ?? 'pending' }
   })
-
   const dayChores = enriched.filter(c => {
     if (c.recurrence === 'daily') return true
     if (c.recurrence === 'weekly') {
@@ -63,125 +61,108 @@ export function Overview() {
   const doneCount = dayChores.filter(c => c._status === 'approved').length
   const pendingApprovals = dayChores.filter(c => c._status === 'submitted').length
   const totalPendingAll = completions.filter(c => c.status === 'submitted').length
+  const challengeProgress = challenge ? calcChallengeProgress(challenge, completions, chores, kids.map(k => k.id)) : 0
 
   async function handleApprove(chore: any) {
     const comp = chore._completion
     if (!comp || !profile) return
     await approveCompletion(comp.id, profile.id)
-
     if (!comp.completed_late) {
       await supabase.from('duty_point_transactions').insert({
-        profile_id: comp.completed_by,
-        family_id: chore.family_id,
-        amount: chore.points,
-        reason: `Completed: ${chore.name}`,
-        reference_id: comp.id,
-        reference_type: 'chore',
-        created_by: profile.id,
+        profile_id: comp.completed_by, family_id: chore.family_id,
+        amount: chore.points, reason: `Completed: ${chore.name}`,
+        reference_id: comp.id, reference_type: 'chore', created_by: profile.id,
       })
     }
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
   }
-
-  async function handleReject(chore: any) {
-    const comp = chore._completion
-    if (!comp) return
-    await rejectCompletion(comp.id)
-  }
-
-  async function handleUnapprove(chore: any) {
-    const comp = chore._completion
-    if (!comp) return
-    await unapproveCompletion(comp.id)
-  }
-
-  async function handleUndo(chore: any) {
-    await undoCompletion(chore.id, dateStr)
-  }
-
-  function handleEdit(chore: any) {
-    setEditChore(chore)
-    setShowAddChore(true)
-  }
-
+  async function handleReject(chore: any) { if (chore._completion) await rejectCompletion(chore._completion.id) }
+  async function handleUnapprove(chore: any) { if (chore._completion) await unapproveCompletion(chore._completion.id) }
+  async function handleUndo(chore: any) { await undoCompletion(chore.id, dateStr) }
+  function handleEdit(chore: any) { setEditChore(chore); setShowAddChore(true) }
   async function handleDelete(chore: any) {
     if (!window.confirm(`Delete "${chore.name}"?`)) return
     await deleteChore(chore.id)
   }
-
-  function handleClose() {
-    setShowAddChore(false)
-    setEditChore(null)
-  }
+  function handleClose() { setShowAddChore(false); setEditChore(null) }
 
   if (loading) return <Spinner size="lg" />
 
   return (
     <div className="p-5 lg:p-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-end justify-between mb-5 gap-3">
         <div>
-          <h1 className="font-display text-xl font-bold" style={{ color: 'var(--p-text)' }}>Overview</h1>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--p-muted)' }}>
-            {viewDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-            {pendingApprovals > 0 && ` · ${pendingApprovals} pending`}
-          </p>
+          <div className="stadium-eyebrow">{viewDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 34,
+              letterSpacing: '-0.04em',
+              lineHeight: 1,
+              color: 'var(--ink)',
+              marginTop: 4,
+            }}
+          >
+            Today's lineup
+          </h1>
         </div>
         <Button onClick={() => { setEditChore(null); setShowAddChore(true) }}>
-          <Plus size={16} /> Add Chore
+          <Plus size={16} strokeWidth={3} /> ADD CHORE
         </Button>
       </div>
 
       {/* Day navigator */}
-      <div className="flex items-center justify-center gap-3 mb-4">
-        <button onClick={() => setViewDate(d => new Date(d.getTime() - 86400000))} className="p-2 rounded-full transition-colors hover:bg-white/[0.06]" style={{ color: 'var(--p-muted)' }}>
-          <ChevronLeft size={18} />
+      <div className="flex items-center justify-center gap-3 mb-5">
+        <button onClick={() => setViewDate(d => new Date(d.getTime() - 86400000))} style={{ padding: 6, border: '2px solid var(--ink)', borderRadius: 8, background: '#fff', color: 'var(--ink)', cursor: 'pointer' }}>
+          <ChevronLeft size={16} strokeWidth={3} />
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium" style={{ color: isToday ? 'var(--gold)' : 'var(--p-text)' }}>
-            {formatDateLabel(viewDate)}
-          </span>
+          <span className="font-bold" style={{ color: isToday ? 'var(--red)' : 'var(--ink)' }}>{formatDateLabel(viewDate)}</span>
           {!isToday && (
-            <button onClick={() => setViewDate(new Date())} className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'var(--gold-dim)', color: 'var(--gold)' }}>
-              Today
+            <button onClick={() => setViewDate(new Date())} className="stadium-eyebrow" style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 999, padding: '2px 8px' }}>
+              TODAY
             </button>
           )}
         </div>
-        <button onClick={() => setViewDate(d => new Date(d.getTime() + 86400000))} className="p-2 rounded-full transition-colors hover:bg-white/[0.06]" style={{ color: 'var(--p-muted)' }}>
-          <ChevronRight size={18} />
+        <button onClick={() => setViewDate(d => new Date(d.getTime() + 86400000))} style={{ padding: 6, border: '2px solid var(--ink)', borderRadius: 8, background: '#fff', color: 'var(--ink)', cursor: 'pointer' }}>
+          <ChevronRight size={16} strokeWidth={3} />
         </button>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
-        <StatCard label={isToday ? 'Chores done today' : 'Chores done'} value={`${doneCount}/${dayChores.length}`} />
+      {/* Stat row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <StatCard tone="green" label="CHORES DONE" value={`${doneCount}/${dayChores.length}`} />
         <StatCard
-          label={totalPendingAll === pendingApprovals ? 'Pending approvals' : 'Pending (all dates)'}
+          tone={totalPendingAll > 0 ? 'yellow' : 'cream'}
+          label="NEEDS APPROVAL"
           value={totalPendingAll}
-          onClick={() => navigate('/parent/approvals')}
-          highlight={totalPendingAll > 0}
+          onClick={totalPendingAll > 0 ? () => navigate('/parent/approvals') : undefined}
         />
-        <StatCard label="Total chores" value={chores.length} />
+        <StatCard tone="blue" label="TOTAL CHORES" value={chores.length} />
+        <StatCard tone="pink" label="CHALLENGE" value={challenge ? `${challengeProgress}/${challenge.goal_value}` : '—'} />
       </div>
 
       {/* Weekly Challenge */}
       <div className="mb-6">
         <WeeklyChallenge
           challenge={challenge}
-          progress={challenge ? calcChallengeProgress(challenge, completions, chores, kids.map(k => k.id)) : 0}
+          progress={challengeProgress}
           isParent={true}
           onSelect={selectChallenge}
         />
       </div>
 
-      <div className="mb-2 text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--p-dim)' }}>
-        {isToday ? "Today's chores" : `Chores for ${formatDateLabel(viewDate)}`}
+      <div className="stadium-eyebrow mb-2">
+        {isToday ? "TODAY'S CHORES" : `CHORES FOR ${formatDateLabel(viewDate).toUpperCase()}`}
+        {pendingApprovals > 0 && ` · ${pendingApprovals} PENDING`}
       </div>
 
       {dayChores.length === 0 ? (
-        <div className="text-center py-12 text-sm" style={{ color: 'var(--p-muted)' }}>
+        <div className="text-center py-12 font-bold" style={{ color: 'var(--ink-50)' }}>
           No chores {isToday ? 'yet. Lucky them. 👀' : 'for this day.'}
         </div>
       ) : (
-        <motion.div variants={list} initial="hidden" animate="show" className="space-y-1" key={dateStr}>
+        <motion.div variants={list} initial="hidden" animate="show" className="space-y-2" key={dateStr}>
           {dayChores.map(chore => (
             <motion.div key={chore.id} variants={item}>
               <ChoreRow

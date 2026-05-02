@@ -6,8 +6,9 @@ import { useStore } from '../../lib/store'
 import { useRewards } from '../../hooks/useRewards'
 import { usePoints } from '../../hooks/usePoints'
 import { RewardCard } from '../../components/kid/RewardCard'
-import { CoinsPill } from '../../components/kid/CoinsPill'
+import { PointChip } from '../../components/ui/PointChip'
 import { Badge } from '../../components/ui/Badge'
+import { useKidSkin } from '../../hooks/useKidSkin'
 import { supabase } from '../../lib/supabase'
 
 const list = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
@@ -19,13 +20,13 @@ export function KidShop() {
   const { balance } = usePoints(profile?.id)
   const navigate = useNavigate()
   const [tab, setTab] = useState<'shop' | 'wallet'>('shop')
+  const [skin] = useKidSkin(profile?.id)
+  const isTeen = skin === 'teen'
 
-  // My redemptions (pending + approved/fulfilled)
   const myRedemptions = redemptions.filter((r: any) => r.redeemed_by === profile?.id || r.duty_profiles?.id === profile?.id)
 
   async function handleClaim(reward: any) {
     if (!profile || balance < reward.points_cost) return
-
     if (!window.confirm(`Spend ${reward.points_cost} pts on ${reward.name}?`)) return
 
     await supabase.from('duty_redemptions').insert({
@@ -35,7 +36,6 @@ export function KidShop() {
       points_spent: reward.points_cost,
       status: 'pending',
     })
-
     await supabase.from('duty_point_transactions').insert({
       family_id: profile.family_id,
       profile_id: profile.id,
@@ -47,96 +47,93 @@ export function KidShop() {
     })
   }
 
-  // Sort: available first
   const sorted = [...rewards].sort((a, b) => {
     const aCanAfford = balance >= a.points_cost ? 0 : 1
     const bCanAfford = balance >= b.points_cost ? 0 : 1
     return aCanAfford - bCanAfford || a.points_cost - b.points_cost
   })
 
-  const STATUS_LABELS: Record<string, { label: string; variant: 'amber' | 'green' | 'gold' | 'muted' }> = {
-    pending: { label: 'Requested', variant: 'amber' },
-    approved: { label: 'Approved', variant: 'gold' },
-    fulfilled: { label: 'Redeemed', variant: 'green' },
-    rejected: { label: 'Denied', variant: 'muted' },
+  const STATUS: Record<string, { label: string; variant: any }> = {
+    pending:   { label: 'Requested', variant: 'amber' },
+    approved:  { label: 'Approved',  variant: 'gold' },
+    fulfilled: { label: 'Redeemed',  variant: 'green' },
+    rejected:  { label: 'Denied',    variant: 'muted' },
   }
 
   return (
-    <div className="flex-1 px-5 pb-8">
-      <div className="flex items-center justify-between pt-4 mb-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/kid')} className="p-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            <ArrowLeft size={20} />
+    <div className="flex-1 px-5 pb-8" style={isTeen ? { color: '#fff' } : undefined}>
+      {/* Header */}
+      <div className="flex items-center justify-between pt-3 mb-4">
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate('/kid')} style={{ background: '#fff', border: '2.5px solid var(--ink)', borderRadius: 8, padding: 6, color: 'var(--ink)', cursor: 'pointer' }}>
+            <ArrowLeft size={16} strokeWidth={3} />
           </button>
-          <h1 className="font-display text-xl font-bold" style={{ color: 'rgba(255,255,255,0.9)' }}>Rewards</h1>
+          <h1
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 28,
+              letterSpacing: '-0.03em',
+              color: isTeen ? '#fff' : 'var(--ink)',
+              textShadow: isTeen ? 'none' : '3px 3px 0 var(--yellow)',
+              lineHeight: 1,
+            }}
+          >
+            SHOP
+          </h1>
         </div>
-        <CoinsPill points={balance} />
+        <PointChip points={balance} />
       </div>
 
-      {/* Tab switcher */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setTab('shop')}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-colors"
-          style={{
-            background: tab === 'shop' ? 'var(--gold-dim)' : 'rgba(255,255,255,0.06)',
-            color: tab === 'shop' ? 'var(--gold)' : 'rgba(255,255,255,0.4)',
-            border: `1px solid ${tab === 'shop' ? 'var(--gold-border)' : 'transparent'}`,
-          }}
-        >
-          <Gift size={13} /> Shop
-        </button>
-        <button
+      {/* Tabs */}
+      <div className="flex gap-2 mb-5">
+        <TabBtn active={tab === 'shop'} onClick={() => setTab('shop')} icon={<Gift size={13} strokeWidth={3} />} label="Shop" />
+        <TabBtn
+          active={tab === 'wallet'}
           onClick={() => setTab('wallet')}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-colors relative"
-          style={{
-            background: tab === 'wallet' ? 'var(--gold-dim)' : 'rgba(255,255,255,0.06)',
-            color: tab === 'wallet' ? 'var(--gold)' : 'rgba(255,255,255,0.4)',
-            border: `1px solid ${tab === 'wallet' ? 'var(--gold-border)' : 'transparent'}`,
-          }}
-        >
-          <Wallet size={13} /> My Wallet
-          {myRedemptions.filter((r: any) => r.status === 'approved').length > 0 && (
-            <span className="w-2 h-2 rounded-full absolute -top-0.5 -right-0.5" style={{ background: 'var(--green)' }} />
-          )}
-        </button>
+          icon={<Wallet size={13} strokeWidth={3} />}
+          label="My Wallet"
+          dot={myRedemptions.filter((r: any) => r.status === 'approved').length > 0}
+        />
       </div>
 
       {tab === 'shop' ? (
         sorted.length === 0 ? (
-          <div className="text-center py-12 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <div className="text-center py-12 font-bold" style={{ color: isTeen ? '#666' : 'var(--ink-50)' }}>
             No rewards yet. Check back soon!
           </div>
         ) : (
-          <motion.div variants={list} initial="hidden" animate="show" className="grid grid-cols-2 gap-3">
+          <motion.div
+            variants={list} initial="hidden" animate="show"
+            className={isTeen ? 'flex flex-col gap-1.5' : 'grid grid-cols-2 gap-3'}
+          >
             {sorted.map(reward => (
               <motion.div key={reward.id} variants={item}>
-                <RewardCard reward={reward} balance={balance} onClaim={handleClaim} />
+                <RewardCard reward={reward} balance={balance} onClaim={handleClaim} skin={skin} />
               </motion.div>
             ))}
           </motion.div>
         )
       ) : (
         myRedemptions.length === 0 ? (
-          <div className="text-center py-12 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <div className="text-center py-12 font-bold" style={{ color: isTeen ? '#666' : 'var(--ink-50)' }}>
             No rewards claimed yet. Hit the shop!
           </div>
         ) : (
           <div className="space-y-2">
             {myRedemptions.map((r: any) => {
               const reward = r.duty_rewards
-              const st = STATUS_LABELS[r.status] || STATUS_LABELS.pending
+              const st = STATUS[r.status] || STATUS.pending
               return (
-                <div key={r.id} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div key={r.id} className="flex items-center gap-3" style={{ background: isTeen ? '#1a1a1c' : '#fff', border: isTeen ? '1.5px solid #333' : '2.5px solid var(--ink)', borderRadius: 12, padding: 12, boxShadow: isTeen ? 'none' : 'var(--shadow-sm)', color: isTeen ? '#fff' : 'var(--ink)' }}>
                   <div className="text-2xl">{reward?.emoji || '🎁'}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate" style={{ color: 'rgba(255,255,255,0.9)' }}>{reward?.name || 'Reward'}</div>
-                    <div className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <div className="text-sm font-bold truncate">{reward?.name || 'Reward'}</div>
+                    <div className="text-xs mt-0.5" style={{ color: isTeen ? '#888' : 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>
                       {r.points_spent} pts · {new Date(r.created_at).toLocaleDateString()}
                     </div>
                   </div>
                   <Badge variant={st.variant}>
-                    {r.status === 'fulfilled' && <Check size={10} className="mr-0.5" />}
+                    {r.status === 'fulfilled' && <Check size={10} strokeWidth={3} />}
                     {st.label}
                   </Badge>
                 </div>
@@ -146,5 +143,29 @@ export function KidShop() {
         )
       )}
     </div>
+  )
+}
+
+function TabBtn({ active, onClick, icon, label, dot }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; dot?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 relative"
+      style={{
+        background: active ? 'var(--yellow)' : '#fff',
+        color: 'var(--ink)',
+        border: '2.5px solid var(--ink)',
+        borderRadius: 999,
+        padding: '6px 14px',
+        fontFamily: 'var(--font-display)',
+        fontSize: 13,
+        letterSpacing: '-0.02em',
+        boxShadow: active ? 'var(--shadow-sm)' : 'none',
+        cursor: 'pointer',
+      }}
+    >
+      {icon} {label}
+      {dot && <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: 'var(--green)', border: '2px solid var(--ink)' }} />}
+    </button>
   )
 }

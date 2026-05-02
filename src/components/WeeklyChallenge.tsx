@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Target, Trophy, RefreshCw } from 'lucide-react'
+import { Trophy, RefreshCw } from 'lucide-react'
 import { CHALLENGE_TEMPLATES, type Challenge } from '../lib/challenges'
 import { ProgressBar } from './ui/ProgressBar'
 
@@ -15,32 +15,44 @@ export function WeeklyChallenge({ challenge, progress, isParent, onSelect }: Wee
 
   if (!challenge && !isParent) return null
 
-  // Picker view
   if (!challenge || showPicker) {
     if (!isParent && !challenge) return null
-
     return (
-      <div className="rounded-2xl p-4 space-y-3" style={{ background: 'var(--gold-dim)', border: '1px solid var(--gold-border)' }}>
-        <div className="text-sm font-semibold" style={{ color: 'var(--gold)' }}>
-          Pick a Weekly Challenge
-        </div>
+      <div
+        style={{
+          background: 'var(--ink)',
+          color: 'var(--yellow)',
+          border: '3px solid var(--ink)',
+          borderRadius: 16,
+          padding: 14,
+          boxShadow: 'var(--shadow)',
+        }}
+      >
+        <div className="stadium-eyebrow mb-2" style={{ color: 'var(--yellow)', opacity: 0.85 }}>PICK A WEEKLY CHALLENGE</div>
         <div className="space-y-2">
           {CHALLENGE_TEMPLATES.map((t, i) => (
             <button
               key={i}
               onClick={() => { onSelect(i); setShowPicker(false) }}
-              className="w-full text-left p-3 rounded-xl transition-colors"
-              style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+              className="w-full text-left"
+              style={{
+                background: '#fff',
+                color: 'var(--ink)',
+                border: '2.5px solid var(--ink)',
+                borderRadius: 10,
+                padding: '10px 12px',
+                cursor: 'pointer',
+              }}
             >
-              <div className="text-sm font-semibold" style={{ color: 'var(--p-text)' }}>{t.title}</div>
-              <div className="text-xs mt-0.5" style={{ color: 'var(--p-muted)' }}>
+              <div className="font-display text-lg" style={{ letterSpacing: '-0.02em' }}>{t.title}</div>
+              <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>
                 {t.description.replace('{goal}', String(t.goal_value))} · +{t.bonus_points} bonus pts
               </div>
             </button>
           ))}
         </div>
         {showPicker && (
-          <button onClick={() => setShowPicker(false)} className="text-xs" style={{ color: 'var(--p-muted)' }}>
+          <button onClick={() => setShowPicker(false)} className="text-xs font-bold mt-2" style={{ color: 'var(--cream)' }}>
             Cancel
           </button>
         )}
@@ -53,46 +65,61 @@ export function WeeklyChallenge({ challenge, progress, isParent, onSelect }: Wee
     : challenge.completed ? 100 : 0
 
   return (
-    <div className="rounded-2xl p-4" style={{
-      background: challenge.completed ? 'rgba(74,222,128,0.08)' : 'var(--gold-dim)',
-      border: `1px solid ${challenge.completed ? 'var(--green-border)' : 'var(--gold-border)'}`,
-    }}>
-      <div className="flex items-center gap-2 mb-2">
-        {challenge.completed
-          ? <Trophy size={16} style={{ color: 'var(--green)' }} />
-          : <Target size={16} style={{ color: 'var(--gold)' }} />
-        }
-        <span className="text-sm font-semibold" style={{ color: challenge.completed ? 'var(--green)' : 'var(--gold)' }}>
-          Weekly Challenge
-        </span>
-        {challenge.completed && (
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-auto"
-            style={{ background: 'var(--green-dim)', color: 'var(--green)' }}>
-            Complete! +{challenge.bonus_points} pts
+    <div
+      className="relative overflow-hidden"
+      style={{
+        background: challenge.completed ? 'var(--green)' : 'var(--ink)',
+        color: challenge.completed ? '#fff' : 'var(--yellow)',
+        border: '3px solid var(--ink)',
+        borderRadius: 16,
+        padding: 14,
+        boxShadow: 'var(--shadow)',
+      }}
+    >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, transparent 0 12px, rgba(255,210,63,0.06) 12px 14px)',
+        }}
+      />
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-1">
+          {challenge.completed && <Trophy size={16} strokeWidth={3} />}
+          <span className="stadium-eyebrow" style={{ color: challenge.completed ? '#fff' : 'var(--yellow)', opacity: 0.85 }}>
+            WEEKLY CHALLENGE
           </span>
-        )}
-        {isParent && !challenge.completed && (
-          <button
-            onClick={() => setShowPicker(true)}
-            className="ml-auto p-1 rounded transition-colors"
-            style={{ color: 'var(--gold)' }}
-            title="Change challenge"
-          >
-            <RefreshCw size={14} />
-          </button>
+          {challenge.completed && (
+            <span className="ml-auto text-xs font-bold" style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 999, padding: '2px 8px' }}>
+              +{challenge.bonus_points} pts
+            </span>
+          )}
+          {isParent && !challenge.completed && (
+            <button
+              onClick={() => setShowPicker(true)}
+              className="ml-auto p-1"
+              style={{ color: 'var(--yellow)', cursor: 'pointer' }}
+              title="Change challenge"
+            >
+              <RefreshCw size={14} strokeWidth={3} />
+            </button>
+          )}
+        </div>
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, lineHeight: 1, letterSpacing: '-0.03em', color: challenge.completed ? '#fff' : 'var(--yellow)' }}>
+          {challenge.title}
+        </div>
+        <div className="text-xs font-bold mt-1" style={{ color: challenge.completed ? '#fff' : 'rgba(255,247,230,0.7)' }}>
+          {challenge.description}
+        </div>
+
+        {!challenge.completed && (
+          <div className="mt-3">
+            <ProgressBar value={progressPct} color="gold" />
+            <div className="text-xs font-bold mt-1.5" style={{ color: 'var(--yellow)', fontFamily: 'var(--font-mono)' }}>
+              {progress} / {challenge.goal_value} · {challenge.bonus_points} BONUS PTS
+            </div>
+          </div>
         )}
       </div>
-      <div className="text-sm font-medium mb-1" style={{ color: 'var(--p-text)' }}>{challenge.title}</div>
-      <div className="text-xs mb-3" style={{ color: 'var(--p-muted)' }}>{challenge.description}</div>
-
-      {!challenge.completed && (
-        <>
-          <ProgressBar value={progressPct} color="gold" />
-          <div className="text-xs font-medium mt-1.5" style={{ color: 'var(--gold)' }}>
-            {progress} / {challenge.goal_value} · {challenge.bonus_points} bonus pts
-          </div>
-        </>
-      )}
     </div>
   )
 }

@@ -19,84 +19,55 @@ export function Chores() {
   const [editChore, setEditChore] = useState<any>(null)
 
   const today = toLocalDateStr(new Date())
-
-  // Enrich chores with today's completion status
-  const enrichedChores = chores.map(c => {
+  const enriched = chores.map(c => {
     const comp = getCompletion(c.id, today)
     return { ...c, _completion: comp, _status: comp?.status ?? 'pending' }
   })
 
-  function handleEdit(chore: any) {
-    setEditChore(chore)
-    setShowForm(true)
-  }
-
+  function handleEdit(chore: any) { setEditChore(chore); setShowForm(true) }
   async function handleDelete(chore: any) {
     if (!window.confirm(`Delete "${chore.name}"?`)) return
     await deleteChore(chore.id)
   }
-
   async function handleApprove(chore: any) {
     const comp = chore._completion
     if (!comp || !profile) return
-
     await approveCompletion(comp.id, profile.id)
-
-    // Award points (only if not late)
     if (!comp.completed_late) {
       await supabase.from('duty_point_transactions').insert({
-        profile_id: comp.completed_by,
-        family_id: chore.family_id,
-        amount: chore.points,
-        reason: `Completed: ${chore.name}`,
-        reference_id: comp.id,
-        reference_type: 'chore',
-        created_by: profile.id,
+        profile_id: comp.completed_by, family_id: chore.family_id,
+        amount: chore.points, reason: `Completed: ${chore.name}`,
+        reference_id: comp.id, reference_type: 'chore', created_by: profile.id,
       })
     }
-
     confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
   }
-
-  async function handleReject(chore: any) {
-    const comp = chore._completion
-    if (!comp) return
-    await rejectCompletion(comp.id)
-  }
-
-  async function handleUnapprove(chore: any) {
-    const comp = chore._completion
-    if (!comp) return
-    await unapproveCompletion(comp.id)
-  }
-
-  async function handleUndo(chore: any) {
-    await undoCompletion(chore.id, today)
-  }
-
-  function handleClose() {
-    setShowForm(false)
-    setEditChore(null)
-  }
+  async function handleReject(chore: any) { if (chore._completion) await rejectCompletion(chore._completion.id) }
+  async function handleUnapprove(chore: any) { if (chore._completion) await unapproveCompletion(chore._completion.id) }
+  async function handleUndo(chore: any) { await undoCompletion(chore.id, today) }
+  function handleClose() { setShowForm(false); setEditChore(null) }
 
   if (loading) return <Spinner size="lg" />
 
   return (
     <div className="p-5 lg:p-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-xl font-bold" style={{ color: 'var(--p-text)' }}>Chores</h1>
+      <div className="flex items-end justify-between mb-6">
+        <div>
+          <div className="stadium-eyebrow">CHORES</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, color: 'var(--ink)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4 }}>All chores</h1>
+        </div>
         <Button onClick={() => { setEditChore(null); setShowForm(true) }}>
-          <Plus size={16} /> Add Chore
+          <Plus size={16} strokeWidth={3} /> ADD CHORE
         </Button>
       </div>
 
-      {enrichedChores.length === 0 ? (
-        <div className="text-center py-12 text-sm" style={{ color: 'var(--p-muted)' }}>
+      {enriched.length === 0 ? (
+        <div className="text-center py-12 font-bold" style={{ color: 'var(--ink-50)' }}>
           No chores yet. Lucky them. 👀
         </div>
       ) : (
-        <div className="space-y-1">
-          {enrichedChores.map(chore => (
+        <div className="space-y-2">
+          {enriched.map(chore => (
             <ChoreRow
               key={chore.id}
               chore={{ ...chore, status: chore._status }}

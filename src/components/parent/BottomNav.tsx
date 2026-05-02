@@ -6,12 +6,12 @@ import { useStore } from '../../lib/store'
 import { Avatar } from '../ui/Avatar'
 
 const TABS = [
-  { to: '/parent/overview', icon: LayoutDashboard, label: 'Overview', badgeKey: null },
-  { to: '/parent/approvals', icon: Inbox, label: 'Approvals', badgeKey: 'approvals' },
-  { to: '/parent/chores', icon: ListChecks, label: 'Chores', badgeKey: null },
-  { to: '/parent/rewards', icon: Gift, label: 'Rewards', badgeKey: 'rewards' },
-  { to: '/parent/history', icon: Clock, label: 'History', badgeKey: null },
-  { to: '/parent/settings', icon: Settings, label: 'Settings', badgeKey: null },
+  { to: '/parent/overview',  icon: LayoutDashboard, label: 'Overview',  badgeKey: null },
+  { to: '/parent/approvals', icon: Inbox,           label: 'Approvals', badgeKey: 'approvals' },
+  { to: '/parent/chores',    icon: ListChecks,      label: 'Chores',    badgeKey: null },
+  { to: '/parent/rewards',   icon: Gift,            label: 'Rewards',   badgeKey: 'rewards' },
+  { to: '/parent/history',   icon: Clock,           label: 'History',   badgeKey: null },
+  { to: '/parent/settings',  icon: Settings,        label: 'Settings',  badgeKey: null },
 ] as const
 
 export function BottomNav() {
@@ -20,12 +20,9 @@ export function BottomNav() {
   const { kids, setViewAsKid } = useStore()
   const navigate = useNavigate()
 
-  const pendingApprovals = completions.filter(c => c.status === 'submitted').length
-  const pendingRedemptions = redemptions.filter((r: any) => r.status === 'pending').length
-
   const badges: Record<string, number> = {
-    approvals: pendingApprovals,
-    rewards: pendingRedemptions,
+    approvals: completions.filter(c => c.status === 'submitted').length,
+    rewards: redemptions.filter((r: any) => r.status === 'pending').length,
   }
 
   function handleViewAsKid(kid: any) {
@@ -35,47 +32,54 @@ export function BottomNav() {
 
   return (
     <div>
-      {/* Kid strip */}
       {kids.length > 0 && (
-        <div className="flex items-center gap-1 px-3 py-1.5 border-b" style={{ borderColor: 'var(--p-border)' }}>
-          <Eye size={10} style={{ color: 'var(--p-dim)' }} />
-          <span className="text-[10px] mr-1" style={{ color: 'var(--p-dim)' }}>View as</span>
+        <div className="flex items-center gap-1 px-3 py-1.5 overflow-x-auto scroll-hide" style={{ borderBottom: '2px solid var(--ink)', background: 'var(--cream)' }}>
+          <Eye size={11} strokeWidth={3} style={{ color: 'var(--ink)' }} />
+          <span className="stadium-eyebrow mr-1">VIEW AS</span>
           {kids.map(kid => (
             <button
               key={kid.id}
               onClick={() => handleViewAsKid(kid)}
-              className="flex items-center gap-1 px-2 py-1 rounded-full transition-colors active:bg-white/[0.06]"
-              style={{ background: 'var(--p-card)' }}
+              className="flex items-center gap-1 transition-transform active:scale-95"
+              style={{
+                background: '#fff',
+                border: '2px solid var(--ink)',
+                borderRadius: 999,
+                padding: '3px 10px 3px 3px',
+                flexShrink: 0,
+              }}
             >
               <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />
-              <span className="text-[10px]" style={{ color: 'var(--p-text)' }}>{kid.full_name.split(' ')[0]}</span>
+              <span className="text-xs font-bold" style={{ color: 'var(--ink)' }}>{kid.full_name.split(' ')[0]}</span>
             </button>
           ))}
         </div>
       )}
-      <nav className="flex h-14">
-      {TABS.map(({ to, icon: Icon, label, badgeKey }) => (
-        <NavLink
-          key={to}
-          to={to}
-          className="flex-1 flex flex-col items-center justify-center gap-0.5 relative"
-        >
-          {({ isActive }) => (
-            <>
-              <div className="relative">
-                <Icon size={20} style={{ color: isActive ? 'var(--gold)' : 'var(--p-dim)' }} />
-                {badgeKey && badges[badgeKey] > 0 && (
-                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ background: 'var(--red)' }}>
-                    {badges[badgeKey]}
-                  </span>
-                )}
-              </div>
-              <span className="text-[10px]" style={{ color: isActive ? 'var(--gold)' : 'var(--p-dim)' }}>{label}</span>
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
+      <nav className="flex h-16" style={{ background: 'var(--ink)' }}>
+        {TABS.map(({ to, icon: Icon, label, badgeKey }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className="flex-1 flex flex-col items-center justify-center gap-1 relative"
+          >
+            {({ isActive }) => (
+              <>
+                <div className="relative">
+                  <Icon size={18} strokeWidth={isActive ? 3 : 2} style={{ color: isActive ? 'var(--yellow)' : 'rgba(255,247,230,0.45)' }} />
+                  {badgeKey && badges[badgeKey] > 0 && (
+                    <span style={{ position: 'absolute', top: -6, right: -8, background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 9, padding: '1px 5px', borderRadius: 8, border: '1.5px solid var(--ink)' }}>
+                      {badges[badgeKey]}
+                    </span>
+                  )}
+                </div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, letterSpacing: 1, color: isActive ? 'var(--yellow)' : 'rgba(255,247,230,0.45)' }}>
+                  {label.toUpperCase()}
+                </span>
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
     </div>
   )
 }

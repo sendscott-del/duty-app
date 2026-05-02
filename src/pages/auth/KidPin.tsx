@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useStore, type Profile } from '../../lib/store'
-import { AVATAR_COLORS, getInitials } from '../../lib/utils'
-import { ArrowLeft, Delete } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { Avatar } from '../../components/ui/Avatar'
+import { SirFlush } from '../../components/ui/SirFlush'
+import { PinPad } from '../../components/ui/PinPad'
 
 export function KidPin() {
   const [kids, setKids] = useState<Profile[]>([])
@@ -16,144 +18,154 @@ export function KidPin() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  // Get family ID from URL param or from store
   const { family: storedFamily } = useStore()
   const familyId = searchParams.get('f') || storedFamily?.id
 
   useEffect(() => {
-    if (!familyId) {
-      setNoFamily(true)
-      return
-    }
-
-    // Fetch family name
+    if (!familyId) { setNoFamily(true); return }
     supabase.from('duty_families').select('name').eq('id', familyId).single().then(({ data }) => {
       if (data) setFamilyName(data.name)
     })
-
-    // Fetch kids for this family only, deduplicated by id
     supabase.from('duty_profiles').select('*').eq('role', 'kid').eq('family_id', familyId).then(({ data }) => {
       if (data) {
-        // Deduplicate by id
         const unique = Array.from(new Map(data.map((k: any) => [k.id, k])).values())
         setKids(unique as Profile[])
       }
     })
   }, [familyId])
 
-  function handleDigit(d: string) {
-    if (pin.length >= 4) return
-    const newPin = pin + d
-    setPin(newPin)
-    setError('')
-
-    if (newPin.length === 4 && selected) {
-      if (newPin === selected.pin) {
-        setProfile(selected)
-        if (selected.family_id) {
-          supabase.from('duty_families').select('*').eq('id', selected.family_id).single().then(({ data }) => {
-            if (data) setFamily(data)
-          })
-        }
-        navigate('/kid')
-      } else {
-        setError('Wrong PIN')
-        setPin('')
+  // Watch PIN length and validate when complete
+  useEffect(() => {
+    if (!selected || pin.length !== 4) return
+    if (pin === selected.pin) {
+      setProfile(selected)
+      if (selected.family_id) {
+        supabase.from('duty_families').select('*').eq('id', selected.family_id).single().then(({ data }) => {
+          if (data) setFamily(data)
+        })
       }
+      navigate('/kid')
+    } else {
+      setError('Wrong PIN')
+      setTimeout(() => { setPin(''); setError('') }, 700)
     }
-  }
+  }, [pin, selected, navigate, setFamily, setProfile])
 
   if (noFamily) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'linear-gradient(145deg, #1a0e2e, #0d1a2e, #0e2212)' }}>
-        <img src="/logo.png" alt="Duty" className="w-16 h-16 rounded-2xl mb-3" />
-        <p className="text-sm text-center mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'var(--cream)' }}>
+        <SirFlush size={120} expression="sleepy" />
+        <p className="text-base font-bold text-center mt-4 mb-6" style={{ color: 'var(--ink)' }}>
           Ask your parent for the kid login link.
         </p>
-        <button onClick={() => navigate('/login')} className="text-sm font-medium" style={{ color: 'var(--gold)' }}>
+        <button
+          onClick={() => navigate('/login')}
+          style={{
+            background: 'var(--ink)', color: 'var(--yellow)',
+            border: '3px solid var(--ink)', borderRadius: 12,
+            padding: '10px 18px', fontFamily: 'var(--font-display)', fontSize: 16,
+            boxShadow: 'var(--shadow-sm)', cursor: 'pointer',
+          }}
+        >
           Parent login →
         </button>
       </div>
     )
   }
 
+  // Pick a kid
   if (!selected) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'linear-gradient(145deg, #1a0e2e, #0d1a2e, #0e2212)' }}>
-        <img src="/logo.png" alt="Duty" className="w-16 h-16 rounded-2xl mb-2" />
-        {familyName && <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{familyName}</p>}
-        <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.5)' }}>Who are you?</p>
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'var(--cream)' }}>
+        <div style={{ transform: 'rotate(-6deg)', filter: 'drop-shadow(var(--shadow))', marginBottom: 6 }}>
+          <SirFlush size={88} expression="wink" />
+        </div>
+        {familyName && (
+          <div className="stadium-eyebrow" style={{ marginBottom: 4 }}>{familyName}</div>
+        )}
+        <h1
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 38,
+            letterSpacing: '-0.04em',
+            color: 'var(--ink)',
+            textShadow: '4px 4px 0 var(--yellow)',
+            marginBottom: 18,
+          }}
+        >
+          WHO ARE YOU?
+        </h1>
 
-        <div className="grid grid-cols-2 gap-4 w-full max-w-[300px]">
-          {kids.map(kid => {
-            const c = AVATAR_COLORS[kid.avatar_color] ?? AVATAR_COLORS.purple
-            return (
-              <button
-                key={kid.id}
-                onClick={() => setSelected(kid)}
-                className="flex flex-col items-center gap-3 p-6 rounded-2xl transition-all active:scale-95"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-semibold" style={{ background: c.bg, color: c.text }}>
-                  {getInitials(kid.full_name)}
-                </div>
-                <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.9)' }}>{kid.full_name}</span>
-              </button>
-            )
-          })}
+        <div className="grid grid-cols-2 gap-4 w-full max-w-[320px]">
+          {kids.map(kid => (
+            <button
+              key={kid.id}
+              onClick={() => setSelected(kid)}
+              className="flex flex-col items-center gap-3 transition-transform active:scale-95"
+              style={{
+                background: '#fff',
+                border: '3px solid var(--ink)',
+                borderRadius: 18,
+                padding: 18,
+                boxShadow: 'var(--shadow)',
+                cursor: 'pointer',
+              }}
+            >
+              <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="xl" />
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--ink)', letterSpacing: '-0.02em' }}>
+                {kid.full_name.split(' ')[0]}
+              </span>
+            </button>
+          ))}
         </div>
 
         {kids.length === 0 && (
-          <p className="text-sm mt-4" style={{ color: 'rgba(255,255,255,0.3)' }}>No kids found.</p>
+          <p className="text-sm mt-6" style={{ color: 'var(--ink-50)' }}>No kids found.</p>
         )}
 
-        <button onClick={() => navigate('/login')} className="mt-10 text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          Parent login →
+        <button onClick={() => navigate('/login')} className="mt-10 stadium-eyebrow" style={{ cursor: 'pointer' }}>
+          PARENT LOGIN →
         </button>
       </div>
     )
   }
 
-  const c = AVATAR_COLORS[selected.avatar_color] ?? AVATAR_COLORS.purple
-
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ background: 'linear-gradient(145deg, #1a0e2e, #0d1a2e, #0e2212)' }}>
-      <button onClick={() => { setSelected(null); setPin(''); setError('') }} className="flex items-center gap-1 text-sm mb-10" style={{ color: 'rgba(255,255,255,0.4)' }}>
-        <ArrowLeft size={14} /> Back
+    <div
+      className="min-h-dvh flex flex-col items-center justify-center px-6"
+      style={{ background: 'var(--blue)', color: 'var(--cream)' }}
+    >
+      <button
+        onClick={() => { setSelected(null); setPin(''); setError('') }}
+        className="absolute top-6 left-6 flex items-center gap-1 text-sm font-bold"
+        style={{ color: 'var(--cream)' }}
+      >
+        <ArrowLeft size={16} strokeWidth={3} /> Back
       </button>
 
-      <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-semibold mb-4" style={{ background: c.bg, color: c.text }}>
-        {getInitials(selected.full_name)}
+      <div style={{ transform: 'rotate(-4deg)' }}>
+        <SirFlush size={88} expression="wink" />
       </div>
-      <div className="text-xl font-display font-bold mb-1" style={{ color: 'rgba(255,255,255,0.9)' }}>{selected.full_name}</div>
-      <p className="text-sm mb-8" style={{ color: 'rgba(255,255,255,0.4)' }}>Enter your PIN</p>
-
-      {/* PIN dots */}
-      <div className="flex gap-4 mb-6">
-        {[0, 1, 2, 3].map(i => (
-          <div key={i} className={`w-4 h-4 rounded-full transition-all ${i < pin.length ? 'bg-[var(--gold)] scale-110' : 'bg-white/20'}`} />
-        ))}
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 36,
+          letterSpacing: '-0.03em',
+          marginTop: 12,
+          textShadow: '3px 3px 0 var(--ink)',
+        }}
+      >
+        HEY {selected.full_name.split(' ')[0].toUpperCase()}!
       </div>
+      <p className="font-bold mt-1 mb-6">Enter your secret code</p>
 
-      {error && <p className="text-sm mb-4 font-medium" style={{ color: 'var(--red)' }}>{error}</p>}
+      <PinPad value={pin} onChange={setPin} error={!!error} light />
 
-      {/* Number pad */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-[260px]">
-        {['1','2','3','4','5','6','7','8','9','','0','del'].map(key => (
-          <button
-            key={key || 'empty'}
-            onClick={() => key === 'del' ? setPin(pin.slice(0, -1)) : key && handleDigit(key)}
-            disabled={!key}
-            className="h-16 rounded-2xl text-xl font-medium transition-all active:scale-95 disabled:invisible"
-            style={{
-              background: key === 'del' ? 'transparent' : 'rgba(255,255,255,0.06)',
-              color: key === 'del' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.9)',
-            }}
-          >
-            {key === 'del' ? <Delete size={22} className="mx-auto" /> : key}
-          </button>
-        ))}
-      </div>
+      {error && (
+        <p className="font-bold mt-4" style={{ color: 'var(--yellow)', fontFamily: 'var(--font-display)', fontSize: 18 }}>
+          {error}
+        </p>
+      )}
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase'
 import { Avatar } from '../../components/ui/Avatar'
 import { Badge } from '../../components/ui/Badge'
 import { Spinner } from '../../components/ui/Spinner'
+import { SirFlush } from '../../components/ui/SirFlush'
 import confetti from 'canvas-confetti'
 
 function formatDateHeader(dateStr: string): string {
@@ -37,8 +38,6 @@ export function Approvals() {
         return chore ? { completion: c, chore, kid } : null
       })
       .filter(Boolean) as { completion: any; chore: any; kid: any }[]
-
-    // Group by completion_date (most recent first)
     const byDate = new Map<string, typeof rows>()
     for (const row of rows) {
       const key = row.completion.completion_date
@@ -55,34 +54,21 @@ export function Approvals() {
     await approveCompletion(row.completion.id, profile.id)
     if (!row.completion.completed_late) {
       await supabase.from('duty_point_transactions').insert({
-        profile_id: row.completion.completed_by,
-        family_id: row.chore.family_id,
-        amount: row.chore.points,
-        reason: `Completed: ${row.chore.name}`,
-        reference_id: row.completion.id,
-        reference_type: 'chore',
-        created_by: profile.id,
+        profile_id: row.completion.completed_by, family_id: row.chore.family_id,
+        amount: row.chore.points, reason: `Completed: ${row.chore.name}`,
+        reference_id: row.completion.id, reference_type: 'chore', created_by: profile.id,
       })
     }
     confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } })
   }
-
-  async function handleReject(row: { completion: any }) {
-    await rejectCompletion(row.completion.id)
-  }
-
-  async function handleClear(row: { completion: any; chore: any }) {
-    await undoCompletion(row.chore.id, row.completion.completion_date)
-  }
-
+  async function handleReject(row: { completion: any }) { await rejectCompletion(row.completion.id) }
+  async function handleClear(row: { completion: any; chore: any }) { await undoCompletion(row.chore.id, row.completion.completion_date) }
   async function handleApproveAll() {
     if (!profile || totalPending === 0) return
     if (!window.confirm(`Approve all ${totalPending} pending ${totalPending === 1 ? 'chore' : 'chores'}?`)) return
     setBulkBusy(true)
     const all = pending.flatMap(([, rows]) => rows)
-    for (const row of all) {
-      await handleApprove(row)
-    }
+    for (const row of all) await handleApprove(row)
     setBulkBusy(false)
   }
 
@@ -90,54 +76,53 @@ export function Approvals() {
 
   return (
     <div className="p-5 lg:p-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-6 gap-3">
+      <div className="flex items-end justify-between mb-6 gap-3">
         <div className="min-w-0">
-          <h1 className="font-display text-xl font-bold" style={{ color: 'var(--p-text)' }}>Approvals</h1>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--p-muted)' }}>
-            {totalPending === 0 ? 'All caught up' : `${totalPending} waiting for you`}
-          </p>
+          <div className="stadium-eyebrow">APPROVALS</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4, color: 'var(--ink)' }}>
+            {totalPending === 0 ? 'All caught up' : `${totalPending} waiting`}
+          </h1>
         </div>
         {totalPending > 0 && (
           <button
             onClick={handleApproveAll}
             disabled={bulkBusy}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 shrink-0"
-            style={{ background: 'var(--green-dim)', color: 'var(--green)', border: '1px solid var(--green-border)' }}
+            className="flex items-center gap-1.5 disabled:opacity-50"
+            style={{
+              background: 'var(--green)', color: '#fff',
+              border: '3px solid var(--ink)', borderRadius: 12,
+              padding: '10px 14px', fontFamily: 'var(--font-display)', fontSize: 14,
+              boxShadow: 'var(--shadow-sm)', textShadow: '2px 2px 0 var(--ink)',
+              cursor: 'pointer',
+            }}
           >
-            <CheckCheck size={15} />
-            <span className="hidden sm:inline">Approve all</span>
-            <span className="sm:hidden">All</span>
+            <CheckCheck size={16} strokeWidth={3} />
+            <span className="hidden sm:inline">APPROVE ALL</span>
+            <span className="sm:hidden">ALL</span>
           </button>
         )}
       </div>
 
       {totalPending === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--p-card)' }}>
-            <Inbox size={24} style={{ color: 'var(--p-dim)' }} />
-          </div>
-          <div className="text-sm" style={{ color: 'var(--p-muted)' }}>No pending approvals.</div>
-          <div className="text-xs mt-1" style={{ color: 'var(--p-dim)' }}>When kids submit chores they'll show up here.</div>
+          <SirFlush size={120} expression="sleepy" />
+          <div className="font-bold mt-3" style={{ color: 'var(--ink-50)' }}>No pending approvals.</div>
+          <div className="text-xs font-bold mt-1" style={{ color: 'var(--ink-50)' }}>When kids submit chores they'll show up here.</div>
+          <Inbox size={0} /> {/* keep import warm */}
         </div>
       ) : (
         <div className="space-y-6">
           {pending.map(([dateStr, rows]) => (
             <div key={dateStr}>
-              <div className="mb-2 text-xs font-medium uppercase tracking-wider flex items-center gap-2" style={{ color: 'var(--p-dim)' }}>
+              <div className="stadium-eyebrow mb-2 flex items-center gap-2">
                 <span>{formatDateHeader(dateStr)}</span>
-                <span className="px-1.5 py-0.5 rounded-full text-[10px]" style={{ background: 'var(--p-card)', color: 'var(--p-muted)' }}>
+                <span style={{ background: 'var(--ink)', color: 'var(--cream)', padding: '1px 6px', borderRadius: 999, fontSize: 9 }}>
                   {rows.length}
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {rows.map(row => (
-                  <ApprovalRow
-                    key={row.completion.id}
-                    row={row}
-                    onApprove={() => handleApprove(row)}
-                    onReject={() => handleReject(row)}
-                    onClear={() => handleClear(row)}
-                  />
+                  <ApprovalRow key={row.completion.id} row={row} onApprove={() => handleApprove(row)} onReject={() => handleReject(row)} onClear={() => handleClear(row)} />
                 ))}
               </div>
             </div>
@@ -148,14 +133,8 @@ export function Approvals() {
   )
 }
 
-function ApprovalRow({ row, onApprove, onReject, onClear }: {
-  row: { completion: any; chore: any; kid: any }
-  onApprove: () => void
-  onReject: () => void
-  onClear: () => void
-}) {
+function ApprovalRow({ row, onApprove, onReject, onClear }: { row: { completion: any; chore: any; kid: any }; onApprove: () => void; onReject: () => void; onClear: () => void }) {
   const { completion, chore, kid } = row
-
   return (
     <motion.div
       layout
@@ -163,21 +142,23 @@ function ApprovalRow({ row, onApprove, onReject, onClear }: {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.18 }}
-      className="rounded-xl p-3"
-      style={{ background: 'var(--p-card)', border: '1px solid var(--p-border)' }}
+      style={{
+        background: '#fff',
+        border: '2.5px solid var(--ink)',
+        borderRadius: 12,
+        padding: 12,
+        boxShadow: 'var(--shadow-sm)',
+        color: 'var(--ink)',
+      }}
     >
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <div className="text-sm truncate" style={{ color: 'var(--p-text)' }}>
-            {chore.emoji} {chore.name}
-          </div>
+          <div className="font-bold truncate">{chore.emoji} {chore.name}</div>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {kid && <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />}
-            <span className="text-xs" style={{ color: 'var(--p-muted)' }}>{kid?.full_name}</span>
-            {completion.completed_late && (
-              <Badge variant="amber">Late</Badge>
-            )}
-            <Badge variant="gold">+{chore.points} pts</Badge>
+            <span className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>{kid?.full_name}</span>
+            {completion.completed_late && <Badge variant="amber">Late</Badge>}
+            <Badge variant="gold">+{chore.points}</Badge>
           </div>
         </div>
       </div>
@@ -187,8 +168,8 @@ function ApprovalRow({ row, onApprove, onReject, onClear }: {
           <img
             src={completion.proof_image_url}
             alt="proof"
-            className="w-full max-h-48 object-cover rounded-lg"
-            style={{ border: '1px solid var(--p-border)' }}
+            className="w-full max-h-48 object-cover"
+            style={{ border: '2.5px solid var(--ink)', borderRadius: 10 }}
           />
         </a>
       )}
@@ -196,26 +177,21 @@ function ApprovalRow({ row, onApprove, onReject, onClear }: {
       <div className="flex gap-2 mt-3">
         <button
           onClick={onApprove}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors"
-          style={{ background: 'var(--green-dim)', color: 'var(--green)', border: '1px solid var(--green-border)' }}
+          className="flex-1 flex items-center justify-center gap-1.5"
+          style={{
+            background: 'var(--green)', color: '#fff',
+            border: '2.5px solid var(--ink)', borderRadius: 10,
+            padding: '8px 0', fontWeight: 800, fontSize: 14,
+            boxShadow: 'var(--shadow-sm)', cursor: 'pointer',
+          }}
         >
-          <CheckCircle size={15} /> Approve
+          <CheckCircle size={15} strokeWidth={3} /> APPROVE
         </button>
-        <button
-          onClick={onReject}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          style={{ background: 'rgba(248,113,113,0.1)', color: 'var(--red)', border: '1px solid rgba(248,113,113,0.25)' }}
-          title="Send back for redo"
-        >
-          <ThumbsDown size={14} />
+        <button onClick={onReject} title="Send back for redo" style={{ background: 'var(--red)', color: '#fff', border: '2.5px solid var(--ink)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer' }}>
+          <ThumbsDown size={14} strokeWidth={3} />
         </button>
-        <button
-          onClick={onClear}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-          style={{ background: 'var(--p-card)', color: 'var(--p-muted)', border: '1px solid var(--p-border)' }}
-          title="Clear completion"
-        >
-          <X size={14} />
+        <button onClick={onClear} title="Clear completion" style={{ background: '#fff', color: 'var(--ink)', border: '2.5px solid var(--ink)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer' }}>
+          <X size={14} strokeWidth={3} />
         </button>
       </div>
     </motion.div>

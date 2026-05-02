@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 .env.local
 .env*.local
+
+# Stadium design source — reference only, not deployed
+new design/

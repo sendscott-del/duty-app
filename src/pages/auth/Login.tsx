@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useStore } from '../../lib/store'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
+import { SirFlush } from '../../components/ui/SirFlush'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -16,14 +17,10 @@ export function Login() {
   const { profile } = useStore()
   const navigate = useNavigate()
 
-  // Redirect once profile loads in the store
   useEffect(() => {
     if (profile) {
-      if (!profile.family_id) {
-        navigate('/setup')
-      } else {
-        navigate(profile.role === 'parent' ? '/parent/overview' : '/kid')
-      }
+      if (!profile.family_id) navigate('/setup')
+      else navigate(profile.role === 'parent' ? '/parent/overview' : '/kid')
     }
   }, [profile, navigate])
 
@@ -31,7 +28,6 @@ export function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-
     if (isSignUp) {
       const { error, data } = await signUp(email, password, fullName)
       if (error) { setError(error.message); setLoading(false); return }
@@ -45,15 +41,39 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-dvh flex items-center justify-center px-5" style={{ background: 'var(--p-bg)' }}>
+    <div className="min-h-dvh flex items-center justify-center px-5" style={{ background: 'var(--cream)' }}>
       <div className="w-full max-w-sm">
-        <div className="text-center mb-10">
-          <img src="/logo.png" alt="Duty" className="w-20 h-20 rounded-2xl mx-auto mb-3" />
-          <div className="font-display text-3xl font-extrabold" style={{ color: 'var(--gold)' }}>Duty</div>
-          <p className="text-sm mt-1" style={{ color: 'var(--p-muted)' }}>Do your duty. Earn your rewards.</p>
+        <div className="text-center mb-8">
+          <div style={{ display: 'inline-block', transform: 'rotate(-6deg)', filter: 'drop-shadow(var(--shadow))' }}>
+            <SirFlush size={92} expression="wink" />
+          </div>
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 64,
+              color: 'var(--ink)',
+              letterSpacing: '-0.05em',
+              lineHeight: 0.9,
+              textShadow: '5px 5px 0 var(--yellow)',
+              marginTop: 8,
+            }}
+          >
+            DUTY
+          </div>
+          <p className="font-bold mt-2" style={{ color: 'var(--ink-50)' }}>Do your duty. Earn your rewards.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+          style={{
+            background: '#fff',
+            border: '3px solid var(--ink)',
+            borderRadius: 18,
+            padding: 18,
+            boxShadow: 'var(--shadow)',
+          }}
+        >
           {isSignUp && (
             <Input label="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your name" required />
           )}
@@ -61,26 +81,36 @@ export function Login() {
           <Input label="Password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 6 characters" minLength={6} required />
 
           {error && (
-            <div className="px-3 py-2 rounded-lg text-sm" style={{ background: 'rgba(248,113,113,0.1)', color: 'var(--red)' }}>
+            <div
+              style={{
+                background: 'var(--red)',
+                color: '#fff',
+                border: '2.5px solid var(--ink)',
+                borderRadius: 8,
+                padding: '8px 12px',
+                fontWeight: 700,
+                fontSize: 13,
+              }}
+            >
               {error}
             </div>
           )}
 
           <Button type="submit" fullWidth loading={loading}>
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN'}
           </Button>
         </form>
 
-        <p className="text-center text-sm mt-6" style={{ color: 'var(--p-muted)' }}>
+        <p className="text-center text-sm font-bold mt-5" style={{ color: 'var(--ink-50)' }}>
           {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button onClick={() => { setIsSignUp(!isSignUp); setError('') }} style={{ color: 'var(--gold)' }} className="font-medium">
+          <button onClick={() => { setIsSignUp(!isSignUp); setError('') }} style={{ color: 'var(--red)', fontWeight: 800 }}>
             {isSignUp ? 'Sign In' : 'Sign Up'}
           </button>
         </p>
 
-        <div className="text-center mt-4">
-          <button onClick={() => navigate('/kid-login')} className="text-xs" style={{ color: 'var(--p-dim)' }}>
-            Kid login →
+        <div className="text-center mt-3">
+          <button onClick={() => navigate('/kid-login')} className="stadium-eyebrow" style={{ cursor: 'pointer' }}>
+            KID LOGIN →
           </button>
         </div>
       </div>

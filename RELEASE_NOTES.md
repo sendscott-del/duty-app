@@ -1,5 +1,23 @@
 # Duty Release Notes
 
+## v1.4.0 — May 1, 2026
+
+### New Features
+- **Stadium redesign.** Completely new visual language across every screen: cream backgrounds, hard-edge ink borders, chunky offset drop-shadows, three new typefaces (Bagel Fat One for shouts, Bricolage Grotesque for body text, JetBrains Mono for stats and labels). Loud, chunky, arcade-y — Mario meets sticker book.
+- **Sir Flush mascot.** New crowned-toilet character built as an inline SVG. Scales infinitely, has multiple expressions (happy, wink, cheer, sleepy), and shows up on the login screen, kid hero card, parent sidebar, celebrate overlay, and empty states.
+- **Per-kid age skin.** Every kid now has a "vibe" toggle in Settings → Kids:
+  - **Younger (8–10)** — big mascot, picture-first chore tiles in a 2-col grid, "Flush it!" energy, full confetti celebrate.
+  - **Teen (11+)** — dark mode (ink #0f0f10), dense stat-row dashboard, slim checkbox chore rows, neutral copy.
+- **Celebrate overlay.** Completing a chore now triggers a full-screen pop with Sir Flush, +points chip, and confetti (Younger skin) or a slim "+points · streak" toast (Teen skin).
+- **New Stadium primitives.** Component library expanded with PointChip, StreakBadge, StatCard, PinPad, Confetti, and SirFlush. All existing primitives (Button, Badge, Modal, Input, ProgressBar, Avatar) restyled to match.
+- **Restyled every screen.** Login, KidPin, Setup, KidHome, KidShop, Overview, Chores, Approvals, Rewards, History, Settings, Release Notes, Guide, AddChore sheet, AddReward sheet, WeeklyChallenge.
+
+### Notes
+- All chore/reward/completion data, hooks, and Supabase tables are unchanged — this release is purely visual.
+- Per-kid skin preference is stored in localStorage on the device that views it, so each browser/install can have its own vibe.
+
+---
+
 ## v1.3.0 — April 20, 2026
 
 ### New Features

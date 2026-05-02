@@ -2,6 +2,19 @@
 
 Duty is a family chore tracking app that gamifies household responsibilities with points and rewards.
 
+## What's new in v1.4.0 — Stadium redesign
+
+The whole app has a new visual language called **Stadium**. Loud, chunky, arcade-y. Cream backgrounds, hard ink borders, chunky offset shadows, and **Sir Flush** the mascot — a regal toilet with a crown — appearing throughout.
+
+### Per-kid age skin
+
+Every kid now has their own "vibe" you can pick in **Settings → Kids → Vibe**:
+
+- **Younger (8–10)** — big Sir Flush hero card, picture-first chore tiles in a colorful grid, "Flush it!" energy, full confetti when they complete a chore.
+- **Teen (11+)** — dark mode, dense stat row at the top, slim checkbox chore rows, neutral "Mark done" copy, minimal celebration.
+
+The skin lives in browser storage on the device that views the kid screen, so different installs can have different vibes.
+
 ## Getting Started
 
 ### Parent Setup

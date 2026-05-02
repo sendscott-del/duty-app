@@ -5,30 +5,25 @@ import { Badge } from '../ui/Badge'
 import { Avatar } from '../ui/Avatar'
 
 const STATUS_CIRCLE: Record<string, React.ReactNode> = {
-  pending: <div className="w-5 h-5 rounded-full border-2" style={{ borderColor: 'var(--p-dim)' }} />,
+  pending: <div style={{ width: 22, height: 22, borderRadius: '50%', border: '2.5px solid var(--ink)', background: '#fff', flexShrink: 0 }} />,
   submitted: (
-    <div className="w-5 h-5 rounded-full flex items-center justify-center animate-pulse" style={{ background: 'var(--amber-dim)', border: '1.5px solid var(--amber)' }}>
-      <Clock size={10} style={{ color: 'var(--amber)' }} />
+    <div className="animate-pulse" style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--yellow)', border: '2.5px solid var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <Clock size={11} strokeWidth={3} style={{ color: 'var(--ink)' }} />
     </div>
   ),
   approved: (
-    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--green)', color: '#000' }}>
-      <Check size={12} strokeWidth={3} />
+    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--green)', border: '2.5px solid var(--ink)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <Check size={13} strokeWidth={3.5} />
     </div>
   ),
   rejected: (
-    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(248,113,113,0.15)', color: 'var(--red)' }}>
-      <X size={12} strokeWidth={3} />
+    <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--red)', border: '2.5px solid var(--ink)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <X size={13} strokeWidth={3.5} />
     </div>
   ),
 }
 
-const RECURRENCE_LABELS: Record<string, string> = {
-  daily: 'Daily',
-  weekly: 'Weekly',
-  monthly: 'Monthly',
-}
-
+const RECURRENCE_LABELS: Record<string, string> = { daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly' }
 const DAY_ABBR = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 interface ChoreRowProps {
@@ -41,12 +36,7 @@ interface ChoreRowProps {
   onUnapprove?: (chore: any) => void
 }
 
-interface ActionItem {
-  label: string
-  icon: React.ReactNode
-  color: string
-  action: () => void
-}
+interface ActionItem { label: string; icon: React.ReactNode; color: string; action: () => void }
 
 export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onUnapprove }: ChoreRowProps) {
   const [showActions, setShowActions] = useState(false)
@@ -60,174 +50,112 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
     ? chore.recurrence_days.map((d: number) => DAY_ABBR[d]).join(', ')
     : null
 
-  // Build action list for the action sheet
   const actions: ActionItem[] = []
-  if (onTap && needsApproval) {
-    actions.push({ label: 'Approve', icon: <CheckCircle size={16} />, color: 'var(--green)', action: () => { onTap(); setShowActions(false) } })
-  }
-  if (onReject && needsApproval) {
-    actions.push({ label: 'Reject', icon: <ThumbsDown size={16} />, color: 'var(--red)', action: () => { onReject(chore); setShowActions(false) } })
-  }
-  if (onUnapprove && isDone) {
-    actions.push({ label: 'Undo Approval', icon: <Undo2 size={16} />, color: 'var(--amber)', action: () => { onUnapprove(chore); setShowActions(false) } })
-  }
-  if (onUndo && (needsApproval || isRejected)) {
-    actions.push({ label: 'Clear Completion', icon: <X size={16} />, color: 'var(--p-muted)', action: () => { onUndo(chore); setShowActions(false) } })
-  }
-  if (onEdit) {
-    actions.push({ label: 'Edit Chore', icon: <Pencil size={16} />, color: 'var(--p-muted)', action: () => { onEdit(chore); setShowActions(false) } })
-  }
-  if (onDelete) {
-    actions.push({ label: 'Delete Chore', icon: <Trash2 size={16} />, color: 'var(--red)', action: () => { onDelete(chore); setShowActions(false) } })
-  }
+  if (onTap && needsApproval) actions.push({ label: 'Approve', icon: <CheckCircle size={16} />, color: 'var(--green)', action: () => { onTap(); setShowActions(false) } })
+  if (onReject && needsApproval) actions.push({ label: 'Reject', icon: <ThumbsDown size={16} />, color: 'var(--red)', action: () => { onReject(chore); setShowActions(false) } })
+  if (onUnapprove && isDone) actions.push({ label: 'Undo Approval', icon: <Undo2 size={16} />, color: 'var(--ink)', action: () => { onUnapprove(chore); setShowActions(false) } })
+  if (onUndo && (needsApproval || isRejected)) actions.push({ label: 'Clear Completion', icon: <X size={16} />, color: 'var(--ink-50)', action: () => { onUndo(chore); setShowActions(false) } })
+  if (onEdit) actions.push({ label: 'Edit Chore', icon: <Pencil size={16} />, color: 'var(--ink)', action: () => { onEdit(chore); setShowActions(false) } })
+  if (onDelete) actions.push({ label: 'Delete Chore', icon: <Trash2 size={16} />, color: 'var(--red)', action: () => { onDelete(chore); setShowActions(false) } })
 
   return (
     <>
       <div className="flex items-center gap-1 group">
         <motion.button
-          className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors min-h-[52px] hover:bg-white/[0.03]"
+          className="flex-1 flex items-center gap-3 text-left min-h-[56px]"
           onClick={onTap}
           whileTap={{ scale: 0.99 }}
+          style={{
+            background: '#fff',
+            border: '2.5px solid var(--ink)',
+            borderRadius: 12,
+            padding: '12px 14px',
+            boxShadow: 'var(--shadow-sm)',
+            color: 'var(--ink)',
+            opacity: isDone ? 0.6 : 1,
+          }}
         >
           {STATUS_CIRCLE[chore.status]}
 
           <div className="flex-1 min-w-0">
-            <div className={`text-sm ${isDone ? 'line-through' : ''}`} style={{ color: isDone ? 'var(--p-dim)' : 'var(--p-text)' }}>
-              {chore.emoji} {chore.name}
+            <div style={{ fontWeight: 700, fontSize: 14, textDecoration: isDone ? 'line-through' : 'none' }}>
+              <span style={{ marginRight: 6 }}>{chore.emoji}</span>{chore.name}
             </div>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               {kid && <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />}
-              <span className="text-xs" style={{ color: 'var(--p-muted)' }}>{kid?.full_name}</span>
+              <span className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>{kid?.full_name}</span>
               {recurrenceLabel && (
-                <span className="flex items-center gap-0.5 text-[10px]" style={{ color: 'var(--p-dim)' }}>
+                <span className="flex items-center gap-0.5 text-[10px] font-bold" style={{ color: 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>
                   <Repeat size={9} /> {recurrenceLabel}{daysList ? ` (${daysList})` : ''}
                 </span>
               )}
             </div>
           </div>
 
-          {needsApproval ? (
-            <Badge variant="amber">Needs approval</Badge>
-          ) : isRejected ? (
-            <Badge variant="red">Rejected</Badge>
-          ) : (
-            <Badge variant={isDone ? 'green' : 'gold'}>+{chore.points} pts</Badge>
-          )}
+          {needsApproval ? <Badge variant="amber">Needs approval</Badge>
+            : isRejected ? <Badge variant="red">Rejected</Badge>
+            : <Badge variant={isDone ? 'green' : 'gold'}>+{chore.points}</Badge>}
         </motion.button>
 
-        {/* More button — always visible, opens action sheet */}
         {actions.length > 0 && (
           <button
             onClick={() => setShowActions(true)}
-            className="p-2 rounded-lg transition-colors hover:bg-white/[0.06] shrink-0"
-            style={{ color: 'var(--p-dim)' }}
+            style={{ background: '#fff', border: '2.5px solid var(--ink)', borderRadius: 10, padding: 8, color: 'var(--ink)', boxShadow: 'var(--shadow-sm)', cursor: 'pointer', flexShrink: 0 }}
           >
-            <MoreVertical size={16} />
+            <MoreVertical size={16} strokeWidth={3} />
           </button>
         )}
-
-        {/* Desktop: extra icons on hover */}
-        <div className="hidden lg:flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          {onReject && needsApproval && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onReject(chore) }}
-              className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
-              style={{ color: 'var(--red)' }}
-              title="Reject — send back to kid"
-            >
-              <ThumbsDown size={13} />
-            </button>
-          )}
-          {onUnapprove && isDone && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onUnapprove(chore) }}
-              className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
-              style={{ color: 'var(--amber)' }}
-              title="Undo approval — reverts points"
-            >
-              <Undo2 size={13} />
-            </button>
-          )}
-          {onUndo && (needsApproval || isRejected) && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onUndo(chore) }}
-              className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
-              style={{ color: 'var(--p-muted)' }}
-              title="Clear completion entirely"
-            >
-              <X size={13} />
-            </button>
-          )}
-          {onEdit && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onEdit(chore) }}
-              className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
-              style={{ color: 'var(--p-muted)' }}
-              title="Edit chore"
-            >
-              <Pencil size={13} />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(chore) }}
-              className="p-2 rounded-lg transition-colors hover:bg-white/[0.06]"
-              style={{ color: 'var(--red)' }}
-              title="Delete chore"
-            >
-              <Trash2 size={13} />
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Action sheet */}
       <AnimatePresence>
         {showActions && (
           <>
-            <motion.div
-              className="fixed inset-0 z-40 bg-black/50"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowActions(false)}
-            />
+            <motion.div className="fixed inset-0 z-40" style={{ background: 'rgba(26,20,17,0.5)' }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowActions(false)} />
             <motion.div
               className="fixed z-50 inset-x-0 bottom-0 lg:inset-0 lg:flex lg:items-center lg:justify-center"
-              initial={{ y: '100%', opacity: 0.8 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: '100%', opacity: 0 }}
+              initial={{ y: '100%', opacity: 0.8 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             >
               <div
-                className="rounded-t-2xl lg:rounded-2xl w-full lg:max-w-sm border-t lg:border"
-                style={{ background: 'var(--p-surface)', borderColor: 'var(--p-border)' }}
+                className="w-full lg:max-w-sm"
+                style={{
+                  background: 'var(--cream)',
+                  border: '3px solid var(--ink)',
+                  borderTopLeftRadius: 24, borderTopRightRadius: 24,
+                  borderBottom: 'none',
+                }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Header */}
-                <div className="px-5 pt-4 pb-2">
-                  <div className="text-sm font-medium" style={{ color: 'var(--p-text)' }}>{chore.emoji} {chore.name}</div>
-                  <div className="text-xs" style={{ color: 'var(--p-muted)' }}>{kid?.full_name}</div>
+                <div className="px-5 pt-4 pb-3" style={{ borderBottom: '2px solid var(--ink)' }}>
+                  <div className="font-bold" style={{ color: 'var(--ink)' }}>{chore.emoji} {chore.name}</div>
+                  <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>{kid?.full_name}</div>
                 </div>
-
-                {/* Action buttons */}
-                <div className="px-3 pb-3 space-y-0.5">
-                  {actions.map((a) => (
+                <div className="px-3 pt-3 pb-4 space-y-1">
+                  {actions.map(a => (
                     <button
                       key={a.label}
                       onClick={a.action}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors active:bg-white/[0.06] hover:bg-white/[0.03]"
+                      className="w-full flex items-center gap-3 text-left"
+                      style={{
+                        background: '#fff',
+                        border: '2.5px solid var(--ink)',
+                        borderRadius: 10,
+                        padding: '10px 14px',
+                        boxShadow: 'var(--shadow-sm)',
+                        color: a.color,
+                        fontWeight: 700,
+                      }}
                     >
-                      <span style={{ color: a.color }}>{a.icon}</span>
-                      <span className="text-sm" style={{ color: a.color }}>{a.label}</span>
+                      {a.icon}
+                      <span>{a.label}</span>
                     </button>
                   ))}
-                </div>
-
-                {/* Cancel */}
-                <div className="px-3 pb-5">
                   <button
                     onClick={() => setShowActions(false)}
-                    className="w-full py-3 rounded-xl text-sm font-medium"
-                    style={{ background: 'var(--p-card)', color: 'var(--p-muted)' }}
+                    className="w-full mt-2"
+                    style={{ background: 'transparent', border: '2.5px solid var(--ink)', borderRadius: 10, padding: 10, fontWeight: 800, color: 'var(--ink)' }}
                   >
                     Cancel
                   </button>

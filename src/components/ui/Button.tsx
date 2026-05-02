@@ -1,30 +1,105 @@
 import { motion } from 'framer-motion'
 
-const VARIANTS: Record<string, string> = {
-  gold: 'bg-[var(--gold)] text-black hover:brightness-110',
-  ghost: 'text-[var(--p-muted)] hover:text-[var(--p-text)] hover:bg-[var(--p-card)]',
-  outline: 'border border-[var(--p-border)] text-[var(--p-text)] hover:bg-[var(--p-card)]',
-  green: 'bg-[var(--green)] text-black hover:brightness-110',
-  red: 'bg-[var(--red)] text-black hover:brightness-110',
-  muted: 'bg-[var(--p-card)] text-[var(--p-muted)] hover:text-[var(--p-text)]',
-}
+type Variant = 'primary' | 'secondary' | 'tertiary' | 'green' | 'red' | 'ghost' | 'dark' | 'gold' | 'muted' | 'outline'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: keyof typeof VARIANTS
+  variant?: Variant
   fullWidth?: boolean
   loading?: boolean
 }
 
-export function Button({ variant = 'gold', fullWidth, loading, children, className = '', ...props }: ButtonProps) {
+const STYLES: Record<Variant, React.CSSProperties> = {
+  primary: {
+    background: 'var(--red)',
+    color: '#fff',
+    border: '3px solid var(--ink)',
+    boxShadow: 'var(--shadow)',
+    textShadow: '2px 2px 0 var(--ink)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+  },
+  secondary: {
+    background: 'var(--cream)',
+    color: 'var(--ink)',
+    border: '3px solid var(--ink)',
+    boxShadow: 'var(--shadow-sm)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+  },
+  tertiary: {
+    background: '#fff',
+    color: 'var(--ink)',
+    border: '2.5px solid var(--ink)',
+    fontWeight: 800,
+  },
+  green: {
+    background: 'var(--green)',
+    color: '#fff',
+    border: '3px solid var(--ink)',
+    boxShadow: 'var(--shadow)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+    textShadow: '2px 2px 0 var(--ink)',
+  },
+  red: {
+    background: 'var(--red)',
+    color: '#fff',
+    border: '3px solid var(--ink)',
+    boxShadow: 'var(--shadow)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+    textShadow: '2px 2px 0 var(--ink)',
+  },
+  ghost: {
+    background: 'transparent',
+    color: 'var(--ink)',
+    border: '2.5px solid transparent',
+    fontWeight: 700,
+  },
+  dark: {
+    background: 'var(--ink)',
+    color: '#fff',
+    border: '3px solid var(--ink)',
+    boxShadow: 'var(--shadow-sm)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+  },
+  // Legacy aliases
+  gold: {
+    background: 'var(--yellow)',
+    color: 'var(--ink)',
+    border: '3px solid var(--ink)',
+    boxShadow: 'var(--shadow-sm)',
+    fontFamily: 'var(--font-display)',
+    letterSpacing: '-0.02em',
+  },
+  muted: {
+    background: '#fff',
+    color: 'var(--ink)',
+    border: '2.5px solid var(--ink)',
+    fontWeight: 800,
+  },
+  outline: {
+    background: 'transparent',
+    color: 'var(--ink)',
+    border: '2.5px solid var(--ink)',
+    fontWeight: 800,
+  },
+}
+
+export function Button({ variant = 'primary', fullWidth, loading, children, className = '', style, ...props }: ButtonProps) {
   return (
     <motion.button
-      whileTap={{ scale: 0.97 }}
+      whileTap={{ scale: 0.96, boxShadow: '1px 1px 0 var(--ink)' }}
+      transition={{ type: 'spring', stiffness: 500, damping: 20 }}
       className={`
-        inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium
-        transition-all min-h-[44px] disabled:opacity-40 disabled:pointer-events-none
-        ${VARIANTS[variant]} ${fullWidth ? 'w-full' : ''} ${className}
+        inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-base
+        transition-[background,color] min-h-[48px]
+        disabled:opacity-50 disabled:pointer-events-none
+        ${fullWidth ? 'w-full' : ''} ${className}
       `}
       disabled={loading || props.disabled}
+      style={{ ...STYLES[variant], ...style }}
       {...(props as any)}
     >
       {loading ? <Spinner /> : children}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, Clock, Camera, Sparkles, Undo2 } from 'lucide-react'
+import type { KidSkin } from '../../hooks/useKidSkin'
 
 interface ChoreCardProps {
   chore: any
@@ -8,9 +9,15 @@ interface ChoreCardProps {
   onUndo?: (chore: any) => void
   isPast?: boolean
   isNew?: boolean
+  skin?: KidSkin
 }
 
-export function ChoreCard({ chore, onComplete, onUndo, isPast, isNew }: ChoreCardProps) {
+/**
+ * Stadium ChoreCard.
+ * - Younger skin: chunky bordered tile with big emoji + colored bg, "Flush it!" energy.
+ * - Teen skin: dark slim row with stat pills.
+ */
+export function ChoreCard({ chore, onComplete, onUndo, isPast, isNew, skin = 'younger' }: ChoreCardProps) {
   const [confirming, setConfirming] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
   const isDone = chore.status === 'approved'
@@ -20,140 +27,249 @@ export function ChoreCard({ chore, onComplete, onUndo, isPast, isNew }: ChoreCar
   const canComplete = !isDone && !isSubmitted && !confirming
   const canUndo = (isDone || isSubmitted) && onUndo
 
-  const cardBg = justCompleted
-    ? 'rgba(74,222,128,0.15)'
-    : confirming
-    ? 'rgba(245,200,66,0.12)'
-    : isDone
-    ? 'rgba(74,222,128,0.08)'
-    : isSubmitted
-    ? 'rgba(251,191,36,0.08)'
-    : isRejected
-    ? 'rgba(248,113,113,0.06)'
-    : 'rgba(255,255,255,0.06)'
-
-  const cardBorder = confirming
-    ? 'rgba(245,200,66,0.4)'
-    : isDone
-    ? 'rgba(74,222,128,0.2)'
-    : isSubmitted
-    ? 'rgba(251,191,36,0.2)'
-    : isNew
-    ? 'rgba(245,200,66,0.3)'
-    : 'rgba(255,255,255,0.1)'
-
   function handleTap() {
     if (confirming) {
       setConfirming(false)
       setJustCompleted(true)
       onComplete(chore)
-      setTimeout(() => setJustCompleted(false), 2000)
+      setTimeout(() => setJustCompleted(false), 1600)
     } else if (canComplete) {
       setConfirming(true)
+      setTimeout(() => setConfirming(c => c), 0)
     }
   }
 
+  if (skin === 'teen') {
+    return (
+      <motion.div
+        whileTap={canComplete || confirming ? { scale: 0.98 } : undefined}
+        onClick={handleTap}
+        style={{
+          background: isDone ? 'transparent' : '#1a1a1c',
+          border: `1.5px solid ${isDone ? '#222' : confirming ? 'var(--yellow)' : '#333'}`,
+          borderRadius: 10,
+          padding: '12px 14px',
+          color: '#fff',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          cursor: 'pointer',
+          opacity: isDone ? 0.45 : 1,
+          position: 'relative',
+        }}
+      >
+        <div
+          style={{
+            width: 22, height: 22, borderRadius: 6,
+            background: isDone ? 'var(--yellow)' : 'transparent',
+            border: `2px solid ${isDone ? 'var(--yellow)' : '#555'}`,
+            color: 'var(--ink)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 800, fontSize: 13, flexShrink: 0,
+          }}
+        >
+          {isDone ? '✓' : ''}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: 14,
+              textDecoration: isDone ? 'line-through' : 'none',
+            }}
+          >
+            <span style={{ marginRight: 6 }}>{chore.emoji}</span>
+            {chore.name}
+          </div>
+          {confirming && (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--yellow)', marginTop: 2 }}>
+              Tap again to confirm
+            </div>
+          )}
+          {isSubmitted && !confirming && (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--yellow)', marginTop: 2 }}>
+              Waiting for approval…
+            </div>
+          )}
+          {isRejected && (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--red)', marginTop: 2 }}>
+              Try again
+            </div>
+          )}
+        </div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: isDone ? '#555' : 'var(--yellow)', flexShrink: 0 }}>
+          +{chore.points}
+        </div>
+        {canUndo && !confirming && !justCompleted && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onUndo!(chore) }}
+            style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', padding: 4 }}
+            title="Undo"
+          >
+            <Undo2 size={12} />
+          </button>
+        )}
+      </motion.div>
+    )
+  }
+
+  // YOUNGER skin
+  const tileColors = ['var(--red)', 'var(--blue)', 'var(--green)', 'var(--pink)']
+  const baseColor = tileColors[Math.abs(hashCode(chore.id || chore.name || '')) % tileColors.length]
+
   return (
     <motion.div
-      className="w-full rounded-2xl p-4 text-left relative overflow-hidden min-h-[120px] flex flex-col justify-between cursor-pointer select-none"
-      style={{ background: cardBg, border: `1px solid ${cardBorder}`, transition: 'background 0.2s, border-color 0.2s' }}
-      whileTap={canComplete || confirming ? { scale: [1, 1.06, 0.98, 1] } : undefined}
+      whileTap={canComplete || confirming ? { scale: [1, 1.04, 0.98, 1] } : undefined}
       transition={{ duration: 0.3 }}
       onClick={handleTap}
+      className="relative cursor-pointer select-none"
+      style={{
+        background: isDone ? '#fff' : confirming ? 'var(--yellow)' : baseColor,
+        color: isDone ? '#999' : confirming ? 'var(--ink)' : '#fff',
+        border: '3px solid var(--ink)',
+        borderRadius: 18,
+        padding: 14,
+        boxShadow: isDone ? 'var(--shadow-sm)' : 'var(--shadow)',
+        opacity: isDone ? 0.7 : 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 6,
+        aspectRatio: '1 / 1',
+        textAlign: 'center',
+        minHeight: 0,
+      }}
     >
-      {/* NEW badge */}
       {isNew && !isDone && !isSubmitted && !confirming && (
-        <div className="absolute top-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
-          style={{ background: 'var(--gold-dim)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}>
-          <Sparkles size={8} /> NEW
+        <div
+          className="absolute"
+          style={{
+            top: 6, right: 6,
+            background: 'var(--yellow)', color: 'var(--ink)',
+            border: '2px solid var(--ink)',
+            borderRadius: 999,
+            padding: '1px 6px',
+            fontSize: 9, fontWeight: 800, letterSpacing: 1,
+            display: 'flex', alignItems: 'center', gap: 2,
+          }}
+        >
+          <Sparkles size={9} /> NEW
         </div>
       )}
 
-      <div>
-        <div className="text-2xl mb-2">{chore.emoji}</div>
-        <div className={`text-sm font-medium ${isDone ? 'line-through' : ''}`} style={{ color: isDone ? 'var(--p-dim)' : 'rgba(255,255,255,0.9)' }}>
-          {chore.name}
-        </div>
+      <div style={{ fontSize: 40, lineHeight: 1, filter: isDone ? 'grayscale(1)' : 'none' }}>
+        {chore.emoji}
       </div>
 
-      {/* Confirmation prompt */}
-      <AnimatePresence>
-        {confirming && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mt-2 text-center"
-          >
-            <div className="text-xs font-semibold mb-1" style={{ color: 'var(--gold)' }}>
-              {isPast ? 'Mark as done late?' : 'Mark as done?'}
-            </div>
-            <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.5)' }}>Tap again to confirm</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 16,
+          letterSpacing: '-0.02em',
+          lineHeight: 1.05,
+          textDecoration: isDone ? 'line-through' : 'none',
+        }}
+      >
+        {chore.name}
+      </div>
 
-      {/* Just completed flash */}
+      {confirming ? (
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink)', fontWeight: 700, marginTop: 'auto' }}>
+          TAP AGAIN!
+        </div>
+      ) : (
+        <div
+          style={{
+            background: isDone ? '#eee' : 'var(--yellow)',
+            color: 'var(--ink)',
+            border: '2px solid var(--ink)',
+            borderRadius: 8,
+            padding: '2px 8px',
+            fontFamily: 'var(--font-display)',
+            fontSize: 14,
+            marginTop: 'auto',
+          }}
+        >
+          +{chore.points}
+        </div>
+      )}
+
       <AnimatePresence>
         {justCompleted && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.6 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center rounded-2xl"
-            style={{ background: 'rgba(74,222,128,0.15)' }}
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              background: 'var(--green)',
+              border: '3px solid var(--ink)',
+              borderRadius: 18,
+              color: '#fff',
+            }}
           >
-            <div className="text-center">
-              <Check size={32} style={{ color: 'var(--green)' }} strokeWidth={3} />
-              <div className="text-xs font-semibold mt-1" style={{ color: 'var(--green)' }}>Done! 💩</div>
-            </div>
+            <Check size={48} strokeWidth={3} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Normal footer */}
+      {/* Status corner badges */}
       {!confirming && !justCompleted && (
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-xs font-medium" style={{ color: 'var(--gold)' }}>
-            +{chore.points} pts
-          </span>
-
+        <>
           {isDone && (
-            <div className="flex items-center gap-1">
-              {isLate && <span className="text-[9px] font-medium" style={{ color: 'var(--amber)' }}>LATE</span>}
-              <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: isLate ? 'var(--amber)' : 'var(--green)' }}>
-                <Check size={14} color="#000" strokeWidth={3} />
+            <div className="absolute" style={{ top: 6, left: 6 }}>
+              <div
+                style={{
+                  width: 24, height: 24,
+                  borderRadius: '50%',
+                  background: isLate ? 'var(--yellow)' : 'var(--green)',
+                  color: '#fff',
+                  border: '2px solid var(--ink)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                <Check size={14} strokeWidth={3} />
               </div>
             </div>
           )}
           {isSubmitted && (
-            <div className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--amber)' }}>
-              <Clock size={12} /> Waiting...
+            <div className="absolute" style={{ top: 6, left: 6, display: 'flex', alignItems: 'center', gap: 3, background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 8, padding: '2px 6px', fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+              <Clock size={9} /> WAIT
             </div>
           )}
           {isRejected && (
-            <span className="text-[11px]" style={{ color: 'var(--red)' }}>Try again</span>
-          )}
-          {canComplete && isPast && (
-            <span className="text-[10px] font-medium" style={{ color: 'var(--amber)' }}>Late</span>
+            <div className="absolute" style={{ top: 6, left: 6, background: 'var(--red)', color: '#fff', border: '2px solid var(--ink)', borderRadius: 8, padding: '2px 6px', fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+              REDO
+            </div>
           )}
           {chore.requires_proof && chore.status === 'pending' && !isPast && (
-            <Camera size={14} style={{ color: 'var(--p-dim)' }} />
+            <div className="absolute" style={{ bottom: 6, right: 6, color: '#fff', opacity: 0.85 }}>
+              <Camera size={12} />
+            </div>
           )}
-        </div>
+        </>
       )}
 
-      {/* Undo button */}
       {canUndo && !confirming && !justCompleted && (
         <button
           onClick={(e) => { e.stopPropagation(); onUndo!(chore) }}
-          className="absolute top-2 right-2 p-1.5 rounded-lg transition-colors"
-          style={{ color: 'rgba(255,255,255,0.5)', background: 'rgba(0,0,0,0.3)' }}
+          style={{
+            position: 'absolute', top: 6, right: 6,
+            background: '#fff', border: '2px solid var(--ink)',
+            borderRadius: 8, padding: 4,
+            color: 'var(--ink)', cursor: 'pointer',
+          }}
           title="Undo"
         >
-          <Undo2 size={12} />
+          <Undo2 size={11} strokeWidth={3} />
         </button>
       )}
     </motion.div>
   )
+}
+
+function hashCode(s: string) {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h << 5) - h + s.charCodeAt(i) | 0
+  return h
 }

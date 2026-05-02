@@ -1,29 +1,77 @@
 @import "tailwindcss";
 
+/* ─────────── STADIUM TOKENS ─────────── */
 :root {
-  --gold: #F5C842;
-  --gold-dim: rgba(245,200,66,0.15);
-  --gold-border: rgba(245,200,66,0.3);
+  /* Colors */
+  --ink:       #1a1411;
+  --cream:     #fff7e6;
+  --paper:     #fceedd;
+  --red:       #ff3b30;
+  --yellow:    #ffd23f;
+  --blue:      #3b82f6;
+  --green:     #10b981;
+  --pink:      #ff7eb6;
 
-  --p-bg: #0f0f0f;
-  --p-surface: #141414;
-  --p-sidebar: #111111;
-  --p-card: rgba(255,255,255,0.04);
-  --p-border: rgba(255,255,255,0.08);
-  --p-text: rgba(255,255,255,0.88);
-  --p-muted: rgba(255,255,255,0.4);
-  --p-dim: rgba(255,255,255,0.18);
+  /* Dark skin (teen) */
+  --ink-dark:   #0f0f10;
+  --paper-dark: #1a1a1c;
 
-  --green: #4ade80;
-  --green-dim: rgba(74,222,128,0.12);
-  --green-border: rgba(74,222,128,0.3);
-  --amber: #fbbf24;
-  --amber-dim: rgba(251,191,36,0.12);
-  --red: #f87171;
+  /* Tints (light wash) */
+  --ink-08:    rgba(26,20,17,0.08);
+  --ink-15:    rgba(26,20,17,0.15);
+  --ink-50:    rgba(26,20,17,0.5);
+  --ink-70:    rgba(26,20,17,0.7);
+
+  /* Radii */
+  --r-sm:    6px;
+  --r-md:    10px;
+  --r-lg:    14px;
+  --r-xl:    18px;
+  --r-2xl:   24px;
+  --r-full:  999px;
+
+  /* Shadows — chunky offset, no blur */
+  --shadow-sm: 2px 2px 0 var(--ink);
+  --shadow:    4px 4px 0 var(--ink);
+  --shadow-lg: 6px 6px 0 var(--ink);
+
+  /* Borders */
+  --bw-thin:  1.5px;
+  --bw:       2.5px;
+  --bw-thick: 3px;
+  --bw-bold:  4px;
+
+  /* Type */
+  --font-display: 'Bagel Fat One', system-ui;
+  --font-body:    'Bricolage Grotesque', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ─────────── Legacy aliases (parent web — old code paths) ─────────── */
+  /* These map old --p-* / --gold tokens onto Stadium so unconverted pages still read OK. */
+  --gold:        var(--yellow);
+  --gold-dim:    rgba(255,210,63,0.18);
+  --gold-border: rgba(26,20,17,0.6);
+
+  --p-bg:       var(--cream);
+  --p-surface:  #fffdf6;
+  --p-sidebar:  var(--ink);
+  --p-card:     #fffdf6;
+  --p-border:   var(--ink);
+  --p-text:     var(--ink);
+  --p-muted:    rgba(26,20,17,0.65);
+  --p-dim:      rgba(26,20,17,0.4);
+
+  --green-dim:    rgba(16,185,129,0.15);
+  --green-border: rgba(26,20,17,0.6);
+  --amber:        var(--yellow);
+  --amber-dim:    rgba(255,210,63,0.22);
 }
 
+/* ─────────── Base ─────────── */
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
   margin: 0;
@@ -34,19 +82,68 @@ body {
   min-height: 100dvh;
 }
 
-/* Safari standalone (home screen PWA): prevent overscroll bounce */
+/* Standalone PWA */
 @media all and (display-mode: standalone) {
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
-  #root {
-    height: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  html, body { height: 100%; overflow: hidden; }
+  #root { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 }
 
-.font-display { font-family: 'Syne', sans-serif; }
-.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
-.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+/* ─────────── Utilities ─────────── */
+.font-display { font-family: var(--font-display); letter-spacing: -0.02em; }
+.font-mono    { font-family: var(--font-mono); }
+.safe-bottom  { padding-bottom: env(safe-area-inset-bottom, 16px); }
+.safe-top     { padding-top: env(safe-area-inset-top, 0px); }
+
+/* ─────────── Stadium primitives ─────────── */
+.stadium-card {
+  background: #fff;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.stadium-card-flat {
+  background: #fff;
+  border: var(--bw) solid var(--ink);
+  border-radius: var(--r-lg);
+}
+.stadium-shadow    { box-shadow: var(--shadow); }
+.stadium-shadow-sm { box-shadow: var(--shadow-sm); }
+.stadium-shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* Eyebrow label (mono) */
+.stadium-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-50);
+}
+
+/* Text shadow used on hero buttons & titles */
+.stadium-text-shadow { text-shadow: 2px 2px 0 var(--ink); }
+.stadium-text-shadow-y { text-shadow: 4px 4px 0 var(--yellow); }
+
+/* Confetti shapes — used by kid Celebrate */
+@keyframes stadium-confetti-fall {
+  to { transform: translateY(120vh) rotate(720deg); opacity: 0; }
+}
+.stadium-confetti {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ink);
+  animation: stadium-confetti-fall 2.4s cubic-bezier(.2,.6,.4,1) forwards;
+}
+
+/* Simple pop animation used on completion */
+@keyframes stadium-pop {
+  0%   { transform: scale(0.6) rotate(-6deg); opacity: 0; }
+  70%  { transform: scale(1.08) rotate(2deg);  opacity: 1; }
+  100% { transform: scale(1)    rotate(0); }
+}
+.stadium-pop { animation: stadium-pop .3s ease-out; }
+
+/* Hide scrollbars on scroll containers used in carousels */
+.scroll-hide { scrollbar-width: none; }
+.scroll-hide::-webkit-scrollbar { display: none; }
