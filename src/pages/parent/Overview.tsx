@@ -13,6 +13,7 @@ import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { WeeklyChallenge } from '../../components/WeeklyChallenge'
 import { StatCard } from '../../components/ui/StatCard'
 import { ChoreRow } from '../../components/parent/ChoreRow'
+import { KidScorecards } from '../../components/parent/KidScorecards'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
 import confetti from 'canvas-confetti'
@@ -34,7 +35,7 @@ export function Overview() {
   const { chores, loading, deleteChore, refresh } = useChores()
   const { getCompletion, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion, completions } = useCompletions()
   const { challenge, selectChallenge } = useChallenges()
-  const { profile, kids } = useStore()
+  const { profile, kids, setViewAsKid } = useStore()
   const navigate = useNavigate()
   const [showAddChore, setShowAddChore] = useState(false)
   const [editChore, setEditChore] = useState<any>(null)
@@ -141,6 +142,14 @@ export function Overview() {
         <StatCard tone="blue" label="TOTAL CHORES" value={chores.length} />
         <StatCard tone="pink" label="CHALLENGE" value={challenge ? `${challengeProgress}/${challenge.goal_value}` : '—'} />
       </div>
+
+      {/* Kid scorecards */}
+      <KidScorecards
+        kids={kids}
+        chores={chores}
+        completions={completions}
+        onSelectKid={(kid) => { setViewAsKid(kid); navigate('/kid') }}
+      />
 
       {/* Weekly Challenge */}
       <div className="mb-6">

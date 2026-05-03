@@ -3,6 +3,16 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.5.0',
+    date: 'May 2, 2026',
+    fixes: [
+      { title: 'Faster page loads', desc: 'Replaced per-row RLS policy function calls with a per-statement cached lookup. Pages with many rows now do a single function call per query instead of one per row.' },
+    ],
+    features: [
+      'Kid scorecards on the Overview — each kid shows a 7-day completion rate, current streak, and a status pill (CRUSHING IT / KEEPING UP / SLIPPING). Tap a card to switch to that kid\'s view.',
+    ],
+  },
+  {
     version: '1.4.2',
     date: 'May 2, 2026',
     fixes: [

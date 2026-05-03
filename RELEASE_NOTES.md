@@ -1,5 +1,15 @@
 # Duty Release Notes
 
+## v1.5.0 — May 2, 2026
+
+### New Features
+- **Kid scorecards on the parent Overview.** A new row above the chores list shows each kid with a 7-day completion rate, current streak, and a status pill — **CRUSHING IT** (≥80%), **KEEPING UP** (≥50%), or **SLIPPING** (<50%) — so you can see at a glance who's keeping up and who's drifting. Tap a card to switch to that kid's view.
+
+### Performance
+- **Faster page loads after the v1.4.1 RLS work.** Replaced per-row policy function calls with a per-statement cached lookup using `(select duty_my_parent_family_id())`. Pages with many rows (chores, completions, points) now do a single function call per query instead of one per row.
+
+---
+
 ## v1.4.2 — May 2, 2026
 
 ### Bug Fixes
