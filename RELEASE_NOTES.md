@@ -1,5 +1,12 @@
 # Duty Release Notes
 
+## v1.4.2 — May 2, 2026
+
+### Bug Fixes
+- **Fixed parent login broken by v1.4.1.** The new profile read policy contained a self-referencing subquery that triggered infinite recursion in Postgres RLS, blocking the post-login profile fetch. Replaced with a SECURITY DEFINER helper (`duty_my_family_id()`) that bypasses RLS for the caller's own family lookup.
+
+---
+
 ## v1.4.1 — May 2, 2026
 
 ### Security Hardening

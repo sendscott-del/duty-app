@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.4.2',
+    date: 'May 2, 2026',
+    fixes: [
+      { title: 'Fixed parent login broken by v1.4.1', desc: 'The new profile read policy contained a self-referencing subquery that triggered infinite recursion in Postgres RLS, blocking the post-login profile fetch. Replaced with a SECURITY DEFINER helper that bypasses RLS for the caller\'s own family lookup.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.4.1',
     date: 'May 2, 2026',
     fixes: [
