@@ -1,5 +1,18 @@
 # Duty Release Notes
 
+## v1.4.1 — May 2, 2026
+
+### Security Hardening
+- **Locked down database access policies.** Reworked every `duty_*` Supabase RLS policy so authenticated parents can only read or modify their own family's data, and the kid (anon) role is restricted to the specific operations kids actually need: read chores/rewards/balance, submit a completion as `submitted`, undo a not-yet-approved completion, and redeem a reward. Anon can no longer delete chores, edit chores, change other families' data, award itself points, or alter completions after they've been approved.
+- **Cross-app isolation.** Parents authenticated via another app on the shared Supabase project (Steward, Magnify, etc.) can no longer touch Duty data — the new policies require a `duty_profiles` row with `role='parent'` in the specific family, not just any logged-in account.
+- **Private chore storage buckets.** `chore-photos` and `chore-proofs` storage buckets switched from public to private. New family-scoped storage policies allow only parents in the matching family to read/write files. Path convention: `<family_id>/<rest>`. (No data movement; the buckets were empty.)
+
+### Notes
+- No user-facing changes. The app behaves the same — kids log in by PIN, parents by email/password, chore submissions/approvals/redemptions all work the same.
+- Internal: introduced `duty_is_family_parent(family_id)` helper function used across the new policies.
+
+---
+
 ## v1.4.0 — May 1, 2026
 
 ### New Features

@@ -3,6 +3,16 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.4.1',
+    date: 'May 2, 2026',
+    fixes: [
+      { title: 'Locked down database access', desc: 'Reworked every Duty RLS policy so parents only see their own family and kids can only do what they need (submit, undo before approval, redeem). Anon can no longer delete chores, change other families\' data, or award itself points.' },
+      { title: 'Cross-app isolation', desc: 'Users signed in to other apps on the shared Supabase project can no longer touch Duty data.' },
+      { title: 'Private chore storage', desc: 'chore-photos and chore-proofs buckets are now private with family-scoped access. Future proof uploads will use signed URLs.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.4.0',
     date: 'May 1, 2026',
     fixes: [],
