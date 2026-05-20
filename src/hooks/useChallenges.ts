@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../lib/store'
 import { CHALLENGE_TEMPLATES, type Challenge } from '../lib/challenges'
@@ -18,32 +18,19 @@ function getWeekBounds() {
 }
 
 export function useChallenges() {
-  const { family } = useStore()
-  const [challenge, setChallenge] = useState<Challenge | null>(null)
-  const [loading, setLoading] = useState(true)
-  const { weekStart, weekEnd } = getWeekBounds()
+  const challenge = useStore((s) => s.challenge)
+  const loading = useStore((s) => s.dataLoading)
+  const setChallenge = useStore((s) => s.setChallenge)
 
-  const fetchChallenge = useCallback(async () => {
-    if (!family?.id) { setLoading(false); return }
-    const { data } = await supabase
-      .from('duty_challenges')
-      .select('*')
-      .eq('family_id', family.id)
-      .eq('week_start', weekStart)
-      .maybeSingle()
-
-    setChallenge(data as Challenge | null)
-    setLoading(false)
-  }, [family?.id, weekStart])
-
-  useEffect(() => { fetchChallenge() }, [fetchChallenge])
-
-  async function selectChallenge(templateIndex: number) {
+  const selectChallenge = useCallback(async (templateIndex: number) => {
+    const family = useStore.getState().family
     if (!family?.id) return
+    const { weekStart, weekEnd } = getWeekBounds()
 
-    // Delete existing challenge for this week
-    if (challenge) {
-      await supabase.from('duty_challenges').delete().eq('id', challenge.id)
+    const existing = useStore.getState().challenge
+    if (existing) {
+      setChallenge(null)
+      await supabase.from('duty_challenges').delete().eq('id', existing.id)
     }
 
     const t = CHALLENGE_TEMPLATES[templateIndex]
@@ -63,16 +50,20 @@ export function useChallenges() {
       .single()
 
     if (data) setChallenge(data as Challenge)
-  }
+  }, [setChallenge])
 
-  async function completeChallenge() {
-    if (!challenge) return
+  const completeChallenge = useCallback(async () => {
+    const current = useStore.getState().challenge
+    if (!current) return
+    const completedAt = new Date().toISOString()
+    setChallenge({ ...current, completed: true, completed_at: completedAt })
     await supabase.from('duty_challenges').update({
       completed: true,
-      completed_at: new Date().toISOString(),
-    }).eq('id', challenge.id)
-    setChallenge({ ...challenge, completed: true, completed_at: new Date().toISOString() })
-  }
+      completed_at: completedAt,
+    }).eq('id', current.id)
+  }, [setChallenge])
 
-  return { challenge, loading, selectChallenge, completeChallenge, refresh: fetchChallenge }
+  const refresh = useCallback(async () => {}, [])
+
+  return { challenge, loading, selectChallenge, completeChallenge, refresh }
 }

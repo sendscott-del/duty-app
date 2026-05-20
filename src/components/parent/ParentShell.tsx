@@ -1,20 +1,24 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
-import { useCompletions } from '../../hooks/useCompletions'
-import { useRewards } from '../../hooks/useRewards'
+import { useStore } from '../../lib/store'
+import { useFamilyData } from '../../hooks/useFamilyData'
 import { useNotificationWatcher } from '../../hooks/useNotifications'
 
 export function ParentShell() {
-  const { completions } = useCompletions()
-  const { redemptions } = useRewards()
-
+  useFamilyData()
   useNotificationWatcher()
 
-  const totalBadge =
-    completions.filter(c => c.status === 'submitted').length +
-    redemptions.filter((r: any) => r.status === 'pending').length
+  const completions = useStore((s) => s.completions)
+  const redemptions = useStore((s) => s.redemptions)
+
+  const totalBadge = useMemo(
+    () =>
+      completions.filter((c) => c.status === 'submitted').length +
+      redemptions.filter((r: any) => r.status === 'pending').length,
+    [completions, redemptions]
+  )
 
   useEffect(() => {
     if ('setAppBadge' in navigator) {

@@ -3,6 +3,16 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.6.0',
+    date: 'May 20, 2026',
+    fixes: [
+      { title: 'Instant page navigation', desc: 'Pages no longer re-fetch from the database on every visit. Chores, completions, rewards, point ledger, and the weekly challenge live in a single in-memory cache, kept fresh by realtime. Switching between Overview, Approvals, Chores, Rewards, and History is now zero-network and zero-spinner.' },
+      { title: 'One realtime channel per family', desc: 'Replaced five per-hook realtime subscriptions (each torn down and re-opened on every page mount) with a single channel watching every duty_* table for the family. Cuts websocket churn and eliminates the channel-collision class of bugs.' },
+      { title: 'Route-level code splitting', desc: 'Pages are now lazy-loaded instead of bundled into one large JavaScript file. First paint downloads only the app shell plus the page you land on; other pages stream in on demand. Vendor libraries (React, Supabase, Framer Motion, confetti) are split into long-cacheable chunks.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.5.0',
     date: 'May 2, 2026',
     fixes: [

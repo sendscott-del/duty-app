@@ -1,5 +1,17 @@
 # Duty Release Notes
 
+## v1.6.0 — May 20, 2026
+
+### Performance
+- **Page navigation is now instant.** Every page previously re-fetched its data from Supabase on mount, showing a spinner each time you moved between Overview, Approvals, Chores, Rewards, and History. Chores, completions, rewards, redemptions, point transactions, and the current weekly challenge now live in a single in-memory cache that is populated once per session and updated live via realtime subscriptions. Subsequent navigations render straight from cache — no spinner, no network round-trip.
+- **One realtime channel per family, not five per page.** Previously each data hook opened its own Supabase realtime subscription, and those were torn down and recreated on every page mount. Now a single channel watches all six tables for the family for the lifetime of the session.
+- **Route-level code splitting.** Pages are now loaded on demand instead of bundled into one ~680 KB JavaScript file. First paint downloads the app shell plus the page you're landing on (typically under 100 KB gzipped); other pages stream in only when you navigate to them. Vendor code (React, Supabase, Framer Motion, confetti) is split into long-cacheable chunks.
+
+### Notes
+- No behavior changes — every page works the same, with the same approve/reject/undo/celebrate flows. Realtime updates from other devices still appear automatically.
+
+---
+
 ## v1.5.0 — May 2, 2026
 
 ### New Features

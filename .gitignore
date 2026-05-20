@@ -27,3 +27,4 @@ dist-ssr
 
 # Stadium design source — reference only, not deployed
 new design/
+.vercel

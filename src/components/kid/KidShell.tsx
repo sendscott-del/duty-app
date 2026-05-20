@@ -1,9 +1,11 @@
 import { Outlet } from 'react-router-dom'
 import { useNotificationWatcher } from '../../hooks/useNotifications'
+import { useFamilyData } from '../../hooks/useFamilyData'
 import { useStore } from '../../lib/store'
 import { useKidSkin } from '../../hooks/useKidSkin'
 
 export function KidShell() {
+  useFamilyData()
   useNotificationWatcher()
   const { profile, viewAsKid } = useStore()
   const active = viewAsKid || profile
