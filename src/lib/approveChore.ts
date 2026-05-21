@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import confetti from 'canvas-confetti'
+import { pop as popConfetti } from './confetti'
 
 export async function approveChore(chore: any, parentId: string) {
   await supabase.from('duty_chores').update({
@@ -18,7 +18,7 @@ export async function approveChore(chore: any, parentId: string) {
     created_by: parentId
   })
 
-  confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } })
+  popConfetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } })
 }
 
 export async function rejectChore(chore: any, parentId: string, note?: string) {

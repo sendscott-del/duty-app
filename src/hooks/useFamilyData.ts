@@ -121,9 +121,9 @@ export function useFamilyData() {
           const s = useStore.getState()
           if (eventType === 'INSERT') s.addPointTransaction(newRow as any)
           else if (eventType === 'DELETE') {
-            // Old row may carry reference_id when REPLICA IDENTITY FULL is set.
-            const ref = (old as any)?.reference_id
-            if (ref) s.removePointTransactionsByCompletion(ref)
+            // `old` reliably carries the primary key under default REPLICA IDENTITY.
+            const oldId = (old as any)?.id
+            if (oldId) s.removePointTransactionById(oldId)
           }
         }
       )

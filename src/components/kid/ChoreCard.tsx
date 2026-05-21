@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+// motion is retained for the justCompleted overlay below; the row/tile
+// itself uses CSS :active for tap feedback (cheaper than per-instance
+// motion values when many cards mount at once).
 import { Check, Clock, Camera, Sparkles, Undo2 } from 'lucide-react'
 import type { KidSkin } from '../../hooks/useKidSkin'
 
@@ -40,10 +43,11 @@ export function ChoreCard({ chore, onComplete, onUndo, isPast, isNew, skin = 'yo
   }
 
   if (skin === 'teen') {
+    const teenTappable = canComplete || confirming
     return (
-      <motion.div
-        whileTap={canComplete || confirming ? { scale: 0.98 } : undefined}
+      <div
         onClick={handleTap}
+        className={teenTappable ? 'transition-transform active:scale-[0.98]' : undefined}
         style={{
           background: isDone ? 'transparent' : '#1a1a1c',
           border: `1.5px solid ${isDone ? '#222' : confirming ? 'var(--yellow)' : '#333'}`,
@@ -109,20 +113,19 @@ export function ChoreCard({ chore, onComplete, onUndo, isPast, isNew, skin = 'yo
             <Undo2 size={12} />
           </button>
         )}
-      </motion.div>
+      </div>
     )
   }
 
   // YOUNGER skin
   const tileColors = ['var(--red)', 'var(--blue)', 'var(--green)', 'var(--pink)']
   const baseColor = tileColors[Math.abs(hashCode(chore.id || chore.name || '')) % tileColors.length]
+  const youngTappable = canComplete || confirming
 
   return (
-    <motion.div
-      whileTap={canComplete || confirming ? { scale: [1, 1.04, 0.98, 1] } : undefined}
-      transition={{ duration: 0.3 }}
+    <div
       onClick={handleTap}
-      className="relative cursor-pointer select-none"
+      className={`relative cursor-pointer select-none ${youngTappable ? 'transition-transform active:scale-[0.97]' : ''}`}
       style={{
         background: isDone ? '#fff' : confirming ? 'var(--yellow)' : baseColor,
         color: isDone ? '#999' : confirming ? 'var(--ink)' : '#fff',
@@ -264,7 +267,7 @@ export function ChoreCard({ chore, onComplete, onUndo, isPast, isNew, skin = 'yo
           <Undo2 size={11} strokeWidth={3} />
         </button>
       )}
-    </motion.div>
+    </div>
   )
 }
 

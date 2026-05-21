@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { usePoints } from '../../hooks/usePoints'
 import { Avatar } from '../../components/ui/Avatar'
 import { Spinner } from '../../components/ui/Spinner'
@@ -6,6 +7,7 @@ import { useStore } from '../../lib/store'
 export function History() {
   const { transactions, loading } = usePoints()
   const { kids } = useStore()
+  const kidMap = useMemo(() => new Map(kids.map(k => [k.id, k])), [kids])
 
   if (loading) return <Spinner size="lg" />
 
@@ -23,7 +25,7 @@ export function History() {
       ) : (
         <div className="space-y-2">
           {transactions.map(t => {
-            const kid = kids.find(k => k.id === t.profile_id)
+            const kid = kidMap.get(t.profile_id)
             return (
               <div key={t.id} className="flex items-center gap-3" style={{ background: '#fff', border: '2.5px solid var(--ink)', borderRadius: 12, padding: 12, boxShadow: 'var(--shadow-sm)', color: 'var(--ink)' }}>
                 {kid && <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />}

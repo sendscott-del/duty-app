@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useStore, type ChoreCompletion } from '../lib/store'
 
@@ -11,10 +11,18 @@ export function useCompletions() {
   const removeCompletion = useStore((s) => s.removeCompletion)
   const removePointTransactionsByCompletion = useStore((s) => s.removePointTransactionsByCompletion)
 
+  // Map keyed by `${choreId}|${date}` so getCompletion is O(1) instead of an
+  // O(N) .find scan on every chore row, every render.
+  const completionByKey = useMemo(() => {
+    const m = new Map<string, ChoreCompletion>()
+    for (const c of completions) m.set(`${c.chore_id}|${c.completion_date}`, c)
+    return m
+  }, [completions])
+
   const getCompletion = useCallback(
     (choreId: string, date: string): ChoreCompletion | undefined =>
-      completions.find((c) => c.chore_id === choreId && c.completion_date === date),
-    [completions]
+      completionByKey.get(`${choreId}|${date}`),
+    [completionByKey]
   )
 
   const completeChore = useCallback(async (choreId: string, completedBy: string, date: string, isLate: boolean) => {
@@ -77,7 +85,8 @@ export function useCompletions() {
   }, [upsertCompletion, removePointTransactionsByCompletion])
 
   const undoCompletion = useCallback(async (choreId: string, date: string) => {
-    const comp = useStore.getState().completions.find((c) => c.chore_id === choreId && c.completion_date === date)
+    const all = useStore.getState().completions
+    const comp = all.find((c) => c.chore_id === choreId && c.completion_date === date)
     if (!comp) return
     const completionId = comp.id
 

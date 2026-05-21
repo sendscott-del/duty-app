@@ -9,7 +9,7 @@ import { ChoreRow } from '../../components/parent/ChoreRow'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { Button } from '../../components/ui/Button'
 import { Spinner } from '../../components/ui/Spinner'
-import confetti from 'canvas-confetti'
+import { pop as popConfetti } from '../../lib/confetti'
 
 export function Chores() {
   const { chores, loading, deleteChore, refresh } = useChores()
@@ -40,7 +40,7 @@ export function Chores() {
         reference_id: comp.id, reference_type: 'chore', created_by: profile.id,
       })
     }
-    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
+    popConfetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
   }
   async function handleReject(chore: any) { if (chore._completion) await rejectCompletion(chore._completion.id) }
   async function handleUnapprove(chore: any) { if (chore._completion) await unapproveCompletion(chore._completion.id) }

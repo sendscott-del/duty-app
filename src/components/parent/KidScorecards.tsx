@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { Profile } from '../../lib/store'
 import { Avatar } from '../ui/Avatar'
 import { getKidScore } from '../../lib/kidScores'
@@ -17,15 +18,24 @@ function trendTone(rate: number, weekTotal: number): { bg: string; fg: string; l
 }
 
 export function KidScorecards({ kids, chores, completions, onSelectKid }: Props) {
+  // The 30-day-window getKidScore scan is the hot path on Overview re-renders.
+  // Memoize per [kids, chores, completions] so unrelated state changes
+  // (modals opening, viewDate changing, etc.) don't recompute.
+  const scored = useMemo(
+    () => kids.map(kid => {
+      const score = getKidScore(kid.id, chores, completions)
+      return { kid, score, tone: trendTone(score.weekRate, score.weekTotal) }
+    }),
+    [kids, chores, completions]
+  )
+
   if (kids.length === 0) return null
 
   return (
     <div>
       <div className="stadium-eyebrow mb-2">KIDS · LAST 7 DAYS</div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
-        {kids.map(kid => {
-          const score = getKidScore(kid.id, chores, completions)
-          const tone = trendTone(score.weekRate, score.weekTotal)
+        {scored.map(({ kid, score, tone }) => {
           const Tag: any = onSelectKid ? 'button' : 'div'
           return (
             <Tag

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useStore } from '../../lib/store'
+import { useStore, type Profile } from '../../lib/store'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../lib/supabase'
 import { Avatar } from '../../components/ui/Avatar'
@@ -16,8 +16,8 @@ import { Link } from 'react-router-dom'
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
 export function Settings() {
-  const { family, kids, profile } = useStore()
-  const { signOut, loadProfile } = useAuth()
+  const { family, kids, setKids } = useStore()
+  const { signOut } = useAuth()
 
   const [showKidForm, setShowKidForm] = useState(false)
   const [editKid, setEditKid] = useState<any>(null)
@@ -85,7 +85,7 @@ export function Settings() {
       if (editKid) {
         const { error } = await supabase.from('duty_profiles').update({ avatar_url: dataUrl }).eq('id', editKid.id)
         if (error) { alert('Failed to save photo. Please try again.'); setKidAvatarUrl(editKid.avatar_url || null) }
-        else if (profile) await loadProfile(profile.id)
+        else setKids(useStore.getState().kids.map(k => k.id === editKid.id ? { ...k, avatar_url: dataUrl } : k))
       }
     } catch { alert('Could not load photo. Please try a different image.') }
     if (fileRef.current) fileRef.current.value = ''
@@ -117,20 +117,34 @@ export function Settings() {
         full_name: kidName.trim(), avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null,
       }).eq('id', editKid.id)
       if (error) { alert('Failed to save: ' + error.message); setSaving(false); return }
+      setKids(useStore.getState().kids.map(k => k.id === editKid.id
+        ? { ...k, full_name: kidName.trim(), avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null }
+        : k
+      ))
     } else {
+      const newId = crypto.randomUUID()
       const { error } = await supabase.from('duty_profiles').insert({
-        id: crypto.randomUUID(), full_name: kidName.trim(), role: 'kid',
+        id: newId, full_name: kidName.trim(), role: 'kid',
         family_id: family.id, avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null,
       })
       if (error) { alert('Failed to save: ' + error.message); setSaving(false); return }
+      const newKid: Profile = {
+        id: newId,
+        full_name: kidName.trim(),
+        role: 'kid',
+        family_id: family.id,
+        avatar_color: kidColor,
+        avatar_url: kidAvatarUrl,
+        pin: kidPin || null,
+      }
+      setKids([...useStore.getState().kids, newKid])
     }
-    if (profile) await loadProfile(profile.id)
     setSaving(false); setShowKidForm(false)
   }
   async function handleDeleteKid(kid: any) {
     if (!window.confirm(`Remove ${kid.full_name}? This can't be undone.`)) return
     await supabase.from('duty_profiles').delete().eq('id', kid.id)
-    if (profile) await loadProfile(profile.id)
+    setKids(useStore.getState().kids.filter(k => k.id !== kid.id))
   }
 
   return (

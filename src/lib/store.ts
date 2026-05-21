@@ -78,6 +78,7 @@ interface Store {
   upsertRedemption: (row: any) => void
   removeRedemption: (id: string) => void
   addPointTransaction: (row: any) => void
+  removePointTransactionById: (id: string) => void
   removePointTransactionsByCompletion: (completionId: string) => void
   setChallenge: (c: Challenge | null) => void
 }
@@ -151,6 +152,9 @@ export const useStore = create<Store>()(
         if (s.pointTransactions.some((t) => t.id === row.id)) return {}
         return { pointTransactions: [row, ...s.pointTransactions] }
       }),
+      removePointTransactionById: (id) => set((s) => ({
+        pointTransactions: s.pointTransactions.filter((t) => t.id !== id),
+      })),
       removePointTransactionsByCompletion: (completionId) => set((s) => ({
         pointTransactions: s.pointTransactions.filter(
           (t) => !(t.reference_id === completionId && t.reference_type === 'chore')

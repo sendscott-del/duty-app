@@ -3,6 +3,21 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.7.0',
+    date: 'May 20, 2026',
+    fixes: [
+      { title: 'Approve-All is now one round-trip', desc: 'Approving 20 pending chores used to fire 40 sequential network calls. Now it\'s a single bulk update plus a single bulk insert, run in parallel, with optimistic local updates so the list collapses instantly.' },
+      { title: 'O(1) chore completion lookup', desc: 'getCompletion (called once per chore row per render) now uses a memoized Map keyed by chore_id|date instead of scanning the completions array each time.' },
+      { title: 'Memoized kid scorecards', desc: 'The 30-day completion-rate calculation only recomputes when kids, chores, or completions change — not on every modal open or date-nav click.' },
+      { title: 'Faster login', desc: 'Post-login family and kids queries now run in parallel instead of sequentially.' },
+      { title: 'Faster Settings edits', desc: 'Adding, editing, or deleting a kid no longer refetches profile + family + kids — the local store is updated directly.' },
+      { title: 'Lazy confetti', desc: 'canvas-confetti (~10KB) no longer ships in the main bundle; it loads only when a parent actually approves a chore.' },
+      { title: 'No more mid-edit reloads', desc: 'The service worker no longer auto-reloads every 60 seconds. Updates are checked on tab focus and activate silently, taking effect on the next manual reload or navigation.' },
+      { title: 'Cheaper tap animations', desc: 'Tap-scale effects on chore rows and cards moved from per-instance framer-motion wrappers to CSS :active — same feel, no per-row motion overhead on long lists.' },
+    ],
+    features: [],
+  },
+  {
     version: '1.6.0',
     date: 'May 20, 2026',
     fixes: [

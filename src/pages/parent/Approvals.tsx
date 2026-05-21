@@ -9,7 +9,7 @@ import { Avatar } from '../../components/ui/Avatar'
 import { Badge } from '../../components/ui/Badge'
 import { Spinner } from '../../components/ui/Spinner'
 import { SirFlush } from '../../components/ui/SirFlush'
-import confetti from 'canvas-confetti'
+import { pop as popConfetti } from '../../lib/confetti'
 
 function formatDateHeader(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -30,11 +30,12 @@ export function Approvals() {
 
   const pending = useMemo(() => {
     const choreMap = new Map(chores.map(c => [c.id, c]))
+    const kidMap = new Map(kids.map(k => [k.id, k]))
     const rows = completions
       .filter(c => c.status === 'submitted')
       .map(c => {
         const chore = choreMap.get(c.chore_id)
-        const kid = kids.find(k => k.id === c.completed_by)
+        const kid = kidMap.get(c.completed_by)
         return chore ? { completion: c, chore, kid } : null
       })
       .filter(Boolean) as { completion: any; chore: any; kid: any }[]
@@ -59,7 +60,7 @@ export function Approvals() {
         reference_id: row.completion.id, reference_type: 'chore', created_by: profile.id,
       })
     }
-    confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } })
+    popConfetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } })
   }
   async function handleReject(row: { completion: any }) { await rejectCompletion(row.completion.id) }
   async function handleClear(row: { completion: any; chore: any }) { await undoCompletion(row.chore.id, row.completion.completion_date) }
@@ -67,8 +68,47 @@ export function Approvals() {
     if (!profile || totalPending === 0) return
     if (!window.confirm(`Approve all ${totalPending} pending ${totalPending === 1 ? 'chore' : 'chores'}?`)) return
     setBulkBusy(true)
+
     const all = pending.flatMap(([, rows]) => rows)
-    for (const row of all) await handleApprove(row)
+    const approvedAt = new Date().toISOString()
+    const completionIds = all.map(r => r.completion.id)
+
+    // Optimistic store update for instant feel.
+    const store = useStore.getState()
+    for (const r of all) {
+      store.upsertCompletion({
+        ...r.completion,
+        status: 'approved',
+        approved_at: approvedAt,
+        approved_by: profile.id,
+      })
+    }
+
+    // One bulk update for completions; one bulk insert for point transactions.
+    const pointRows = all
+      .filter(r => !r.completion.completed_late)
+      .map(r => ({
+        profile_id: r.completion.completed_by,
+        family_id: r.chore.family_id,
+        amount: r.chore.points,
+        reason: `Completed: ${r.chore.name}`,
+        reference_id: r.completion.id,
+        reference_type: 'chore' as const,
+        created_by: profile.id,
+      }))
+
+    await Promise.all([
+      supabase.from('duty_chore_completions').update({
+        status: 'approved',
+        approved_at: approvedAt,
+        approved_by: profile.id,
+      }).in('id', completionIds),
+      pointRows.length > 0
+        ? supabase.from('duty_point_transactions').insert(pointRows)
+        : Promise.resolve(),
+    ])
+
+    popConfetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } })
     setBulkBusy(false)
   }
 

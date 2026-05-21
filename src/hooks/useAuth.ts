@@ -62,21 +62,22 @@ export function useAuth() {
     setProfile(profile)
 
     if (profile.family_id) {
-      const { data: family } = await supabase
-        .from('duty_families')
-        .select('*')
-        .eq('id', profile.family_id)
-        .single()
+      // Family + kids don't depend on each other — fetch in parallel.
+      const [familyRes, kidsRes] = await Promise.all([
+        supabase
+          .from('duty_families')
+          .select('*')
+          .eq('id', profile.family_id)
+          .single(),
+        supabase
+          .from('duty_profiles')
+          .select('*')
+          .eq('family_id', profile.family_id)
+          .eq('role', 'kid'),
+      ])
 
-      if (family) setFamily(family)
-
-      const { data: kids } = await supabase
-        .from('duty_profiles')
-        .select('*')
-        .eq('family_id', profile.family_id)
-        .eq('role', 'kid')
-
-      if (kids) setKids(kids)
+      if (familyRes.data) setFamily(familyRes.data)
+      if (kidsRes.data) setKids(kidsRes.data)
     }
   }
 

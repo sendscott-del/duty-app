@@ -1,5 +1,22 @@
 # Duty Release Notes
 
+## v1.7.0 — May 20, 2026
+
+### Performance
+- **Approve-All is now one round-trip, not N.** Previously approving 20 pending chores ran 40 sequential network calls (one update + one point-transaction insert per row, awaited in a `for` loop). Now it's a single bulk update on `duty_chore_completions` and a single bulk insert on `duty_point_transactions`, run in parallel, with optimistic local updates so the list collapses instantly.
+- **`getCompletion` is O(1) instead of O(N).** The lookup that runs once per chore row on every render now uses a memoized `Map` keyed by `chore_id|date`. Previously it scanned the full completions array on every row, every render.
+- **Kid scorecard math is memoized.** The 30-day-window `getKidScore` scan only recomputes when kids, chores, or completions actually change — not on every modal open or date-nav click.
+- **Sign-in is faster.** The post-login family and kids queries run in parallel instead of sequentially.
+- **Editing a kid no longer reloads the whole profile.** Adding, editing, or deleting a kid in Settings used to refetch profile + family + kids from the database. Now it updates the local store directly — instant, with the same end result.
+- **canvas-confetti is lazy-loaded.** The 10 KB library no longer ships in the main bundle; it loads only when a parent actually approves a chore.
+- **Service worker no longer auto-reloads every 60 seconds.** Update checks happen on tab focus instead, and the new version activates silently — taking effect on the next manual reload or navigation. No more losing form input mid-edit.
+- **Removed tap-scale `motion` wrappers from chore rows and cards.** Replaced with CSS `:active` transforms — same feel, no per-instance motion overhead on lists.
+
+### Notes
+- No behavior changes — same approve/reject/undo flows.
+
+---
+
 ## v1.6.0 — May 20, 2026
 
 ### Performance

@@ -18,31 +18,33 @@
   <body>
     <div id="root"></div>
     <script>
-      // Register service worker with auto-update
+      // Register service worker with deferred update.
+      // We check for a new SW on load and on tab focus (instead of every 60s),
+      // and never auto-reload mid-task — the user might be filling a form.
+      // The new SW activates silently and takes effect on the next manual
+      // reload or navigation.
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').then(function(reg) {
-          // Check for updates every 60 seconds
-          setInterval(function() { reg.update() }, 60000)
+          var lastCheck = Date.now()
+          function checkUpdate() {
+            if (Date.now() - lastCheck < 5 * 60 * 1000) return
+            lastCheck = Date.now()
+            reg.update().catch(function() {})
+          }
+          document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') checkUpdate()
+          })
 
           reg.addEventListener('updatefound', function() {
             var newSW = reg.installing
             if (!newSW) return
             newSW.addEventListener('statechange', function() {
-              // New SW is ready — tell it to activate and reload
-              if (newSW.state === 'activated') {
-                window.location.reload()
-              } else if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
                 newSW.postMessage('skipWaiting')
               }
             })
           })
         }).catch(function() {})
-
-        // Reload when a new SW takes over
-        var refreshing = false
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          if (!refreshing) { refreshing = true; window.location.reload() }
-        })
       }
     </script>
     <script type="module" src="/src/main.tsx"></script>

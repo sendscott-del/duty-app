@@ -61,10 +61,9 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
   return (
     <>
       <div className="flex items-center gap-1 group">
-        <motion.button
-          className="flex-1 flex items-center gap-3 text-left min-h-[56px]"
+        <button
+          className="flex-1 flex items-center gap-3 text-left min-h-[56px] transition-transform active:scale-[0.99]"
           onClick={onTap}
-          whileTap={{ scale: 0.99 }}
           style={{
             background: '#fff',
             border: '2.5px solid var(--ink)',
@@ -95,7 +94,7 @@ export function ChoreRow({ chore, onTap, onEdit, onDelete, onUndo, onReject, onU
           {needsApproval ? <Badge variant="amber">Needs approval</Badge>
             : isRejected ? <Badge variant="red">Rejected</Badge>
             : <Badge variant={isDone ? 'green' : 'gold'}>+{chore.points}</Badge>}
-        </motion.button>
+        </button>
 
         {actions.length > 0 && (
           <button
