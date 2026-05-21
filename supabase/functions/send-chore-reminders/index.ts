@@ -18,9 +18,11 @@ import webpush from "npm:web-push@3.6.7"
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY")!
-const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:scott@example.com"
+// Namespaced so Duty doesn't collide with Magnify/Glean's VAPID keypairs
+// also living in this shared Supabase project.
+const VAPID_PUBLIC_KEY = Deno.env.get("DUTY_VAPID_PUBLIC_KEY")!
+const VAPID_PRIVATE_KEY = Deno.env.get("DUTY_VAPID_PRIVATE_KEY")!
+const VAPID_SUBJECT = Deno.env.get("DUTY_VAPID_SUBJECT") || "mailto:sendscott@gmail.com"
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
