@@ -3,6 +3,17 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.8.0',
+    date: 'May 20, 2026',
+    fixes: [],
+    features: [
+      'Daily chore reminders — at a configurable time each day (default 6:00 PM Chicago time), kids with chores left get a push, and parents get a summary ping ("Frederick: 3 · Christopher: 1"). Nothing is sent if everyone is already done.',
+      'Reminders settings card in Settings — toggle on/off and pick the time of day.',
+      'Kid opt-in banner on the kid home screen so each kid can enable push on their own device.',
+      'Real Web Push wiring (pg_cron → Edge Function → VAPID) so reminders fire even when the app is closed.',
+    ],
+  },
+  {
     version: '1.7.0',
     date: 'May 20, 2026',
     fixes: [

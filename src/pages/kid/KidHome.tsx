@@ -15,6 +15,7 @@ import { PointChip } from '../../components/ui/PointChip'
 import { Spinner } from '../../components/ui/Spinner'
 import { SirFlush } from '../../components/ui/SirFlush'
 import { Celebrate } from '../../components/kid/Celebrate'
+import { KidNotifOptIn } from '../../components/kid/NotifOptIn'
 import { Avatar } from '../../components/ui/Avatar'
 import { useKidSkin } from '../../hooks/useKidSkin'
 import { toLocalDateStr } from '../../lib/utils'
@@ -113,6 +114,14 @@ export function KidHome() {
           >
             <ArrowLeft size={14} strokeWidth={3} /> Viewing as {activeProfile.full_name} — tap to go back
           </button>
+        )}
+
+        {!isParentPreview && activeProfile.family_id && (
+          <KidNotifOptIn
+            profileId={activeProfile.id}
+            familyId={activeProfile.family_id}
+            isTeen={isTeen}
+          />
         )}
 
         {/* Header */}

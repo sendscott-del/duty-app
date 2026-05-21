@@ -8,15 +8,15 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { SirFlush } from '../../components/ui/SirFlush'
 import { AVATAR_COLORS } from '../../lib/utils'
-import { getNotifPref, setNotifPref, requestNotifPermission, getNotifPermission } from '../../hooks/useNotifications'
+import { getNotifPref, getNotifPermission, enableNotifications, disableNotifications } from '../../hooks/useNotifications'
 import { useKidSkin, type KidSkin } from '../../hooks/useKidSkin'
-import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, Download, Copy } from 'lucide-react'
+import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, BellRing, Download, Copy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
 export function Settings() {
-  const { family, kids, setKids } = useStore()
+  const { family, kids, profile, setKids } = useStore()
   const { signOut } = useAuth()
 
   const [showKidForm, setShowKidForm] = useState(false)
@@ -48,13 +48,17 @@ export function Settings() {
 
   async function toggleNotifications() {
     if (!notifEnabled) {
-      const granted = await requestNotifPermission()
-      if (granted) { setNotifPref(true); setNotifEnabled(true); setNotifPermission('granted') }
+      if (!profile?.id || !family?.id) return
+      const ok = await enableNotifications(profile.id, family.id)
+      if (ok) { setNotifEnabled(true); setNotifPermission('granted') }
       else {
         setNotifPermission(getNotifPermission())
         if (getNotifPermission() === 'denied') alert('Notifications are blocked. Open browser settings to allow notifications for this site.')
       }
-    } else { setNotifPref(false); setNotifEnabled(false) }
+    } else {
+      await disableNotifications()
+      setNotifEnabled(false)
+    }
   }
 
   async function handleInstall() {
@@ -231,6 +235,9 @@ export function Settings() {
         )}
       </Card>
 
+      {/* Daily reminders (family-wide) */}
+      {family && <RemindersCard familyId={family.id} />}
+
       {/* Install App */}
       {!isInstalled && (
         <Card>
@@ -351,6 +358,87 @@ export function Settings() {
         </div>
       </Modal>
     </div>
+  )
+}
+
+function RemindersCard({ familyId }: { familyId: string }) {
+  const [enabled, setEnabled] = useState(true)
+  const [time, setTime] = useState('18:00')
+  const [loaded, setLoaded] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    supabase
+      .from('duty_families')
+      .select('reminder_time, reminders_enabled')
+      .eq('id', familyId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setEnabled(!!data.reminders_enabled)
+          // Stored as HH:MM:SS — strip seconds for the time input.
+          setTime((data.reminder_time as string).slice(0, 5))
+        }
+        setLoaded(true)
+      })
+  }, [familyId])
+
+  async function save(next: { enabled?: boolean; time?: string }) {
+    const newEnabled = next.enabled ?? enabled
+    const newTime = next.time ?? time
+    setSaving(true)
+    if (next.enabled !== undefined) setEnabled(newEnabled)
+    if (next.time !== undefined) setTime(newTime)
+    await supabase
+      .from('duty_families')
+      .update({ reminders_enabled: newEnabled, reminder_time: newTime })
+      .eq('id', familyId)
+    setSaving(false)
+  }
+
+  if (!loaded) return null
+
+  return (
+    <Card>
+      <div className="flex items-center gap-2 mb-3">
+        <BellRing size={14} strokeWidth={3} style={{ color: 'var(--blue)' }} />
+        <div className="stadium-eyebrow">DAILY REMINDERS</div>
+      </div>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <div className="font-bold">Send daily reminder push</div>
+          <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>
+            Pings any kid with chores left + a summary to parents. Skips when everyone's done.
+          </div>
+        </div>
+        <ToggleSwitch on={enabled} onChange={() => save({ enabled: !enabled })} />
+      </div>
+      <div className="flex items-center justify-between" style={{ opacity: enabled ? 1 : 0.4 }}>
+        <div>
+          <div className="font-bold">Reminder time</div>
+          <div className="text-xs font-bold" style={{ color: 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>
+            Local Chicago time
+          </div>
+        </div>
+        <input
+          type="time"
+          value={time}
+          disabled={!enabled || saving}
+          onChange={(e) => save({ time: e.target.value })}
+          style={{
+            background: '#fff',
+            color: 'var(--ink)',
+            border: '2.5px solid var(--ink)',
+            borderRadius: 10,
+            padding: '6px 10px',
+            fontFamily: 'var(--font-mono)',
+            fontWeight: 700,
+            fontSize: 14,
+            boxShadow: 'var(--shadow-sm)',
+          }}
+        />
+      </div>
+    </Card>
   )
 }
 

@@ -1,5 +1,28 @@
 # Duty Release Notes
 
+## v1.8.0 — May 20, 2026
+
+### New Features
+- **Daily chore reminders.** At a configurable time each day (default **6:00 PM** Chicago time), Duty now sends Web Push notifications:
+  - **Kids** with incomplete chores get a ping on every device they've subscribed: *"🚽 You've got 3 chores to flush — tap to crush 'em."*
+  - **Parents** get a one-line summary on every device they've subscribed: *"Frederick: 3 · Christopher: 1."*
+  - Nobody gets pinged if everyone's already done for the day.
+- **Reminders settings card** in parent Settings: enable toggle + time picker.
+- **Kid opt-in banner** on the kid home screen — first time a kid opens the app on a new device, they see a "Get a ping when chores are left" button. Dismissable.
+- Notifications toggle (parent Settings) now wires through real Web Push instead of just requesting browser permission — the server can now actually push to subscribed devices when the app is closed.
+
+### Infrastructure
+- New `duty_push_subscriptions` table (RLS-scoped per family; anon-writable for kids' own subscriptions).
+- New `reminder_time`, `reminder_timezone`, and `reminders_enabled` columns on `duty_families`.
+- New Supabase Edge Function `send-chore-reminders`, triggered by pg_cron every minute. Loops families whose reminder time matches now-in-TZ, computes incomplete chores using the same recurrence logic as the app, and sends Web Push via VAPID. Garbage-collects dead endpoints (404/410) automatically.
+- New `public.duty_trigger_chore_reminders()` SECURITY DEFINER function called by pg_cron.
+- Service worker `push` and `notificationclick` handlers — pings route the kid to `/kid` and parents to `/parent/overview`.
+
+### Notes
+- Requires `VITE_VAPID_PUBLIC_KEY` env var on Vercel and `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` secrets on the Supabase Edge Function.
+
+---
+
 ## v1.7.0 — May 20, 2026
 
 ### Performance
