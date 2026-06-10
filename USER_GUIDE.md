@@ -130,3 +130,6 @@ The skin lives in browser storage on the device that views the kid screen, so di
 2. Tap the Share button (square with arrow)
 3. Tap "Add to Home Screen"
 4. The app runs fullscreen like a native app
+
+
+> **Security (v1.9.0):** kid PINs are verified on the server and family data is visible only to signed-in members of your family.

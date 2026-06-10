@@ -23,33 +23,42 @@ export function KidPin() {
 
   useEffect(() => {
     if (!familyId) { setNoFamily(true); return }
-    supabase.from('duty_families').select('name').eq('id', familyId).single().then(({ data }) => {
-      if (data) setFamilyName(data.name)
-    })
-    supabase.from('duty_profiles').select('*').eq('role', 'kid').eq('family_id', familyId).then(({ data }) => {
-      if (data) {
-        const unique = Array.from(new Map(data.map((k: any) => [k.id, k])).values())
-        setKids(unique as Profile[])
-      }
+    // Kid list + family name come from the duty-kid-login edge function —
+    // family data is no longer readable without a session.
+    supabase.functions.invoke('duty-kid-login', {
+      body: { action: 'list', family_id: familyId },
+    }).then(({ data, error }) => {
+      if (error || !data || data.error) { setNoFamily(true); return }
+      setFamilyName(data.family_name ?? '')
+      setKids((data.kids ?? []) as Profile[])
     })
   }, [familyId])
 
-  // Watch PIN length and validate when complete
+  // Watch PIN length and verify server-side when complete
   useEffect(() => {
     if (!selected || pin.length !== 4) return
-    if (pin === selected.pin) {
-      setProfile(selected)
-      if (selected.family_id) {
-        supabase.from('duty_families').select('*').eq('id', selected.family_id).single().then(({ data }) => {
-          if (data) setFamily(data)
-        })
+    let cancelled = false
+    supabase.functions.invoke('duty-kid-login', {
+      body: { action: 'login', family_id: familyId, kid_id: selected.id, pin },
+    }).then(async ({ data, error }) => {
+      if (cancelled) return
+      if (error || !data || data.error || !data.session) {
+        const msg = (data && data.error) || 'Wrong PIN'
+        setError(msg.includes('Too many') ? msg : 'Wrong PIN')
+        setTimeout(() => { setPin(''); setError('') }, 1200)
+        return
+      }
+      await supabase.auth.setSession(data.session)
+      const kidProfile = data.profile as Profile
+      setProfile(kidProfile)
+      if (kidProfile.family_id) {
+        const { data: fam } = await supabase.from('duty_families').select('*').eq('id', kidProfile.family_id).single()
+        if (fam) setFamily(fam)
       }
       navigate('/kid')
-    } else {
-      setError('Wrong PIN')
-      setTimeout(() => { setPin(''); setError('') }, 700)
-    }
-  }, [pin, selected, navigate, setFamily, setProfile])
+    })
+    return () => { cancelled = true }
+  }, [pin, selected, familyId, navigate, setFamily, setProfile])
 
   if (noFamily) {
     return (

@@ -3,6 +3,18 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '1.9.0',
+    date: 'June 10, 2026',
+    fixes: [
+      { title: 'Family data locked down', desc: 'Kids, chores, points, redemptions — and kid PINs — were readable by anyone holding the app\'s public key. Everything is now visible only to signed-in members of your own family.' },
+      { title: 'Server-side PIN checks', desc: 'Kid PINs are verified on the server and never sent to the browser. Five wrong tries pauses PIN entry for a few minutes.' },
+      { title: 'Dependency security updates', desc: 'React Router and ws bumped to patched versions; npm audit reports zero production vulnerabilities.' },
+    ],
+    features: [
+      'Kids now get a real (invisible) sign-in behind the scenes when they enter their PIN — same faces-and-PIN experience, proper security underneath.',
+    ],
+  },
+  {
     version: '1.8.0',
     date: 'May 20, 2026',
     fixes: [],

@@ -37,16 +37,21 @@ export function useAuth() {
   }, [])
 
   async function loadProfile(userId: string) {
+    // Parents: profile id == auth uid. Kids: invisible auth user mapped via
+    // auth_user_id (provisioned by the duty-kid-login edge function).
     let { data: profile } = await supabase
       .from('duty_profiles')
       .select('*')
-      .eq('id', userId)
-      .single()
+      .or(`id.eq.${userId},auth_user_id.eq.${userId}`)
+      .limit(1)
+      .maybeSingle()
 
     // If no duty_profiles row exists, create one (user may exist from Magnify or old Duty)
     if (!profile) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      // Never auto-create parent profiles for internal kid auth users.
+      if (user.email?.endsWith('@kids.duty.internal')) { await supabase.auth.signOut(); return }
 
       const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
       const { data: newProfile } = await supabase
