@@ -28,3 +28,11 @@ dist-ssr
 # Stadium design source — reference only, not deployed
 new design/
 .vercel
+
+# Capacitor native build outputs (steward pattern)
+build/
+ios/App/build/
+ios/App/DerivedData/
+android/.gradle/
+android/build/
+android/app/build/
