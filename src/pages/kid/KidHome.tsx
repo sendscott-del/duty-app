@@ -234,6 +234,7 @@ export function KidHome() {
               challenge={challenge}
               progress={challenge ? calcChallengeProgress(challenge, completions, chores, kids.map(k => k.id)) : 0}
               isParent={false}
+              isPremium={true}
               onSelect={selectChallenge}
             />
           </div>

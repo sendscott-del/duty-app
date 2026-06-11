@@ -2,16 +2,28 @@ import { useState } from 'react'
 import { Trophy, RefreshCw } from 'lucide-react'
 import { CHALLENGE_TEMPLATES, type Challenge } from '../lib/challenges'
 import { ProgressBar } from './ui/ProgressBar'
+import { LockedCard } from './PremiumGate'
 
 interface WeeklyChallengeProps {
   challenge: Challenge | null
   progress: number
   isParent: boolean
+  isPremium: boolean
   onSelect: (index: number) => void
 }
 
-export function WeeklyChallenge({ challenge, progress, isParent, onSelect }: WeeklyChallengeProps) {
+export function WeeklyChallenge({ challenge, progress, isParent, isPremium, onSelect }: WeeklyChallengeProps) {
   const [showPicker, setShowPicker] = useState(false)
+
+  if (!isPremium) {
+    if (!isParent) return null
+    return (
+      <LockedCard
+        title="Family Challenges"
+        description="Set weekly goals and earn bonus points together as a family."
+      />
+    )
+  }
 
   if (!challenge && !isParent) return null
 

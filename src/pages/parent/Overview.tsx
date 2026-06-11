@@ -11,6 +11,7 @@ import { toLocalDateStr } from '../../lib/utils'
 import { calcChallengeProgress } from '../../lib/challenges'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { WeeklyChallenge } from '../../components/WeeklyChallenge'
+import { usePremium } from '../../hooks/usePremium'
 import { StatCard } from '../../components/ui/StatCard'
 import { ChoreRow } from '../../components/parent/ChoreRow'
 import { KidScorecards } from '../../components/parent/KidScorecards'
@@ -36,6 +37,7 @@ export function Overview() {
   const { getCompletion, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion, completions } = useCompletions()
   const { challenge, selectChallenge } = useChallenges()
   const { profile, kids, setViewAsKid } = useStore()
+  const { isPremium } = usePremium()
   const navigate = useNavigate()
   const [showAddChore, setShowAddChore] = useState(false)
   const [editChore, setEditChore] = useState<any>(null)
@@ -157,6 +159,7 @@ export function Overview() {
           challenge={challenge}
           progress={challengeProgress}
           isParent={true}
+          isPremium={isPremium}
           onSelect={selectChallenge}
         />
       </div>

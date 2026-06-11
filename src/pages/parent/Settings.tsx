@@ -10,14 +10,18 @@ import { SirFlush } from '../../components/ui/SirFlush'
 import { AVATAR_COLORS } from '../../lib/utils'
 import { getNotifPref, getNotifPermission, enableNotifications, disableNotifications } from '../../hooks/useNotifications'
 import { useKidSkin, type KidSkin } from '../../hooks/useKidSkin'
-import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, BellRing, Download, Copy } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, BellRing, Download, Copy, Sparkles, Lock } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { usePremium } from '../../hooks/usePremium'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
 export function Settings() {
   const { family, kids, profile, setKids } = useStore()
   const { signOut } = useAuth()
+  const { isPremium } = usePremium()
+  const [searchParams] = useSearchParams()
+  const justUpgraded = searchParams.get('upgraded') === '1'
 
   const [showKidForm, setShowKidForm] = useState(false)
   const [editKid, setEditKid] = useState<any>(null)
@@ -157,6 +161,63 @@ export function Settings() {
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, color: 'var(--ink)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4, marginBottom: 18 }}>
         House rules
       </h1>
+
+      {/* Premium status */}
+      {justUpgraded && (
+        <div
+          style={{
+            background: 'var(--green)', color: '#fff',
+            border: '3px solid var(--ink)', borderRadius: 14,
+            padding: 14, marginBottom: 16, boxShadow: 'var(--shadow)',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}
+        >
+          <Sparkles size={20} strokeWidth={3} />
+          <div>
+            <div className="font-bold">Welcome to Premium!</div>
+            <div className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.85)' }}>
+              Challenges, photo proofs, and 90-day history are now unlocked.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPremium ? (
+        <Card>
+          <div className="flex items-center gap-2 mb-1">
+            <Sparkles size={14} strokeWidth={3} style={{ color: 'var(--yellow)' }} />
+            <div className="stadium-eyebrow">PREMIUM</div>
+          </div>
+          <div className="font-bold" style={{ color: 'var(--ink)' }}>Active</div>
+          {family?.premium_period_end && (
+            <div className="text-xs font-bold mt-1" style={{ color: 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>
+              Renews {new Date(family.premium_period_end).toLocaleDateString()}
+            </div>
+          )}
+        </Card>
+      ) : (
+        <Link to="/parent/upgrade" style={{ textDecoration: 'none', display: 'block', marginBottom: 16 }}>
+          <div
+            style={{
+              background: 'var(--ink)', color: 'var(--yellow)',
+              border: '3px solid var(--ink)', borderRadius: 14,
+              padding: 14, boxShadow: 'var(--shadow)',
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}
+          >
+            <Lock size={16} strokeWidth={3} />
+            <div className="flex-1">
+              <div className="font-bold">Upgrade to Premium</div>
+              <div className="text-xs font-bold" style={{ color: 'rgba(255,247,230,0.7)' }}>
+                Challenges · Photo proof · 90-day history · $2.99/mo
+              </div>
+            </div>
+            <div className="text-xs font-bold" style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 999, padding: '3px 8px' }}>
+              UPGRADE
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Family */}
       <Card>

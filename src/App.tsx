@@ -17,6 +17,7 @@ const History = lazy(() => import('./pages/parent/History').then(m => ({ default
 const Settings = lazy(() => import('./pages/parent/Settings').then(m => ({ default: m.Settings })))
 const ReleaseNotes = lazy(() => import('./pages/parent/ReleaseNotes').then(m => ({ default: m.ReleaseNotes })))
 const Guide = lazy(() => import('./pages/parent/Guide').then(m => ({ default: m.Guide })))
+const Upgrade = lazy(() => import('./pages/parent/Upgrade').then(m => ({ default: m.Upgrade })))
 const KidHome = lazy(() => import('./pages/kid/KidHome').then(m => ({ default: m.KidHome })))
 const KidShop = lazy(() => import('./pages/kid/KidShop').then(m => ({ default: m.KidShop })))
 
@@ -55,6 +56,7 @@ function AppRoutes() {
           <Route path="settings" element={<Settings />} />
           <Route path="release-notes" element={<ReleaseNotes />} />
           <Route path="guide" element={<Guide />} />
+          <Route path="upgrade" element={<Upgrade />} />
         </Route>
 
         <Route path="/kid" element={<RequireAuth><KidShell /></RequireAuth>}>

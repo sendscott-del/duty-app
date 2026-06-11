@@ -1,5 +1,26 @@
 # Duty Release Notes
 
+## v2.0.0 — June 11, 2026
+
+### Premium Subscription
+
+Duty is now freemium. The core chore loop — unlimited kids, unlimited chores, approvals, rewards, push notifications — stays free forever. A new **Premium** tier ($2.99/month or $19.99/year) unlocks three features:
+
+- **Weekly family challenges.** Set a family goal each week (total completions, streak squad, no-miss week) and earn bonus points together. Tap the challenge card on Overview to pick one.
+- **Require photo proof.** When adding or editing a chore, enable "Require photo proof" to make kids snap a photo before submitting. Keeps everyone honest.
+- **90-day history.** Free accounts see the last 30 days of point history. Premium extends that to 90 days.
+
+### New screens
+- **Upgrade screen** (`/parent/upgrade`) — monthly/annual plan toggle, feature list, Stripe checkout redirect.
+- **Premium status card** in Settings — shows active plan or upgrade prompt.
+
+### Infrastructure
+- `duty_families` table gains `premium_status`, `premium_period_end`, `stripe_customer_id`, `stripe_subscription_id`.
+- New Supabase Edge Functions: `create-checkout-session` (Stripe Checkout) and `stripe-webhook` (subscription lifecycle).
+- Requires `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `APP_ORIGIN` secrets on the Edge Function.
+
+---
+
 ## v1.8.0 — May 20, 2026
 
 ### New Features

@@ -16,6 +16,10 @@ export interface Family {
   id: string
   name: string
   amazon_tag: string | null
+  premium_status: string
+  premium_period_end: string | null
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
 }
 
 export interface ChoreCompletion {
