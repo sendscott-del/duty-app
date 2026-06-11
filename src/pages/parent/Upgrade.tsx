@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { SirFlush } from '../../components/ui/SirFlush'
 import { usePremium } from '../../hooks/usePremium'
 import { useStore } from '../../lib/store'
+import { isNativeApp } from '../../lib/platform'
 
 const FEATURES = [
   { label: 'Weekly family challenges with bonus points' },
@@ -73,6 +74,20 @@ export function Upgrade() {
               ? `Active until ${new Date(family.premium_period_end).toLocaleDateString()}`
               : 'All features unlocked.'}
           </p>
+        </div>
+      ) : isNativeApp ? (
+        <div
+          style={{
+            background: '#fff', border: '2.5px solid var(--ink)', borderRadius: 16,
+            padding: 18, boxShadow: 'var(--shadow-sm)', marginBottom: 24,
+          }}
+        >
+          <div className="stadium-eyebrow mb-2">PREMIUM</div>
+          <div className="font-bold text-sm" style={{ color: 'var(--ink-50)' }}>
+            Duty works great on the free plan — unlimited kids, chores, approvals, rewards,
+            30-day history, and push notifications are all included. Optional extra features
+            are managed on the Duty website.
+          </div>
         </div>
       ) : (
         <>

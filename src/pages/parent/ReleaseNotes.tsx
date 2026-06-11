@@ -3,6 +3,15 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.0.0',
+    date: 'June 11, 2026',
+    fixes: [],
+    features: [
+      'Duty Premium — optional paid plan that adds weekly family challenges with bonus points, required photo proof on chores, and 90-day point history. Everything you use today stays free: unlimited kids and chores, approvals, rewards, 30-day history, and push notifications.',
+      'Premium is purchased and managed on the Duty website. Inside the iOS and Android apps the upgrade screen is hidden, but any Premium you bought on the web automatically unlocks in the app.',
+    ],
+  },
+  {
     version: '1.9.0',
     date: 'June 10, 2026',
     fixes: [

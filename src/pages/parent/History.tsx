@@ -6,6 +6,7 @@ import { Avatar } from '../../components/ui/Avatar'
 import { Spinner } from '../../components/ui/Spinner'
 import { useStore } from '../../lib/store'
 import { usePremium } from '../../hooks/usePremium'
+import { isNativeApp } from '../../lib/platform'
 
 const FREE_HISTORY_DAYS = 30
 
@@ -71,7 +72,7 @@ export function History() {
         </div>
       )}
 
-      {!isPremium && hiddenCount > 0 && (
+      {!isPremium && !isNativeApp && hiddenCount > 0 && (
         <Link
           to="/parent/upgrade"
           style={{
@@ -91,7 +92,7 @@ export function History() {
         </Link>
       )}
 
-      {!isPremium && hiddenCount === 0 && transactions.length > 0 && (
+      {!isPremium && !isNativeApp && hiddenCount === 0 && transactions.length > 0 && (
         <Link
           to="/parent/upgrade"
           style={{

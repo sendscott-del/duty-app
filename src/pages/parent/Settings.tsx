@@ -13,6 +13,7 @@ import { useKidSkin, type KidSkin } from '../../hooks/useKidSkin'
 import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, BellRing, Download, Copy, Sparkles, Lock } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { usePremium } from '../../hooks/usePremium'
+import { isNativeApp } from '../../lib/platform'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
@@ -195,7 +196,7 @@ export function Settings() {
             </div>
           )}
         </Card>
-      ) : (
+      ) : isNativeApp ? null : (
         <Link to="/parent/upgrade" style={{ textDecoration: 'none', display: 'block', marginBottom: 16 }}>
           <div
             style={{

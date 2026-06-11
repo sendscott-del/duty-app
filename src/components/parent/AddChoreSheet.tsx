@@ -8,6 +8,7 @@ import { Button } from '../ui/Button'
 import { Avatar } from '../ui/Avatar'
 import { PremiumBadge } from '../PremiumGate'
 import { usePremium } from '../../hooks/usePremium'
+import { isNativeApp } from '../../lib/platform'
 import { CHORE_PRESETS, CHORE_EMOJIS } from '../../lib/presets'
 
 interface AddChoreSheetProps { open: boolean; onClose: () => void; onSaved: () => void; editChore?: any }
@@ -169,22 +170,25 @@ export function AddChoreSheet({ open, onClose, onSaved, editChore }: AddChoreShe
           <Input label="Due date" type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
         )}
 
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 font-bold cursor-pointer" style={{ color: isPremium ? 'var(--ink)' : 'var(--ink-50)' }}>
-            <input
-              type="checkbox"
-              checked={requiresProof}
-              disabled={!isPremium}
-              onChange={e => setRequiresProof(e.target.checked)}
-              className="accent-[var(--red)]"
-              style={{ width: 18, height: 18 }}
-            />
-            Require photo proof
-          </label>
-          {!isPremium && (
-            <PremiumBadge onClick={() => { onClose(); navigate('/parent/upgrade') }} />
-          )}
-        </div>
+        {/* In the native build, hide the locked photo-proof upsell entirely (no purchase path on iOS/Android). */}
+        {(isPremium || !isNativeApp) && (
+          <div className="flex items-center gap-2">
+            <label className="flex items-center gap-2 font-bold cursor-pointer" style={{ color: isPremium ? 'var(--ink)' : 'var(--ink-50)' }}>
+              <input
+                type="checkbox"
+                checked={requiresProof}
+                disabled={!isPremium}
+                onChange={e => setRequiresProof(e.target.checked)}
+                className="accent-[var(--red)]"
+                style={{ width: 18, height: 18 }}
+              />
+              Require photo proof
+            </label>
+            {!isPremium && (
+              <PremiumBadge onClick={() => { onClose(); navigate('/parent/upgrade') }} />
+            )}
+          </div>
+        )}
 
         <Button fullWidth onClick={handleSave} loading={saving} disabled={!name.trim()}>
           {editChore ? 'Save Changes' : 'Add Chore'}
