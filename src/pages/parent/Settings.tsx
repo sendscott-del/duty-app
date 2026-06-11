@@ -32,6 +32,7 @@ export function Settings() {
   const [kidAvatarUrl, setKidAvatarUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [notifEnabled, setNotifEnabled] = useState(getNotifPref)
@@ -82,6 +83,23 @@ export function Settings() {
     } else {
       await disableNotifications()
       setNotifEnabled(false)
+    }
+  }
+
+  async function handleManageSubscription() {
+    if (!family?.id) return
+    setPortalLoading(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('create-portal-session', {
+        body: { family_id: family.id },
+      })
+      if (error || !data?.url) {
+        alert('Could not open subscription management. Please try again.')
+        return
+      }
+      window.location.href = data.url
+    } finally {
+      setPortalLoading(false)
     }
   }
 
@@ -213,6 +231,22 @@ export function Settings() {
             <div className="text-xs font-bold mt-1" style={{ color: 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>
               Renews {new Date(family.premium_period_end).toLocaleDateString()}
             </div>
+          )}
+          {!isNativeApp && (
+            <button
+              onClick={handleManageSubscription}
+              disabled={portalLoading}
+              className="mt-3 text-xs font-bold"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                background: 'var(--ink)', color: 'var(--yellow)',
+                border: '2px solid var(--ink)', borderRadius: 10,
+                padding: '6px 12px', boxShadow: 'var(--shadow-sm)',
+                cursor: portalLoading ? 'default' : 'pointer', opacity: portalLoading ? 0.7 : 1,
+              }}
+            >
+              {portalLoading ? 'Opening…' : 'Manage subscription'}
+            </button>
           )}
         </Card>
       ) : isNativeApp ? null : (

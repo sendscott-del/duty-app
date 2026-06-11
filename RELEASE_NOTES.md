@@ -1,5 +1,10 @@
 # Duty Release Notes
 
+## v2.0.2 — June 11, 2026
+
+### Subscription management
+- **Self-serve cancel / manage.** The Premium card in Settings now has a **Manage subscription** button (web only, hidden in the native app) → new `create-portal-session` edge function → Stripe billing portal, where users can cancel (at period end), update payment method, and view invoices. A default live-mode portal configuration was created. Closes the gap where the Upgrade page promised "cancel any time" with no way to do it.
+
 ## v2.0.1 — June 11, 2026
 
 ### Premium hardening

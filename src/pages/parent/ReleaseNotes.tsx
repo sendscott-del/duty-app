@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.0.2',
+    date: 'June 11, 2026',
+    fixes: [],
+    features: [
+      'Manage your subscription from Settings — the Premium card now has a "Manage subscription" button that opens the Stripe billing portal, where you can cancel, update your payment method, or view past invoices. (On the web; inside the app, manage Premium on the Duty website.)',
+    ],
+  },
+  {
     version: '2.0.1',
     date: 'June 11, 2026',
     fixes: [
