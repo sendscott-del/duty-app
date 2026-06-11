@@ -4,13 +4,22 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 const stripe = new Stripe(Deno.env.get('DUTY_STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-04-10' })
 const webhookSecret = Deno.env.get('DUTY_STRIPE_WEBHOOK_SECRET') ?? ''
 
+// current_period_end lives on the subscription in API 2024-04-10, but moved onto
+// subscription items in later versions — read both so a future API bump can't
+// silently write null period ends.
+function periodEndISO(sub: Stripe.Subscription): string | null {
+  const ts = (sub as any).current_period_end
+    ?? (sub as any).items?.data?.[0]?.current_period_end
+  return ts ? new Date(ts * 1000).toISOString() : null
+}
+
 Deno.serve(async (req) => {
   const sig = req.headers.get('stripe-signature') ?? ''
   const body = await req.text()
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
+    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret)
   } catch {
     return new Response('Bad signature', { status: 400 })
   }
@@ -22,26 +31,34 @@ Deno.serve(async (req) => {
 
   async function upsertPremium(sub: Stripe.Subscription) {
     const familyId = sub.metadata?.duty_family_id
-    if (!familyId) return
+    if (!familyId) {
+      console.error('subscription missing duty_family_id metadata', sub.id)
+      return
+    }
 
     const status = sub.status === 'active' || sub.status === 'trialing' ? 'active'
       : sub.status === 'past_due' ? 'past_due'
       : 'canceled'
 
-    await supabase.from('duty_families').update({
+    const { error } = await supabase.from('duty_families').update({
       premium_status: status,
-      premium_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
+      premium_period_end: periodEndISO(sub),
       stripe_subscription_id: sub.id,
     }).eq('id', familyId)
+    if (error) console.error('upsertPremium update failed', familyId, error.message)
   }
 
   async function cancelPremium(sub: Stripe.Subscription) {
     const familyId = sub.metadata?.duty_family_id
-    if (!familyId) return
-    await supabase.from('duty_families').update({
+    if (!familyId) {
+      console.error('subscription missing duty_family_id metadata', sub.id)
+      return
+    }
+    const { error } = await supabase.from('duty_families').update({
       premium_status: 'canceled',
-      premium_period_end: new Date((sub as any).current_period_end * 1000).toISOString(),
+      premium_period_end: periodEndISO(sub),
     }).eq('id', familyId)
+    if (error) console.error('cancelPremium update failed', familyId, error.message)
   }
 
   switch (event.type) {

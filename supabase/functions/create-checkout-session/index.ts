@@ -4,15 +4,45 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 const stripe = new Stripe(Deno.env.get('DUTY_STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-04-10' })
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  const { plan, family_id } = await req.json()
+  const { plan, family_id } = await req.json().catch(() => ({}))
+  if (!family_id || (plan !== 'monthly' && plan !== 'annual')) {
+    return json({ error: 'Invalid request' }, 400)
+  }
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   )
+
+  // Authorize: the caller must be a parent of this family. verify_jwt only proves
+  // *a* valid user — without this, any authenticated user could open checkout or
+  // set a Stripe customer on a family they don't belong to (IDOR).
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const userClient = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    { global: { headers: { Authorization: authHeader } } },
+  )
+  const { data: { user } } = await userClient.auth.getUser()
+  if (!user) return json({ error: 'Unauthorized' }, 401)
+
+  const { data: membership } = await supabase
+    .from('duty_profiles')
+    .select('id')
+    .eq('id', user.id)
+    .eq('family_id', family_id)
+    .eq('role', 'parent')
+    .maybeSingle()
+  if (!membership) return json({ error: 'Forbidden' }, 403)
 
   const { data: family } = await supabase
     .from('duty_families')
@@ -46,7 +76,5 @@ Deno.serve(async (req) => {
     subscription_data: { metadata: { duty_family_id: family_id } },
   })
 
-  return new Response(JSON.stringify({ url: session.url }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
+  return json({ url: session.url })
 })

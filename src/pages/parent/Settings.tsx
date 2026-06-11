@@ -18,7 +18,7 @@ import { isNativeApp } from '../../lib/platform'
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
 export function Settings() {
-  const { family, kids, profile, setKids } = useStore()
+  const { family, kids, profile, setKids, setFamily } = useStore()
   const { signOut } = useAuth()
   const { isPremium } = usePremium()
   const [searchParams] = useSearchParams()
@@ -50,6 +50,25 @@ export function Settings() {
     window.addEventListener('beforeinstallprompt', handler)
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
+
+  // After returning from Stripe checkout (?upgraded=1) the cached family is stale,
+  // and the subscription webhook may land a second later. Re-fetch the family a few
+  // times so Premium reflects without a manual refresh.
+  useEffect(() => {
+    if (!justUpgraded || !family?.id) return
+    let cancelled = false
+    let attempts = 0
+    const poll = async () => {
+      attempts++
+      const { data } = await supabase.from('duty_families').select('*').eq('id', family.id).single()
+      if (cancelled) return
+      if (data) setFamily(data)
+      if (data?.premium_status !== 'active' && attempts < 5) setTimeout(poll, 2000)
+    }
+    poll()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [justUpgraded, family?.id])
 
   async function toggleNotifications() {
     if (!notifEnabled) {
@@ -177,7 +196,7 @@ export function Settings() {
           <div>
             <div className="font-bold">Welcome to Premium!</div>
             <div className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.85)' }}>
-              Challenges, photo proofs, and 90-day history are now unlocked.
+              Challenges, photo proofs, and full history are now unlocked.
             </div>
           </div>
         </div>
@@ -210,7 +229,7 @@ export function Settings() {
             <div className="flex-1">
               <div className="font-bold">Upgrade to Premium</div>
               <div className="text-xs font-bold" style={{ color: 'rgba(255,247,230,0.7)' }}>
-                Challenges · Photo proof · 90-day history · $2.99/mo
+                Challenges · Photo proof · Full history · $2.99/mo
               </div>
             </div>
             <div className="text-xs font-bold" style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 999, padding: '3px 8px' }}>

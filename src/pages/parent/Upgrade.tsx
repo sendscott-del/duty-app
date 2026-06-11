@@ -10,7 +10,7 @@ import { isNativeApp } from '../../lib/platform'
 const FEATURES = [
   { label: 'Weekly family challenges with bonus points' },
   { label: 'Require photo proof on chores' },
-  { label: '90-day point history' },
+  { label: 'Full point history' },
   { label: 'Everything that comes next' },
 ]
 

@@ -86,7 +86,7 @@ export function History() {
           <div className="flex-1">
             <div className="font-bold text-sm">{hiddenCount} older entries hidden</div>
             <div className="text-xs font-bold" style={{ color: 'rgba(255,247,230,0.7)' }}>
-              Premium shows 90-day history · Tap to upgrade
+              Premium shows your full history · Tap to upgrade
             </div>
           </div>
         </Link>
@@ -104,7 +104,7 @@ export function History() {
         >
           <Lock size={14} strokeWidth={3} style={{ color: 'var(--ink-50)' }} />
           <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>
-            Showing last 30 days · Premium unlocks 90-day history
+            Showing last 30 days · Premium unlocks full history
           </div>
         </Link>
       )}

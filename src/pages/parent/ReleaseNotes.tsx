@@ -3,11 +3,22 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.0.1',
+    date: 'June 11, 2026',
+    fixes: [
+      { title: 'Premium reliability', desc: 'Premium is now activated and kept in sync entirely by our payment system, so it turns on and renews dependably and can\'t be toggled from the app.' },
+      { title: 'Safer checkout', desc: 'The upgrade checkout now confirms you\'re a parent of your own family before it starts.' },
+    ],
+    features: [
+      'Premium now reflects automatically right after you check out — no refresh needed.',
+    ],
+  },
+  {
     version: '2.0.0',
     date: 'June 11, 2026',
     fixes: [],
     features: [
-      'Duty Premium — optional paid plan that adds weekly family challenges with bonus points, required photo proof on chores, and 90-day point history. Everything you use today stays free: unlimited kids and chores, approvals, rewards, 30-day history, and push notifications.',
+      'Duty Premium — optional paid plan that adds weekly family challenges with bonus points, required photo proof on chores, and full point history. Everything you use today stays free: unlimited kids and chores, approvals, rewards, 30-day history, and push notifications.',
       'Premium is purchased and managed on the Duty website. Inside the iOS and Android apps the upgrade screen is hidden, but any Premium you bought on the web automatically unlocks in the app.',
     ],
   },

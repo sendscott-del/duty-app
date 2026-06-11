@@ -1,5 +1,14 @@
 # Duty Release Notes
 
+## v2.0.1 — June 11, 2026
+
+### Premium hardening
+- **Premium is server-truth.** `premium_status` and the Stripe columns on `duty_families` are now writable only by the payment system (service role) via a database trigger — they can no longer be set from the app or browser, closing a paywall bypass.
+- **Checkout authorization.** `create-checkout-session` now verifies the caller is a parent of the requested family before doing anything (closes an IDOR where any signed-in user could start checkout / attach a customer to another family).
+- **Webhook reliability.** Signature verification now uses `constructEventAsync` (required by the Deno Edge runtime — the sync version would reject every real event), subscription period parsing is API-version-safe, and failed DB writes are logged.
+- **Auto-refresh after checkout.** Returning from Stripe (`?upgraded=1`) re-fetches the family so Premium reflects without a manual reload.
+- **Copy fix.** Premium history is now described accurately as full history (free stays at 30 days).
+
 ## v2.0.0 — June 11, 2026
 
 ### Premium Subscription
@@ -8,7 +17,7 @@ Duty is now freemium. The core chore loop — unlimited kids, unlimited chores, 
 
 - **Weekly family challenges.** Set a family goal each week (total completions, streak squad, no-miss week) and earn bonus points together. Tap the challenge card on Overview to pick one.
 - **Require photo proof.** When adding or editing a chore, enable "Require photo proof" to make kids snap a photo before submitting. Keeps everyone honest.
-- **90-day history.** Free accounts see the last 30 days of point history. Premium extends that to 90 days.
+- **Full history.** Free accounts see the last 30 days of point history. Premium unlocks your complete history.
 
 ### New screens
 - **Upgrade screen** (`/parent/upgrade`) — monthly/annual plan toggle, feature list, Stripe checkout redirect.
