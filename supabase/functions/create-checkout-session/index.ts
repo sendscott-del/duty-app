@@ -2,7 +2,7 @@ import Stripe from 'npm:stripe@14'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-04-10' })
+const stripe = new Stripe(Deno.env.get('DUTY_STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-04-10' })
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -32,10 +32,10 @@ Deno.serve(async (req) => {
   }
 
   const priceId = plan === 'annual'
-    ? Deno.env.get('STRIPE_PRICE_ANNUAL')
-    : Deno.env.get('STRIPE_PRICE_MONTHLY')
+    ? Deno.env.get('DUTY_STRIPE_PRICE_ANNUAL')
+    : Deno.env.get('DUTY_STRIPE_PRICE_MONTHLY')
 
-  const origin = Deno.env.get('APP_ORIGIN') ?? 'https://duty.leftfieldapps.com'
+  const origin = 'https://duty.leftfieldapps.com'
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,

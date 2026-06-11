@@ -1,8 +1,8 @@
 import Stripe from 'npm:stripe@14'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
-const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-04-10' })
-const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
+const stripe = new Stripe(Deno.env.get('DUTY_STRIPE_SECRET_KEY') ?? '', { apiVersion: '2024-04-10' })
+const webhookSecret = Deno.env.get('DUTY_STRIPE_WEBHOOK_SECRET') ?? ''
 
 Deno.serve(async (req) => {
   const sig = req.headers.get('stripe-signature') ?? ''
