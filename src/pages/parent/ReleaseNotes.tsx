@@ -3,6 +3,15 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.0.3',
+    date: 'June 12, 2026',
+    fixes: [
+      { title: 'Premium is fully tamper-proof', desc: 'Closed the last way the paywall could be bypassed from the browser, and made sure subscription changes from our payment system always apply in the right order — so Premium turns on, renews, and cancels dependably.' },
+      { title: 'No accidental double charges', desc: 'If your family is already on Premium, the upgrade button can no longer start a second subscription.' },
+    ],
+    features: [],
+  },
+  {
     version: '2.0.2',
     date: 'June 11, 2026',
     fixes: [],

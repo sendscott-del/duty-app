@@ -230,6 +230,10 @@ export function KidHome() {
         {/* Weekly Challenge */}
         {challenge && (
           <div className="mb-5">
+            {/* isPremium hardcoded true on purpose: the paywall is enforced on the
+                parent side (only a Premium parent can SELECT a challenge). If the
+                family is free, `challenge` is null and this block never renders, so
+                kids simply see whatever active challenge exists. */}
             <WeeklyChallenge
               challenge={challenge}
               progress={challenge ? calcChallengeProgress(challenge, completions, chores, kids.map(k => k.id)) : 0}

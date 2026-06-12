@@ -46,12 +46,20 @@ Deno.serve(async (req) => {
 
   const { data: family } = await supabase
     .from('duty_families')
-    .select('stripe_customer_id, name')
+    .select('stripe_customer_id, name, premium_status')
     .eq('id', family_id)
-    .single()
+    .maybeSingle()
+  if (!family) return json({ error: 'Family not found' }, 404)
+
+  // Don't let an already-subscribed family open a second checkout — that would
+  // create a duplicate subscription on the same customer (double billing). The
+  // UI hides the button when premium, but this is the server-side backstop.
+  if (family.premium_status === 'active') {
+    return json({ error: 'You already have an active Premium subscription.' }, 409)
+  }
 
   // Reuse or create Stripe customer
-  let customerId = family?.stripe_customer_id
+  let customerId = family.stripe_customer_id
   if (!customerId) {
     const customer = await stripe.customers.create({
       name: family?.name ?? 'Duty Family',

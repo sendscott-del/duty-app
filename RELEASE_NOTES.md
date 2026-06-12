@@ -1,5 +1,13 @@
 # Duty Release Notes
 
+## v2.0.3 — June 12, 2026
+
+### Premium hardening (round 2)
+- **Closed the INSERT-side paywall bypass.** The premium-columns guard now fires on INSERT as well as UPDATE. Previously a parent could create a brand-new family row pre-set to Premium and repoint their profile at it — the UPDATE-only guard didn't cover that path. Client-created families must now start on the free tier; only the payment system can set premium/Stripe values.
+- **Webhook customer match + event ordering.** `stripe-webhook` now updates a family only when the event's Stripe customer matches the one on file, and ignores stale/out-of-order Stripe redeliveries (via a new `stripe_event_at` marker) so a late "still active" event can't resurrect a canceled subscription.
+- **No duplicate subscriptions.** `create-checkout-session` now refuses to open checkout for a family that's already Premium (server-side backstop against double billing) and returns a clean 404 if the family can't be found.
+- **CORS pinned.** The Stripe edge functions now allow only the production Duty origin instead of `*`.
+
 ## v2.0.2 — June 11, 2026
 
 ### Subscription management
