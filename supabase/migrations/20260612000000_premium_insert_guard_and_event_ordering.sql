@@ -21,6 +21,7 @@
 create or replace function public.duty_families_guard_premium()
 returns trigger
 language plpgsql
+set search_path = ''
 as $$
 begin
   if current_user in ('authenticated', 'anon') then
