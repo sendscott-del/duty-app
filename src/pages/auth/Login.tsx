@@ -6,6 +6,11 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { SirFlush } from '../../components/ui/SirFlush'
 
+// Shared demo account — RLS-scoped parent of an isolated "Demo Family" with
+// fictional kids/chores/rewards, zero real data. Powers the no-credentials demo button.
+const DEMO_EMAIL = 'applereview@gatheredin.app'
+const DEMO_PASSWORD = 'MagnifyReview!2026'
+
 export function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -13,6 +18,7 @@ export function Login() {
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const { signIn, signUp, loadProfile } = useAuth()
   const { profile } = useStore()
   const navigate = useNavigate()
@@ -23,6 +29,15 @@ export function Login() {
       else navigate(profile.role === 'parent' ? '/parent/overview' : '/kid')
     }
   }, [profile, navigate])
+
+  async function tryDemo() {
+    setError('')
+    setDemoLoading(true)
+    const { error, data } = await signIn(DEMO_EMAIL, DEMO_PASSWORD)
+    if (error) { setError("Couldn't start the demo. Please try again."); setDemoLoading(false); return }
+    if (data.user) await loadProfile(data.user.id)
+    setDemoLoading(false)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -99,6 +114,13 @@ export function Login() {
           <Button type="submit" fullWidth loading={loading}>
             {isSignUp ? 'CREATE ACCOUNT' : 'SIGN IN'}
           </Button>
+
+          <Button type="button" variant="outline" fullWidth loading={demoLoading} onClick={tryDemo}>
+            TRY THE DEMO
+          </Button>
+          <p className="text-center text-xs font-bold" style={{ color: 'var(--ink-50)', marginTop: -4 }}>
+            Explore a sample family — no sign-in needed
+          </p>
         </form>
 
         <p className="text-center text-sm font-bold mt-5" style={{ color: 'var(--ink-50)' }}>
