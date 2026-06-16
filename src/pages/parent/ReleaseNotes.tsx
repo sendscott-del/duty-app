@@ -7,7 +7,7 @@ const RELEASES = [
     date: 'June 15, 2026',
     fixes: [],
     features: [
-      { title: 'Try the demo', desc: 'A new "Try the demo" button on the sign-in screen opens a fully-working sample family (fictional kids, chores, and rewards) with no account needed — so anyone can see how Duty works without touching real data.' },
+      'Try the demo: a new button on the sign-in screen opens a fully-working sample family (fictional kids, chores, and rewards) with no account needed — so anyone can see how Duty works without touching real data.',
     ],
   },
   {
