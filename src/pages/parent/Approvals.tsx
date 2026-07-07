@@ -173,8 +173,9 @@ export function Approvals() {
   )
 }
 
-function ApprovalRow({ row, onApprove, onReject, onClear }: { row: { completion: any; chore: any; kid: any }; onApprove: () => void; onReject: () => void; onClear: () => void }) {
+function ApprovalRow({ row, onApprove, onReject, onClear }: { row: { completion: any; chore: any; kid: any }; onApprove: () => void | Promise<void>; onReject: () => void; onClear: () => void }) {
   const { completion, chore, kid } = row
+  const [approving, setApproving] = useState(false)
   return (
     <motion.div
       layout
@@ -216,16 +217,22 @@ function ApprovalRow({ row, onApprove, onReject, onClear }: { row: { completion:
 
       <div className="flex gap-2 mt-3">
         <button
-          onClick={onApprove}
+          onClick={async () => {
+            if (approving) return          // guard against double-tap double-award
+            setApproving(true)
+            try { await onApprove() } finally { setApproving(false) }
+          }}
+          disabled={approving}
           className="flex-1 flex items-center justify-center gap-1.5"
           style={{
             background: 'var(--green)', color: '#fff',
             border: '2.5px solid var(--ink)', borderRadius: 10,
             padding: '8px 0', fontWeight: 800, fontSize: 14,
-            boxShadow: 'var(--shadow-sm)', cursor: 'pointer',
+            boxShadow: 'var(--shadow-sm)', cursor: approving ? 'default' : 'pointer',
+            opacity: approving ? 0.6 : 1,
           }}
         >
-          <CheckCircle size={15} strokeWidth={3} /> APPROVE
+          <CheckCircle size={15} strokeWidth={3} /> {approving ? 'APPROVING…' : 'APPROVE'}
         </button>
         <button onClick={onReject} title="Send back for redo" style={{ background: 'var(--red)', color: '#fff', border: '2.5px solid var(--ink)', borderRadius: 10, padding: '8px 12px', cursor: 'pointer' }}>
           <ThumbsDown size={14} strokeWidth={3} />

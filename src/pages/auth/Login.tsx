@@ -6,10 +6,12 @@ import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { SirFlush } from '../../components/ui/SirFlush'
 
-// Shared demo account — RLS-scoped parent of an isolated "Demo Family" with
-// fictional kids/chores/rewards, zero real data. Powers the no-credentials demo button.
-const DEMO_EMAIL = 'applereview@gatheredin.app'
-const DEMO_PASSWORD = 'MagnifyReview!2026'
+// Duty-only demo account — parent of an isolated "Demo Family" with fictional
+// kids/chores/rewards, zero real data. It has NO profile in any other app on the
+// shared Supabase project, so this public credential cannot reach church/Magnify
+// data. Do NOT reuse a cross-app Apple-review login here.
+const DEMO_EMAIL = 'demo@dutychores.app'
+const DEMO_PASSWORD = 'DutyDemo!2026'
 
 export function Login() {
   const [email, setEmail] = useState('')

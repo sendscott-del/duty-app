@@ -3,6 +3,16 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.1.1',
+    date: 'July 6, 2026',
+    fixes: [
+      { title: 'Locked down the sample-family demo', desc: 'The "Try the demo" button now uses a dedicated demo login that can only ever see the fictional sample family — it has no access to anything else.' },
+      { title: 'Points can\'t be gamed', desc: 'Kids can spend and request rewards, but only a parent can add points. Approving a chore now awards its points exactly once, even on a fast double-tap.' },
+      { title: 'Smoother first-time setup', desc: 'If anything goes wrong while creating your family during setup, you now see a clear message and can retry — instead of landing on an empty screen.' },
+    ],
+    features: [],
+  },
+  {
     version: '2.1.0',
     date: 'June 15, 2026',
     fixes: [],

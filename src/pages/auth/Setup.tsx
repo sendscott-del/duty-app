@@ -32,6 +32,7 @@ export function Setup() {
   const [kidColor, setKidColor] = useState('purple')
   const [kidPin, setKidPin] = useState('')
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [selectedChores, setSelectedChores] = useState<Set<string>>(new Set())
   const [selectedRewards, setSelectedRewards] = useState<Set<string>>(new Set())
   const { profile, setFamily } = useStore()
@@ -39,13 +40,14 @@ export function Setup() {
   const navigate = useNavigate()
 
   async function createFamily() {
-    setSaving(true)
-    const { data: family } = await supabase.from('duty_families').insert({ name: familyName }).select().single()
-    if (family && profile) {
-      await supabase.from('duty_profiles').update({ family_id: family.id }).eq('id', profile.id)
-      setFamily(family)
-      useStore.getState().setProfile({ ...profile, family_id: family.id })
-    }
+    if (!profile) return
+    setSaving(true); setError('')
+    const { data: family, error: famErr } = await supabase.from('duty_families').insert({ name: familyName }).select().single()
+    if (famErr || !family) { setError("Couldn't create your family. Please try again."); setSaving(false); return }
+    const { error: linkErr } = await supabase.from('duty_profiles').update({ family_id: family.id }).eq('id', profile.id)
+    if (linkErr) { setError("Couldn't finish setting up your family. Please try again."); setSaving(false); return }
+    setFamily(family)
+    useStore.getState().setProfile({ ...profile, family_id: family.id })
     setSaving(false); setStep(1)
   }
   function addKid() {
@@ -55,39 +57,40 @@ export function Setup() {
     setKidColor(COLOR_OPTIONS[(kids.length + 1) % COLOR_OPTIONS.length])
   }
   async function saveKids() {
-    setSaving(true)
     const { family } = useStore.getState()
-    if (!family) { setSaving(false); return }
-    try {
-      for (const kid of kids) {
-        await supabase.from('duty_profiles').insert({
-          id: crypto.randomUUID(), full_name: kid.name, role: 'kid',
-          family_id: family.id, avatar_color: kid.color, pin: kid.pin,
-        })
-      }
-      if (profile) await loadProfile(profile.id)
-    } catch {}
+    if (!family) { setError('Something went wrong — please restart setup.'); return }
+    setSaving(true); setError('')
+    for (const kid of kids) {
+      const { error: kidErr } = await supabase.from('duty_profiles').insert({
+        id: crypto.randomUUID(), full_name: kid.name, role: 'kid',
+        family_id: family.id, avatar_color: kid.color, pin: kid.pin,
+      })
+      if (kidErr) { setError(`Couldn't save ${kid.name}. Please try again.`); setSaving(false); return }
+    }
+    if (profile) await loadProfile(profile.id)
     setSaving(false); setStep(2)
   }
   async function saveChores() {
     const { family } = useStore.getState()
     if (!family) { setStep(3); return }
-    setSaving(true)
+    setSaving(true); setError('')
     for (const c of CHORE_PRESETS.filter(p => selectedChores.has(p.name))) {
-      await supabase.from('duty_chores').insert({
+      const { error: cErr } = await supabase.from('duty_chores').insert({
         family_id: family.id, name: c.name, emoji: c.emoji, points: c.points, assigned_by: profile?.id,
       })
+      if (cErr) { setError("Couldn't save chores — you can add them later from the Chores tab."); setSaving(false); return }
     }
     setSaving(false); setStep(3)
   }
   async function finish() {
     const { family } = useStore.getState()
     if (family) {
-      setSaving(true)
+      setSaving(true); setError('')
       for (const r of REWARD_PRESETS.filter(p => selectedRewards.has(p.name))) {
-        await supabase.from('duty_rewards').insert({
+        const { error: rErr } = await supabase.from('duty_rewards').insert({
           family_id: family.id, name: r.name, emoji: r.emoji, points_cost: r.points_cost,
         })
+        if (rErr) { setError("Couldn't save rewards — you can add them later."); setSaving(false); return }
       }
       setSaving(false)
     }
@@ -124,6 +127,16 @@ export function Setup() {
             boxShadow: 'var(--shadow)',
           }}
         >
+          {error && (
+            <div
+              style={{
+                background: 'var(--red)', color: '#fff', border: '2.5px solid var(--ink)',
+                borderRadius: 8, padding: '8px 12px', fontWeight: 700, fontSize: 13, marginBottom: 14,
+              }}
+            >
+              {error}
+            </div>
+          )}
           {step === 0 && (
             <div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--ink)', letterSpacing: '-0.03em', lineHeight: 1 }}>Name your family</h2>
