@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.1.2',
+    date: 'August 2, 2026',
+    fixes: [
+      { title: 'More reliable chore reminders', desc: 'Reworked how the daily reminder is sent. It now arrives within about 5 minutes of your set time (instead of on the exact minute), only ever sends once per day, and self-corrects if a send is briefly delayed. A behind-the-scenes efficiency fix — nothing to change on your end.' },
+    ],
+    features: [],
+  },
+  {
     version: '2.1.1',
     date: 'July 6, 2026',
     fixes: [

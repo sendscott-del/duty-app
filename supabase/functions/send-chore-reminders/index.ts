@@ -1,8 +1,9 @@
 // Duty — chore reminder push notifier.
 //
-// Triggered every minute by pg_cron. For every family whose
-// `reminder_time` matches the current minute in the family's timezone,
-// computes who has incomplete chores today and sends a Web Push:
+// Triggered every 5 minutes by pg_cron. For every family whose
+// `reminder_time` has passed today (in the family's timezone) and that
+// hasn't been reminded yet today, computes who has incomplete chores today
+// and sends a Web Push:
 //
 //   - To each kid (on every device the kid has subscribed)
 //     when that specific kid still has incomplete chores.
@@ -32,6 +33,7 @@ interface DutyFamily {
   reminder_time: string
   reminder_timezone: string
   reminders_enabled: boolean
+  last_reminded_on: string | null
 }
 interface DutyChore {
   id: string
@@ -115,7 +117,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: families, error: famErr } = await supa
     .from("duty_families")
-    .select("id, name, reminder_time, reminder_timezone, reminders_enabled")
+    .select("id, name, reminder_time, reminder_timezone, reminders_enabled, last_reminded_on")
     .eq("reminders_enabled", true)
 
   if (famErr) {
@@ -131,8 +133,24 @@ Deno.serve(async (req: Request) => {
     // Parse HH:MM[:SS] -> hh, mm
     const [rh, rm] = (f.reminder_time || "18:00").split(":").map((n) => parseInt(n, 10))
 
-    // Cron fires every minute; only match the exact minute.
-    if (now.hh !== rh || now.mm !== rm) continue
+    // Fire once per day, at or after the family's reminder time in their tz.
+    // The cron used to run every minute and this matched the exact minute; it
+    // now runs every 5 minutes (to cut its share of Supabase Disk IO), so we
+    // match a "reminder time has passed today" window instead of one minute,
+    // and dedupe with last_reminded_on so a reminder never double-sends and a
+    // missed/late cron run just delays it to the next run instead of skipping
+    // the day. (A reminder set in the last few minutes before midnight may be
+    // missed — no cron run lands between it and the date rollover; acceptable
+    // for chore nudges.)
+    const reminderMinutes = rh * 60 + rm
+    const nowMinutes = now.hh * 60 + now.mm
+    if (nowMinutes < reminderMinutes) continue        // not time yet today
+    if (f.last_reminded_on === now.dateStr) continue  // already handled today
+
+    // Claim today's reminder up front (single tiny write per family per day)
+    // so an overlapping/retried run doesn't double-send and so all-done
+    // families aren't re-evaluated on every run for the rest of the day.
+    await supa.from("duty_families").update({ last_reminded_on: now.dateStr }).eq("id", f.id)
 
     // Pull everything we need for this family in parallel.
     const [{ data: chores }, { data: profiles }, { data: completions }, { data: subs }] = await Promise.all([

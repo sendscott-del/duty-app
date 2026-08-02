@@ -23,6 +23,7 @@ Duty is a family chore-tracking app for Scott's kids: parents assign chores, kid
 
 - **Stack:** Vite + React 19 + TypeScript, Tailwind 4, zustand, react-router; PWA (service worker `sw.js`, `/install.html` install page) + Capacitor native shells.
 - **Layout:** `src/pages`, `src/components`, `src/hooks`, `src/lib`; `supabase/migrations/` (numbered 001–020 then timestamped) and `supabase/functions/` (`create-checkout-session`, `create-portal-session`, `stripe-webhook`, `duty-kid-login`, `send-chore-reminders`).
+- **Chore reminders:** pg_cron job `duty-chore-reminders` runs **every 5 min** (`*/5 * * * *`) and POSTs to the `send-chore-reminders` edge function (which runs with **`verify_jwt: false`** — the cron sends no auth header; don't enable JWT or reminders break). The function fires each family's reminder **once per day at/after `reminder_time`** in their tz, deduped by `duty_families.last_reminded_on`. Was every-minute + exact-minute match until v2.1.2 (2026-08-02) — changed to cut its share of the shared project's Disk IO. Keep it write-light per run.
 - **Premium is server-truth:** `premium_status` + Stripe columns on `duty_families` are writable only by service role via DB trigger/guard (`duty_families_guard_premium`, covers INSERT and UPDATE); checkout verifies the caller is a parent of the family; webhook matches Stripe customer and ignores out-of-order events (`stripe_event_at`).
 - **Native builds hide the Stripe paywall** (App Store / Play compliance).
 
