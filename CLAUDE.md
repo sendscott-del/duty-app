@@ -27,6 +27,16 @@ Duty is a family chore-tracking app for Scott's kids: parents assign chores, kid
 - **Premium is server-truth:** `premium_status` + Stripe columns on `duty_families` are writable only by service role via DB trigger/guard (`duty_families_guard_premium`, covers INSERT and UPDATE); checkout verifies the caller is a parent of the family; webhook matches Stripe customer and ignores out-of-order events (`stripe_event_at`).
 - **Native builds hide the Stripe paywall** (App Store / Play compliance).
 
+## Delivery surfaces (verify EVERY one per release — see global tech-stack.md rule)
+
+| Surface | How it updates | Timeline | Verify by |
+|---|---|---|---|
+| Web (duty.leftfieldapps.com) | Vercel on git push | ~2 min | load site |
+| Installed PWA | same Vercel deploy; SW refresh on next open | minutes | reload twice |
+| iOS/Android (Capacitor shells) | load the LIVE SITE via `server.url` | same Vercel deploy, next app open | open the store app after deploy |
+
+Unlike Magnify (embedded Expo bundle + OTA), the native shells here render the deployed website — **one Vercel deploy updates every surface.** A store re-submission is only needed when native shell code/plugins change (splash, push plugin, appId). Never assume the Magnify OTA model applies here, or vice versa.
+
 ## Rules for this repo
 
 - Version lives in `package.json` (currently 2.x); every shipped change bumps it and appends to `RELEASE_NOTES.md` and updates `USER_GUIDE.md`.
