@@ -1,5 +1,73 @@
 # Duty Release Notes
 
+> Note: this file had drifted — v2.1.0 through v2.1.2 shipped but were only ever
+> written to the in-app notes (`src/pages/parent/ReleaseNotes.tsx`), which is the
+> user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
+> entries below were backfilled from `docs/SESSIONS.md` and git history.
+
+## v2.2.0 — August 13, 2026
+
+### Account recovery
+
+Duty had **no way to recover an account**. There was no "forgot password", no
+magic link, and no OAuth provider — so a parent who forgot their password was
+locked out permanently and could only be rescued by an admin editing
+`auth.users` by hand. Every account on the shared project is password-only.
+Signing up again didn't help either: it returned "user already exists" and
+stopped there, which is exactly the dead end that surfaced this.
+
+- **Forgot-password flow.** New `/forgot-password` page emails a Supabase
+  recovery link; new `/reset-password` page turns that link into a new password.
+  Handles both link shapes (implicit hash tokens and PKCE `?code=`), plus
+  expired, reused, and malformed links, each with a route back to requesting a
+  fresh one.
+- **Magic-link sign-in.** The same page can instead email a link that signs you
+  straight in. `shouldCreateUser: false` keeps account creation on the sign-up
+  form, so every new parent still gets a `duty_profiles` row with their real name.
+- **Dead ends now offer a way out.** "An account already exists for that email"
+  (sign-up) and "Invalid login credentials" (sign-in) now render an inline
+  **Reset your password →** link instead of terminating.
+- **No account enumeration.** Both requests show the same neutral confirmation
+  whether or not the address is registered; only HTTP 429 rate-limiting is
+  surfaced, since that's actionable and reveals nothing.
+
+### Operator step required — the flow misroutes until this is done
+
+Add these to the shared project's **Auth → URL Configuration → Redirect URLs**
+allow-list (project `isogetmvnpimcmouakeg`):
+
+- `https://duty.leftfieldapps.com/reset-password`
+- `https://duty.leftfieldapps.com/` (magic link)
+- `http://localhost:5173/reset-password` (local dev, optional)
+
+An unlisted `redirectTo` does not error — Supabase silently falls back to the
+project **Site URL**, which on this shared project points at a *different app*.
+Recovery emails would land users somewhere that isn't Duty.
+
+### Notes
+
+- No schema changes, no new env vars, no edge-function changes.
+- No native rebuild needed: the Capacitor shells load the live site via
+  `server.url`, so one Vercel deploy covers web, PWA, iOS, and Android.
+
+## v2.1.2 — August 2, 2026
+
+- Chore reminders reworked to fire once per day at/after each family's
+  `reminder_time` (deduped via `duty_families.last_reminded_on`), with the
+  `duty-chore-reminders` cron moved `* * * * *` → `*/5 * * * *` to cut its share
+  of the shared project's Disk IO.
+
+## v2.1.1 — July 6, 2026
+
+- Fixed the demo account leaking Magnify `callings` data across apps; fixed kid
+  points self-grant and double-award; added retry/error handling to first-time
+  family setup; added the `/install.html` PWA install page.
+
+## v2.1.0 — June 15, 2026
+
+- "Try the demo" button on the sign-in screen, opening an isolated Demo Family
+  with fictional data and no account required.
+
 ## v2.0.3 — June 12, 2026
 
 ### Premium hardening (round 2)

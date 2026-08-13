@@ -23,6 +23,16 @@ The skin lives in browser storage on the device that views the kid screen, so di
 3. Add your kids (name, avatar color, optional profile photo, 4-digit PIN)
 4. Create chores and rewards
 
+### If You Can't Sign In
+Tap **Forgot password?** on the sign-in screen. From there you can either:
+
+- **Send reset link** — emails you a link to choose a new password.
+- **Email me a login link instead** — emails a link that signs you straight in, no password required. Handy when you just need to get in and can set a password later.
+
+Both links come from **Left Field Labs** and expire shortly, so use them soon; check spam if one hasn't arrived within a minute. If a link says it has expired, request a fresh one — reset links are single-use.
+
+If you try to sign up and are told an account already exists for your email, that means you already have one — use **Forgot password?** instead of creating a second account. Kids never need any of this; they sign in with their 4-digit PIN.
+
 ### Kid Login
 1. Share the Kid Login Link from Settings with your kids
 2. Kids select their name and enter their 4-digit PIN

@@ -19,6 +19,10 @@ export function Login() {
   const [isSignUp, setIsSignUp] = useState(false)
   const [fullName, setFullName] = useState('')
   const [error, setError] = useState('')
+  // Set when the failure is one that recovery actually solves — a wrong
+  // password, or a sign-up blocked because the account already exists. Both
+  // used to be dead ends with no route forward.
+  const [showRecovery, setShowRecovery] = useState(false)
   const [loading, setLoading] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
   const { signIn, signUp, loadProfile } = useAuth()
@@ -44,14 +48,26 @@ export function Login() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setShowRecovery(false)
     setLoading(true)
     if (isSignUp) {
       const { error, data } = await signUp(email, password, fullName)
-      if (error) { setError(error.message); setLoading(false); return }
+      if (error) {
+        const exists = /already (registered|exists)/i.test(error.message)
+        setError(exists ? 'An account already exists for that email.' : error.message)
+        setShowRecovery(exists)
+        setLoading(false)
+        return
+      }
       if (data.user) await loadProfile(data.user.id)
     } else {
       const { error, data } = await signIn(email, password)
-      if (error) { setError(error.message); setLoading(false); return }
+      if (error) {
+        setError(error.message)
+        setShowRecovery(/invalid login credentials/i.test(error.message))
+        setLoading(false)
+        return
+      }
       if (data.user) await loadProfile(data.user.id)
     }
     setLoading(false)
@@ -110,6 +126,27 @@ export function Login() {
               }}
             >
               {error}
+              {showRecovery && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  style={{ display: 'block', marginTop: 6, color: '#fff', fontWeight: 800, textDecoration: 'underline' }}
+                >
+                  Reset your password →
+                </button>
+              )}
+            </div>
+          )}
+
+          {!isSignUp && (
+            <div className="text-right" style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                style={{ color: 'var(--red)', fontWeight: 800, fontSize: 13 }}
+              >
+                Forgot password?
+              </button>
             </div>
           )}
 

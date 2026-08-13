@@ -3,6 +3,17 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.2.0',
+    date: 'August 13, 2026',
+    fixes: [
+      { title: 'Signing up with an email you already use', desc: 'Instead of just saying the account exists and leaving you stuck, the sign-in screen now offers to send you a reset link right there. Same when a password is simply wrong.' },
+    ],
+    features: [
+      'Forgot your password? You can finally fix that yourself. Tap "Forgot password?" on the sign-in screen and we\'ll email you a link to choose a new one — no need to ask anyone for help.',
+      'Would rather skip the password entirely? Choose "Email me a login link instead" and we\'ll send a link that signs you straight in.',
+    ],
+  },
+  {
     version: '2.1.2',
     date: 'August 2, 2026',
     fixes: [

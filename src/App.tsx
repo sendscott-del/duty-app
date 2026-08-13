@@ -9,6 +9,8 @@ import { KidShell } from './components/kid/KidShell'
 const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })))
 const Setup = lazy(() => import('./pages/auth/Setup').then(m => ({ default: m.Setup })))
 const KidPin = lazy(() => import('./pages/auth/KidPin').then(m => ({ default: m.KidPin })))
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })))
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })))
 const Overview = lazy(() => import('./pages/parent/Overview').then(m => ({ default: m.Overview })))
 const Chores = lazy(() => import('./pages/parent/Chores').then(m => ({ default: m.Chores })))
 const Approvals = lazy(() => import('./pages/parent/Approvals').then(m => ({ default: m.Approvals })))
@@ -45,6 +47,12 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/setup" element={<Setup />} />
         <Route path="/kid-login" element={<KidPin />} />
+        {/* Public by design: a recovery link has to land somewhere reachable
+            while signed out. /reset-password stays outside RequireAuth so the
+            emailed session can be turned into a new password before a profile
+            has loaded. */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/parent" element={<RequireAuth><ParentShell /></RequireAuth>}>
           <Route index element={<Navigate to="overview" replace />} />

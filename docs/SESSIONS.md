@@ -2,6 +2,53 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-13 — v2.2.0: account recovery (forgot password + magic link)
+
+- **Why:** Scott couldn't sign in to Duty. Sign-up with his own address returned
+  "user already exists" and the app offered nothing further — there was no
+  forgot-password link, no magic link, and no OAuth provider anywhere in the UI.
+  Verified against `auth.users` on `isogetmvnpimcmouakeg`: **32 accounts, all 32
+  password-only, 0 with any OAuth identity, 18 active in the last 30 days.** So
+  this wasn't a one-off — any locked-out parent could only be recovered by an
+  admin editing `auth.users` by hand.
+- **What changed (client only):**
+  - `src/hooks/useAuth.ts` — added `resetPassword`, `updatePassword`,
+    `signInWithMagicLink`, plus an `authRedirect()` helper built on
+    `window.location.origin`.
+  - New `src/pages/auth/ForgotPassword.tsx` (reset **or** magic link, one form)
+    and `src/pages/auth/ResetPassword.tsx` (handles implicit-hash **and** PKCE
+    `?code=` links, plus expired/reused/missing-token states).
+  - New `src/components/auth/AuthShell.tsx` + `authStyles.ts` — shared masthead
+    and card styling so emailed links don't land on a stranger-looking page.
+    (Styles live in their own module to satisfy `react-refresh/only-export-components`.)
+  - `src/pages/auth/Login.tsx` — "Forgot password?" link, and an inline
+    **Reset your password →** on the two failures recovery actually solves.
+  - `src/App.tsx` — `/forgot-password` and `/reset-password` routes, both public
+    (a recovery link must be reachable while signed out).
+- **Infra facts touched:** none in code — **no schema, no env vars, no edge
+  functions, no migration.** One **manual** step is required and is NOT done yet:
+  add `https://duty.leftfieldapps.com/reset-password` and
+  `https://duty.leftfieldapps.com/` to **Auth → URL Configuration → Redirect
+  URLs** on the shared project. An unlisted `redirectTo` doesn't error — Supabase
+  falls back to the project **Site URL**, which points at a different app on this
+  shared project, so recovery emails would land users outside Duty.
+- **Also done this session:** reset Scott's own password directly via SQL
+  (`auth.users`, single row, `sendscott@gmail.com`) to unblock him before the fix
+  shipped. He was told to change it in-app.
+- **Verify:** `npm run build` clean; `npm run lint` at 113 problems — **identical
+  to the pre-change baseline**, so no new lint debt (the repo carries 113
+  pre-existing errors, mostly `no-explicit-any` in edge functions). Rendered all
+  five states in Chromium at 420×900 (login, forgot, magic-link toggle, expired
+  link, missing token) — all correct and on-brand. **Not yet verified end-to-end:
+  no real recovery email has been sent, because that depends on the redirect
+  allow-list step above.**
+- **Docs:** `RELEASE_NOTES.md` was stale at v2.0.3 (v2.1.0–v2.1.2 had only ever
+  been written to the in-app notes) — backfilled those three and added v2.2.0.
+  In-app `ReleaseNotes.tsx` and `USER_GUIDE.md` updated too. Bumped to 2.2.0.
+- **Shipped as:** branch `claude/duty-app-login-rc4inp` + draft PR, **not** pushed
+  to `main` — pushing to main deploys to production immediately, and the redirect
+  allow-list should be set first.
+
 ## 2026-08-02 — v2.1.2: reminder cron every-5-min + fire-once dedupe (Disk IO fix)
 
 - **Why:** the `duty-chore-reminders` pg_cron job ran **every minute** (`* * * * *`) and posted to the `send-chore-reminders` edge function, which matched each family's `reminder_time` to the *exact* current minute. On the shared Supabase project (`isogetmvnpimcmouakeg`) that per-minute run was ~30% of pg_cron's `cron.job_run_details` write IO — a Disk IO Budget concern flagged 2026-07-22 (the bigger ~46% was Knit, fixed separately in Knit v0.55.0 the same day).
