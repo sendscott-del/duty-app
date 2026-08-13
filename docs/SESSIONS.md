@@ -2,7 +2,42 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
-## 2026-08-13 — v2.2.0: account recovery (forgot password + magic link)
+## 2026-08-12 — v2.2.0 shipped to production (continuation of the entry below)
+
+Second session, same day. The entry below left the work on a branch with one
+manual step outstanding. Both are now done and the feature is verified live.
+
+- **Merged and deployed:** `claude/duty-app-login-rc4inp` fast-forwarded into
+  `main` (`adfcd22`) and pushed. Vercel production deploy Ready. Because the
+  Capacitor shells load the live site via `server.url`, this one deploy covers
+  every surface: web, installed PWA, iOS and Android. No store re-submission —
+  no native shell code changed.
+- **Infra fact changed (shared project `isogetmvnpimcmouakeg`):** added
+  `https://duty.leftfieldapps.com/**` to Auth → URL Configuration → Redirect
+  URLs, via the Management API (`PATCH /v1/projects/{ref}/config/auth`). The
+  allow-list went 31 → 32 entries: one added, **none removed**, `site_url`
+  untouched — diffed the full config before and after to confirm. Duty's domain
+  was genuinely absent, so without this every recovery email would have
+  redirected to the project Site URL (Steward's Vercel app).
+- **Verified end-to-end on the live site**, which the entry below could not do:
+  `/forgot-password` renders and submits; a real reset email arrived at
+  `sendscott@gmail.com` carrying
+  `redirect_to=https://duty.leftfieldapps.com/reset-password` — read out of the
+  message itself, not assumed. `/reset-password` without a token degrades to its
+  "that link didn't work" state rather than crashing. No console errors.
+  The emailed link was deliberately **not** clicked: recovery tokens are
+  single-use and Scott may want to use it.
+- **Left at:** v2.2.0, deployed, all surfaces current. Branch
+  `claude/duty-app-login-rc4inp` still exists on the remote (fully merged, safe
+  to delete).
+- **Still open (not Duty-specific):** the other custom domains on this shared
+  project were not audited against the redirect allow-list. `precioushomehelp.app`
+  and the other `*.leftfieldapps.com` apps (Dream Home, Hyde Park Pickup, Nice
+  Things) are not on it, so any emailed-link flow they add will hit the same
+  silent misdirect. Wildcards present today cover `*.gatheredin.app` and
+  `*-sendscott-dels-projects.vercel.app` only.
+
+## 2026-08-13 (UTC; local date was 2026-08-12) — v2.2.0: account recovery (forgot password + magic link)
 
 - **Why:** Scott couldn't sign in to Duty. Sign-up with his own address returned
   "user already exists" and the app offered nothing further — there was no
