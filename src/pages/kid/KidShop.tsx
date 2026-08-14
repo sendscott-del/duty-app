@@ -20,31 +20,46 @@ export function KidShop() {
   const { balance } = usePoints(profile?.id)
   const navigate = useNavigate()
   const [tab, setTab] = useState<'shop' | 'wallet'>('shop')
+  const [claiming, setClaiming] = useState(false)
   const [skin] = useKidSkin(profile?.id)
   const isTeen = skin === 'teen'
 
   const myRedemptions = redemptions.filter((r: any) => r.redeemed_by === profile?.id || r.duty_profiles?.id === profile?.id)
 
   async function handleClaim(reward: any) {
-    if (!profile || balance < reward.points_cost) return
+    if (!profile || claiming || balance < reward.points_cost) return
     if (!window.confirm(`Spend ${reward.points_cost} pts on ${reward.name}?`)) return
 
-    await supabase.from('duty_redemptions').insert({
-      family_id: profile.family_id,
-      reward_id: reward.id,
-      redeemed_by: profile.id,
-      points_spent: reward.points_cost,
-      status: 'pending',
-    })
-    await supabase.from('duty_point_transactions').insert({
-      family_id: profile.family_id,
-      profile_id: profile.id,
-      amount: -reward.points_cost,
-      reason: `Redeemed: ${reward.name}`,
-      reference_id: reward.id,
-      reference_type: 'redemption',
-      created_by: profile.id,
-    })
+    // Without this lock a fast double-tap spends the same points twice: both
+    // taps read the pre-deduction balance and both pass the check above.
+    setClaiming(true)
+    try {
+      const { data: redemption } = await supabase.from('duty_redemptions').insert({
+        family_id: profile.family_id,
+        reward_id: reward.id,
+        redeemed_by: profile.id,
+        points_spent: reward.points_cost,
+        status: 'pending',
+      }).select('*, duty_profiles!redeemed_by(full_name, avatar_color), duty_rewards(*)').single()
+
+      const { data: txn } = await supabase.from('duty_point_transactions').insert({
+        family_id: profile.family_id,
+        profile_id: profile.id,
+        amount: -reward.points_cost,
+        reason: `Redeemed: ${reward.name}`,
+        reference_id: reward.id,
+        reference_type: 'redemption',
+        created_by: profile.id,
+      }).select().single()
+
+      // Write both into the store so the balance drops and the request appears
+      // right away instead of waiting on the realtime channel.
+      const store = useStore.getState()
+      if (redemption) store.upsertRedemption(redemption)
+      if (txn) store.addPointTransaction(txn)
+    } finally {
+      setClaiming(false)
+    }
   }
 
   const sorted = [...rewards].sort((a, b) => {

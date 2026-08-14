@@ -7,6 +7,8 @@ interface Props {
   kids: Profile[]
   chores: any[]
   completions: any[]
+  /** Only the two fields the balance sum needs. */
+  pointTransactions?: { profile_id: string; amount: number }[]
   onSelectKid?: (kid: Profile) => void
 }
 
@@ -17,7 +19,18 @@ function trendTone(rate: number, weekTotal: number): { bg: string; fg: string; l
   return { bg: 'var(--red)', fg: '#fff', label: 'SLIPPING' }
 }
 
-export function KidScorecards({ kids, chores, completions, onSelectKid }: Props) {
+export function KidScorecards({ kids, chores, completions, pointTransactions, onSelectKid }: Props) {
+  // Spendable balance per kid — the whole family's ledger is already in the
+  // store, so this is a sum, not a fetch.
+  const balanceByKid = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const k of kids) m.set(k.id, 0)
+    for (const t of pointTransactions ?? []) {
+      if (m.has(t.profile_id)) m.set(t.profile_id, m.get(t.profile_id)! + t.amount)
+    }
+    return m
+  }, [kids, pointTransactions])
+
   // The 30-day-window getKidScore scan is the hot path on Overview re-renders.
   // Memoize per [kids, chores, completions] so unrelated state changes
   // (modals opening, viewDate changing, etc.) don't recompute.
@@ -57,15 +70,37 @@ export function KidScorecards({ kids, chores, completions, onSelectKid }: Props)
               <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="md" />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: 18,
-                      letterSpacing: '-0.02em',
-                      color: 'var(--ink)',
-                    }}
-                  >
-                    {kid.full_name.split(' ')[0]}
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 18,
+                        letterSpacing: '-0.02em',
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      {kid.full_name.split(' ')[0]}
+                    </span>
+                    <span
+                      title="Points available to spend"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        background: 'var(--yellow)',
+                        color: 'var(--ink)',
+                        border: '2px solid var(--ink)',
+                        borderRadius: 999,
+                        padding: '1px 7px',
+                        fontFamily: 'var(--font-display)',
+                        fontSize: 12,
+                        lineHeight: 1.4,
+                        whiteSpace: 'nowrap',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      ★ {(balanceByKid.get(kid.id) ?? 0).toLocaleString()}
+                    </span>
                   </span>
                   <span
                     className="stadium-eyebrow"

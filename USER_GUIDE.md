@@ -44,6 +44,7 @@ If you try to sign up and are told an account already exists for your email, tha
 - See today's chores across all kids with completion status
 - **Day navigation**: Tap the left/right arrows to view past or future days
 - **Stat cards**: Chores done, pending approvals (all dates — tap to open the queue), total chores
+- **Kid cards**: Each kid's card shows their current point balance (★) next to their name, alongside their 7-day completion rate and streak
 - **Weekly Challenge**: Pick a family challenge for bonus points
 - **Red badges**: Overview tab shows count of chores needing approval
 
@@ -74,8 +75,9 @@ If you try to sign up and are told an account already exists for your email, tha
 ### Rewards
 - **Create rewards**: Name, emoji, point cost, type (experience/privilege/item/Amazon)
 - **Preset templates**: Screen time, stay up late, pick dinner, movie night, sleepover, $5 spending money
-- **Pending requests**: When kids claim a reward, it appears at the top of the Rewards page with approve/reject buttons
+- **Pending requests**: When kids claim a reward, it appears at the top of the Rewards page with approve/reject buttons. Each request also shows how many points that kid has left
 - **Fulfillment**: After approving, a "Mark Given" button appears — tap it once you've delivered the reward to the kid
+- **Rejecting does not refund the points** — the kid has already spent them when they claimed
 - **Red badge**: Rewards tab shows count of pending requests
 
 ### Kid Profile Pictures
@@ -93,6 +95,7 @@ If you try to sign up and are told an account already exists for your email, tha
 - Bonus points awarded to all kids when the challenge is completed
 
 ### History
+- **Current balances**: A summary at the top shows every kid's spendable point total — the quickest place to check what a kid has. Balances always reflect the full ledger, even on the free plan where older rows are hidden
 - View all point transactions (earned and spent)
 - Shows kid avatar, reason, date, and amount
 

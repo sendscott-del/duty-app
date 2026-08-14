@@ -5,6 +5,61 @@
 > user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
 > entries below were backfilled from `docs/SESSIONS.md` and git history.
 
+## v2.2.1 — August 14, 2026
+
+### Reward approvals were writing to the database but never to the screen
+
+`Rewards.tsx` called `supabase.from('duty_redemptions').update(...)` and stopped
+there — it never touched the zustand store and never checked the returned error.
+The page renders from the store, so the row kept its old status on screen: the
+green check looked dead, and a confirmed rejection stayed in the list. The writes
+had in fact succeeded every time.
+
+The realtime channel in `useFamilyData` subscribes to `duty_redemptions` and
+would normally have refreshed the store, but no UI should depend on that
+arriving. Every other mutation path in the app (see `useCompletions`) already
+writes the row back itself; the rewards page was the one that didn't.
+
+- **Redemption mutations moved into `useRewards`** (`approveRedemption`,
+  `rejectRedemption`, `fulfillRedemption`, `deactivateReward`). Each does
+  `.select(...).single()` and writes the returned row into the store,
+  re-selecting the same joins the initial fetch uses so the kid name and reward
+  survive.
+- **Errors surface.** A bare `.update()` reports an RLS refusal as a silent
+  success. The hook returns the error and the page renders it in a banner.
+- **Per-row busy lock** on approve/reject/fulfill so a double-tap can't double-fire.
+
+### Kids could spend the same points more than once
+
+The same missing store write let a kid overdraw. `KidShop` guards with
+`balance < reward.points_cost`, but the deduction was never reflected locally, so
+each rapid tap re-read the pre-deduction balance and passed. One kid claimed a
+100-point reward three times in 20 seconds on a 110-point balance and landed at
+-180.
+
+- The redemption row and the negative point transaction are now written straight
+  into the store, so the balance drops on the first tap.
+- A `claiming` lock blocks a second tap while the first is in flight.
+
+### Parents can see point balances
+
+Previously the only way to check a kid's balance was to switch into their view.
+
+- Each kid's card on the **Overview** shows their spendable balance.
+- The **Point ledger** gained a "Current balances" summary. It sums the full
+  ledger, not the visible window — the free plan hides rows older than 30 days
+  and must not skew the total.
+- Pending reward requests show the requester's remaining balance.
+
+### Point awards reach the screen immediately
+
+Approving a chore inserted a `duty_point_transactions` row without updating the
+store, so displayed balances only moved via realtime. Single approve, bulk
+"Approve all", and kid claims now all write the inserted rows into the store.
+
+**Known issue, unchanged:** rejecting a reward request does not refund the points
+(the confirm dialog says so). Given the overdraw above, this is worth revisiting.
+
 ## v2.2.0 — August 13, 2026
 
 ### Account recovery

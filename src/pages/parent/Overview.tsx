@@ -36,7 +36,7 @@ export function Overview() {
   const { chores, loading, deleteChore, refresh } = useChores()
   const { getCompletion, approveCompletion, rejectCompletion, unapproveCompletion, undoCompletion, completions } = useCompletions()
   const { challenge, selectChallenge } = useChallenges()
-  const { profile, kids, setViewAsKid } = useStore()
+  const { profile, kids, setViewAsKid, pointTransactions } = useStore()
   const { isPremium } = usePremium()
   const navigate = useNavigate()
   const [showAddChore, setShowAddChore] = useState(false)
@@ -71,11 +71,14 @@ export function Overview() {
     if (!comp || !profile) return
     await approveCompletion(comp.id, profile.id)
     if (!comp.completed_late) {
-      await supabase.from('duty_point_transactions').insert({
+      // Select the row back so the awarded points land in the store — the
+      // displayed balances shouldn't wait on the realtime channel.
+      const { data } = await supabase.from('duty_point_transactions').insert({
         profile_id: comp.completed_by, family_id: chore.family_id,
         amount: chore.points, reason: `Completed: ${chore.name}`,
         reference_id: comp.id, reference_type: 'chore', created_by: profile.id,
-      })
+      }).select().single()
+      if (data) useStore.getState().addPointTransaction(data)
     }
     popConfetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } })
   }
@@ -150,6 +153,7 @@ export function Overview() {
         kids={kids}
         chores={chores}
         completions={completions}
+        pointTransactions={pointTransactions}
         onSelectKid={(kid) => { setViewAsKid(kid); navigate('/kid') }}
       />
 
