@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import type { PostgrestError } from '@supabase/supabase-js'
 import { useRewards } from '../../hooks/useRewards'
-import { supabase } from '../../lib/supabase'
+import { usePoints } from '../../hooks/usePoints'
+import { useStore } from '../../lib/store'
 import { AddRewardSheet } from '../../components/parent/AddRewardSheet'
 import { Badge } from '../../components/ui/Badge'
 import { Button } from '../../components/ui/Button'
@@ -8,25 +10,52 @@ import { Spinner } from '../../components/ui/Spinner'
 import { Plus, Pencil, Trash2, Check, X, Gift } from 'lucide-react'
 
 export function Rewards() {
-  const { rewards, redemptions, loading } = useRewards()
+  const {
+    rewards, redemptions, loading,
+    approveRedemption, rejectRedemption, fulfillRedemption, deactivateReward,
+  } = useRewards()
+  const { transactions } = usePoints()
+  const { kids } = useStore()
   const [showAdd, setShowAdd] = useState(false)
   const [editReward, setEditReward] = useState<any>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const pending = redemptions.filter((r: any) => r.status === 'pending')
   const approved = redemptions.filter((r: any) => r.status === 'approved')
 
-  async function handleApproveRedemption(id: string) {
-    await supabase.from('duty_redemptions').update({ status: 'approved' }).eq('id', id)
+  // Balance per kid, so the parent can see what a request leaves them with
+  // without switching into the kid's view.
+  const balanceByKid = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const k of kids) m.set(k.id, 0)
+    for (const t of transactions) m.set(t.profile_id, (m.get(t.profile_id) ?? 0) + t.amount)
+    return m
+  }, [kids, transactions])
+
+  // Runs a redemption mutation with a per-row busy lock and a visible error.
+  async function run(id: string, fn: (id: string) => Promise<PostgrestError | null>) {
+    if (busyId) return
+    setBusyId(id)
+    setError(null)
+    try {
+      const err = await fn(id)
+      if (err) setError(err.message ?? 'Something went wrong. Try again.')
+    } finally {
+      setBusyId(null)
+    }
   }
-  async function handleFulfillRedemption(id: string) {
-    await supabase.from('duty_redemptions').update({ status: 'fulfilled' }).eq('id', id)
-  }
-  async function handleRejectRedemption(id: string) {
+
+  function handleApproveRedemption(id: string) { return run(id, approveRedemption) }
+  function handleFulfillRedemption(id: string) { return run(id, fulfillRedemption) }
+  function handleRejectRedemption(id: string) {
     if (!window.confirm('Reject this reward request? Points will not be refunded.')) return
-    await supabase.from('duty_redemptions').update({ status: 'rejected' }).eq('id', id)
+    return run(id, rejectRedemption)
   }
   async function handleDelete(reward: any) {
     if (!window.confirm(`Delete "${reward.name}"?`)) return
-    await supabase.from('duty_rewards').update({ is_active: false }).eq('id', reward.id)
+    setError(null)
+    const err = await deactivateReward(reward.id)
+    if (err) setError(err.message ?? 'Could not delete that reward.')
   }
   function handleEdit(reward: any) { setEditReward(reward); setShowAdd(true) }
   function handleClose() { setShowAdd(false); setEditReward(null) }
@@ -45,6 +74,12 @@ export function Rewards() {
         </Button>
       </div>
 
+      {error && (
+        <div className="mb-4 font-bold" style={{ background: 'var(--red)', color: '#fff', border: '3px solid var(--ink)', borderRadius: 12, padding: '10px 14px', boxShadow: 'var(--shadow-sm)', fontSize: 14 }}>
+          {error}
+        </div>
+      )}
+
       {pending.length > 0 && (
         <div className="mb-6" style={{ background: 'var(--yellow)', border: '3px solid var(--ink)', borderRadius: 14, padding: 14, boxShadow: 'var(--shadow-sm)' }}>
           <div className="stadium-eyebrow mb-3" style={{ color: 'var(--ink)' }}>
@@ -57,15 +92,18 @@ export function Rewards() {
                 <div className="font-bold" style={{ color: 'var(--ink)' }}>
                   {r.duty_profiles?.full_name} wants <strong>{r.duty_rewards?.name}</strong>
                 </div>
-                <div className="text-xs font-bold" style={{ color: 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>{r.points_spent} pts</div>
+                <div className="text-xs font-bold" style={{ color: 'var(--ink-50)', fontFamily: 'var(--font-mono)' }}>
+                  {r.points_spent} pts
+                  {balanceByKid.has(r.redeemed_by) && ` · ★ ${balanceByKid.get(r.redeemed_by)!.toLocaleString()} left`}
+                </div>
               </div>
               <div className="flex gap-1.5">
-                <button onClick={() => handleApproveRedemption(r.id)} title="Approve"
-                  style={{ background: 'var(--green)', color: '#fff', border: '2.5px solid var(--ink)', borderRadius: 8, padding: 6, cursor: 'pointer' }}>
+                <button onClick={() => handleApproveRedemption(r.id)} title="Approve" disabled={busyId !== null}
+                  style={{ background: 'var(--green)', color: '#fff', border: '2.5px solid var(--ink)', borderRadius: 8, padding: 6, cursor: busyId ? 'default' : 'pointer', opacity: busyId === r.id ? 0.5 : 1 }}>
                   <Check size={14} strokeWidth={3} />
                 </button>
-                <button onClick={() => handleRejectRedemption(r.id)} title="Reject"
-                  style={{ background: 'var(--red)', color: '#fff', border: '2.5px solid var(--ink)', borderRadius: 8, padding: 6, cursor: 'pointer' }}>
+                <button onClick={() => handleRejectRedemption(r.id)} title="Reject" disabled={busyId !== null}
+                  style={{ background: 'var(--red)', color: '#fff', border: '2.5px solid var(--ink)', borderRadius: 8, padding: 6, cursor: busyId ? 'default' : 'pointer', opacity: busyId === r.id ? 0.5 : 1 }}>
                   <X size={14} strokeWidth={3} />
                 </button>
               </div>
@@ -87,8 +125,8 @@ export function Rewards() {
                   {r.duty_profiles?.full_name} — <strong>{r.duty_rewards?.name}</strong>
                 </div>
               </div>
-              <button onClick={() => handleFulfillRedemption(r.id)}
-                style={{ background: '#fff', color: 'var(--ink)', border: '2.5px solid var(--ink)', borderRadius: 8, padding: '4px 10px', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+              <button onClick={() => handleFulfillRedemption(r.id)} disabled={busyId !== null}
+                style={{ background: '#fff', color: 'var(--ink)', border: '2.5px solid var(--ink)', borderRadius: 8, padding: '4px 10px', fontWeight: 800, fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, cursor: busyId ? 'default' : 'pointer', opacity: busyId === r.id ? 0.5 : 1 }}>
                 <Gift size={12} strokeWidth={3} /> Mark Given
               </button>
             </div>

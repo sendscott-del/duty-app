@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { usePoints } from '../../hooks/usePoints'
 import { Avatar } from '../../components/ui/Avatar'
+import { PointChip } from '../../components/ui/PointChip'
 import { Spinner } from '../../components/ui/Spinner'
 import { useStore } from '../../lib/store'
 import { usePremium } from '../../hooks/usePremium'
@@ -30,6 +31,17 @@ export function History() {
 
   const hiddenCount = transactions.length - visible.length
 
+  // Balances come from the FULL ledger, not the visible window — the free plan
+  // hides rows older than 30 days, which must not skew the totals.
+  const balances = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const k of kids) m.set(k.id, 0)
+    for (const t of transactions) {
+      if (m.has(t.profile_id)) m.set(t.profile_id, m.get(t.profile_id)! + t.amount)
+    }
+    return kids.map(k => ({ kid: k, balance: m.get(k.id) ?? 0 }))
+  }, [kids, transactions])
+
   if (loading) return <Spinner size="lg" />
 
   return (
@@ -38,6 +50,25 @@ export function History() {
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 34, color: 'var(--ink)', letterSpacing: '-0.04em', lineHeight: 1, marginTop: 4, marginBottom: 24 }}>
         Point ledger
       </h1>
+
+      {balances.length > 0 && (
+        <div className="mb-6">
+          <div className="stadium-eyebrow mb-2">CURRENT BALANCES</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {balances.map(({ kid, balance }) => (
+              <div
+                key={kid.id}
+                className="flex items-center gap-3"
+                style={{ background: '#fff', border: '2.5px solid var(--ink)', borderRadius: 12, padding: '10px 12px', boxShadow: 'var(--shadow-sm)', color: 'var(--ink)' }}
+              >
+                <Avatar name={kid.full_name} color={kid.avatar_color} avatarUrl={kid.avatar_url} size="sm" />
+                <div className="flex-1 min-w-0 font-bold truncate">{kid.full_name.split(' ')[0]}</div>
+                <PointChip points={balance} size="sm" animate={false} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {visible.length === 0 ? (
         <div className="text-center py-12 font-bold" style={{ color: 'var(--ink-50)' }}>

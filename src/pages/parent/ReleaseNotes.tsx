@@ -3,6 +3,19 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.2.1',
+    date: 'August 14, 2026',
+    fixes: [
+      { title: 'Approving and rejecting reward requests actually works', desc: 'The green check and the reject button were saving your decision, but the request stayed on screen — so it looked like nothing happened. The list now updates the moment you tap.' },
+      { title: 'Kids could spend the same points twice', desc: 'Because the balance on screen didn\'t drop after claiming a reward, tapping Claim again went through — and could push a balance below zero. Claiming now deducts immediately and blocks a second tap.' },
+      { title: 'Reward errors no longer fail silently', desc: 'If a reward action can\'t be saved, the Rewards page now says so instead of quietly doing nothing.' },
+    ],
+    features: [
+      'See every kid\'s point balance without switching into their view — balances now show on each kid\'s card on the Overview, and a "Current balances" summary sits at the top of the Point ledger.',
+      'Pending reward requests show how many points the kid has left, so you can decide at a glance.',
+    ],
+  },
+  {
     version: '2.2.0',
     date: 'August 13, 2026',
     fixes: [

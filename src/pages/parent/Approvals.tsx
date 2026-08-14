@@ -54,11 +54,12 @@ export function Approvals() {
     if (!profile) return
     await approveCompletion(row.completion.id, profile.id)
     if (!row.completion.completed_late) {
-      await supabase.from('duty_point_transactions').insert({
+      const { data } = await supabase.from('duty_point_transactions').insert({
         profile_id: row.completion.completed_by, family_id: row.chore.family_id,
         amount: row.chore.points, reason: `Completed: ${row.chore.name}`,
         reference_id: row.completion.id, reference_type: 'chore', created_by: profile.id,
-      })
+      }).select().single()
+      if (data) useStore.getState().addPointTransaction(data)
     }
     popConfetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } })
   }
@@ -97,16 +98,17 @@ export function Approvals() {
         created_by: profile.id,
       }))
 
-    await Promise.all([
+    const [, inserted] = await Promise.all([
       supabase.from('duty_chore_completions').update({
         status: 'approved',
         approved_at: approvedAt,
         approved_by: profile.id,
       }).in('id', completionIds),
       pointRows.length > 0
-        ? supabase.from('duty_point_transactions').insert(pointRows)
-        : Promise.resolve(),
+        ? supabase.from('duty_point_transactions').insert(pointRows).select()
+        : Promise.resolve(null),
     ])
+    for (const row of inserted?.data ?? []) store.addPointTransaction(row)
 
     popConfetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } })
     setBulkBusy(false)

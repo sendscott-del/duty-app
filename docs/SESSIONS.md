@@ -2,6 +2,43 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-14 — v2.2.1: reward approvals, point visibility, kid overdraw
+
+Reported by Scott: no place for parents to see kid point balances; rejecting a
+reward left it on screen; approving one did nothing.
+
+- **Root cause (one bug, three symptoms).** `Rewards.tsx` wrote redemption status
+  changes with a bare `supabase...update()` — no store write, no error check. The
+  page renders from the zustand store, so the row never changed on screen. The DB
+  confirmed the writes had all landed (Freddy: 2 rejected + 1 approved), so the
+  buttons worked and only the UI was stale. `useCompletions` already writes every
+  mutation back into the store; the rewards page was the outlier. The
+  `duty_redemptions` realtime subscription in `useFamilyData` should also have
+  covered this, but nothing in the UI should depend on that arriving.
+- **Same bug caused a real overdraw.** `KidShop` checks `balance <
+  reward.points_cost` before claiming but never wrote the deduction to the store.
+  Freddy tapped Claim three times in 20s on a 110-pt balance against a 100-pt
+  reward — all three passed the check. **His balance is now -180 and was left
+  that way; fixing it is Scott's call** (see below).
+- **What changed:** redemption mutations moved into `useRewards` with
+  `.select().single()` + `upsertRedemption` and returned errors; error banner and
+  per-row busy locks on the Rewards page; `claiming` lock in `KidShop`; point
+  balances added to the Overview kid cards, the Point ledger (summed from the
+  full ledger, not the 30-day free-plan window), and pending reward requests;
+  point-transaction inserts on chore approve / bulk approve / kid claim now write
+  to the store.
+- **Infra facts touched:** none. No migrations, no edge functions, no schema or
+  policy changes. Verified read-only against `isogetmvnpimcmouakeg` that the
+  parent UPDATE policy on `duty_redemptions` was never the problem.
+- **Open item for Scott:** rejecting a reward does not refund points (the confirm
+  dialog says so; behavior unchanged). Combined with the overdraw, Freddy is at
+  -180. Refunding the two rejected 100-pt requests would put him at +20. Not
+  done — live family data and a product call.
+- **Verify:** `tsc --noEmit` clean; eslint at the pre-existing 107-error baseline
+  (no new errors); `npm run build` passes. Not click-tested against the live app
+  (needs parent credentials) — confirm on the deploy that approve/reject update
+  the list immediately and that balances show on the Overview.
+
 ## 2026-08-12 — v2.2.0 shipped to production (continuation of the entry below)
 
 Second session, same day. The entry below left the work on a branch with one
