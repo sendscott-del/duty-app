@@ -57,8 +57,17 @@ Approving a chore inserted a `duty_point_transactions` row without updating the
 store, so displayed balances only moved via realtime. Single approve, bulk
 "Approve all", and kid claims now all write the inserted rows into the store.
 
-**Known issue, unchanged:** rejecting a reward request does not refund the points
-(the confirm dialog says so). Given the overdraw above, this is worth revisiting.
+### Rejecting a reward request now refunds the points
+
+Kids are charged the moment they claim, so a rejection used to cost them the full
+price of a reward they never received — the confirm dialog warned about it, but it
+compounded the overdraw above. Rejecting now writes a matching refund transaction.
+
+Each status transition is also pinned to the status the UI was showing
+(`.eq('status', from)`), so a stale tab or a second parent acting at the same
+time can't re-run a transition and refund twice. A transition that no longer
+applies reports "That request was already handled" instead of silently
+double-crediting.
 
 ## v2.2.0 — August 13, 2026
 
