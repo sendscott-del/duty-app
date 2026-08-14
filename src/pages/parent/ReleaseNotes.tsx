@@ -11,6 +11,7 @@ const RELEASES = [
       { title: 'Reward errors no longer fail silently', desc: 'If a reward action can\'t be saved, the Rewards page now says so instead of quietly doing nothing.' },
     ],
     features: [
+      'Rejecting a reward request now refunds the points. Kids are charged the moment they claim, so saying no used to cost them the full price of something they never got.',
       'See every kid\'s point balance without switching into their view — balances now show on each kid\'s card on the Overview, and a "Current balances" summary sits at the top of the Point ledger.',
       'Pending reward requests show how many points the kid has left, so you can decide at a glance.',
     ],

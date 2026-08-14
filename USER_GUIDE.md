@@ -77,7 +77,7 @@ If you try to sign up and are told an account already exists for your email, tha
 - **Preset templates**: Screen time, stay up late, pick dinner, movie night, sleepover, $5 spending money
 - **Pending requests**: When kids claim a reward, it appears at the top of the Rewards page with approve/reject buttons. Each request also shows how many points that kid has left
 - **Fulfillment**: After approving, a "Mark Given" button appears — tap it once you've delivered the reward to the kid
-- **Rejecting does not refund the points** — the kid has already spent them when they claimed
+- **Rejecting refunds the points** — the kid is charged when they claim, so declining returns what they spent
 - **Red badge**: Rewards tab shows count of pending requests
 
 ### Kid Profile Pictures
@@ -136,7 +136,7 @@ If you try to sign up and are told an account already exists for your email, tha
   - **Requested** — waiting for parent approval
   - **Approved** — parent said yes, waiting to receive it
   - **Redeemed** — you got it!
-  - **Denied** — parent said no
+  - **Denied** — parent said no, and your points were refunded
 
 ## Adding to Home Screen (iOS Safari)
 1. Open the app URL in Safari

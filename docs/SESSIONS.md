@@ -18,8 +18,8 @@ reward left it on screen; approving one did nothing.
 - **Same bug caused a real overdraw.** `KidShop` checks `balance <
   reward.points_cost` before claiming but never wrote the deduction to the store.
   Freddy tapped Claim three times in 20s on a 110-pt balance against a 100-pt
-  reward — all three passed the check. **His balance is now -180 and was left
-  that way; fixing it is Scott's call** (see below).
+  reward — all three passed the check, leaving him at -180. **Corrected on
+  Scott's instruction** (see the data write below).
 - **What changed:** redemption mutations moved into `useRewards` with
   `.select().single()` + `upsertRedemption` and returned errors; error banner and
   per-row busy locks on the Rewards page; `claiming` lock in `KidShop`; point
@@ -27,13 +27,26 @@ reward left it on screen; approving one did nothing.
   full ledger, not the 30-day free-plan window), and pending reward requests;
   point-transaction inserts on chore approve / bulk approve / kid claim now write
   to the store.
-- **Infra facts touched:** none. No migrations, no edge functions, no schema or
-  policy changes. Verified read-only against `isogetmvnpimcmouakeg` that the
-  parent UPDATE policy on `duty_redemptions` was never the problem.
-- **Open item for Scott:** rejecting a reward does not refund points (the confirm
-  dialog says so; behavior unchanged). Combined with the overdraw, Freddy is at
-  -180. Refunding the two rejected 100-pt requests would put him at +20. Not
-  done — live family data and a product call.
+- **Reject now refunds.** Scott's call, made this session: kids are charged at
+  claim time, so a rejection cost them the full price of a reward they never
+  got. `rejectRedemption` writes a matching `+points_spent` transaction
+  (`reference_type` `'bonus'`, `reference_id` = redemption id). Each status
+  transition is now pinned with `.eq('status', from)` so a stale tab or a second
+  parent can't re-run it and refund twice; a no-op transition reports "That
+  request was already handled" rather than double-crediting.
+- **Infra facts touched:** no schema, policy, migration, or edge-function
+  changes. Verified read-only against `isogetmvnpimcmouakeg` that the parent
+  UPDATE policy on `duty_redemptions` was never the problem, and that
+  `duty_points_parent_insert` (unrestricted on amount, unlike the kid policy's
+  `amount <= 0`) permits the refund insert. The chore-only
+  `duty_ptx_unique_chore_ref` index does not constrain `'bonus'` rows.
+- **DATA WRITE (production, on Scott's instruction):** inserted 3 × +100
+  `duty_point_transactions` for Freddy (`5d9acd6d…`, family `03eb45de…`,
+  `created_by` Scott `41c69a38…`), reason "Correction: duplicate reward claim
+  refunded (app bug)", one per affected redemption, `reference_type` `'bonus'`.
+  Guarded with `where not exists` on `(reference_id, reference_type='bonus')` so
+  a re-run can't double-apply. Freddy -180 → **+120**; Topher 55 and Riley 10
+  untouched. He keeps the one approved reward.
 - **Verify:** `tsc --noEmit` clean; eslint at the pre-existing 107-error baseline
   (no new errors); `npm run build` passes. Not click-tested against the live app
   (needs parent credentials) — confirm on the deploy that approve/reject update

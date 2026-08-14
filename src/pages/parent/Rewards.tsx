@@ -48,7 +48,7 @@ export function Rewards() {
   function handleApproveRedemption(id: string) { return run(id, approveRedemption) }
   function handleFulfillRedemption(id: string) { return run(id, fulfillRedemption) }
   function handleRejectRedemption(id: string) {
-    if (!window.confirm('Reject this reward request? Points will not be refunded.')) return
+    if (!window.confirm('Reject this reward request? The points will be refunded.')) return
     return run(id, rejectRedemption)
   }
   async function handleDelete(reward: any) {
