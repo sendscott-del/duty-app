@@ -5,6 +5,25 @@
 > user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
 > entries below were backfilled from `docs/SESSIONS.md` and git history.
 
+## v2.2.2 — August 15, 2026
+
+### Reward Shop showed the parent's balance during "view as kid"
+
+A parent using "view as" is still signed in as themselves — `profile` stays the
+parent and `viewAsKid` carries the kid. Every kid surface resolves
+`viewAsKid || profile` for exactly this reason (`KidShell`, `KidHome`), but
+`KidShop` read `profile` directly.
+
+Result: the kid's home screen showed their real total (★130) while the shop
+showed ★0 and locked every reward, because parents hold no point transactions.
+
+`KidShop` now resolves `activeProfile` the same way for the balance, the skin,
+the wallet filter, and the claim. The claim writes `redeemed_by` / `profile_id`
+as the kid and keeps `created_by` as the account that actually tapped, so a
+parent-preview claim stays auditable.
+
+Swept the rest of the kid flow for the same mistake — `KidShop` was the only one.
+
 ## v2.2.1 — August 14, 2026
 
 ### Reward approvals were writing to the database but never to the screen

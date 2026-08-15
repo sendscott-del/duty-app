@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.2.2',
+    date: 'August 15, 2026',
+    fixes: [
+      { title: 'The shop showed 0 points while viewing as a kid', desc: 'When you used "view as" to look around a kid\'s account, their home screen showed the right point total but the Reward Shop showed 0 and locked every reward. The shop was reading your own parent balance instead of theirs. It now matches the rest of the kid screens.' },
+    ],
+    features: [],
+  },
+  {
     version: '2.2.1',
     date: 'August 14, 2026',
     fixes: [
