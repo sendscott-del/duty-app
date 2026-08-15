@@ -2,6 +2,30 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-15 — v2.2.2: Reward Shop read the parent's balance in "view as kid"
+
+Reported by Scott with screenshots: viewing as Freddy, the kid home showed ★130
+but the Reward Shop showed ★0 with every reward locked.
+
+- **Cause.** "View as kid" keeps the parent signed in — `profile` is the parent,
+  `viewAsKid` is the kid. `KidShell` and `KidHome` both resolve
+  `viewAsKid || profile`; `KidShop` read `profile` directly. Parents hold no
+  `duty_point_transactions`, so the balance summed to 0 and
+  `balance < points_cost` locked the entire shop.
+- **Not just cosmetic.** `handleClaim` also wrote `redeemed_by` / `profile_id`
+  from `profile`, so a claim made in preview would have been recorded against
+  the parent. (In practice the 0 balance blocked it first.)
+- **Fix.** `KidShop` resolves `activeProfile = viewAsKid || profile` for the
+  balance, `useKidSkin`, the wallet filter, and the claim. Claims attribute
+  `redeemed_by`/`profile_id` to the kid and keep `created_by` as the actual
+  actor for audit. Grepped every remaining bare `profile` reference in
+  `src/pages/kid/` and `src/components/kid/` — KidShop was the only offender.
+- **Infra facts touched:** none. Client-only; no migrations, policies, or edge
+  functions.
+- **Verify:** `tsc --noEmit` clean; eslint at the 107-error baseline; build
+  passes. Confirm on the deploy by viewing as a kid — shop balance should match
+  the home screen and affordable rewards should unlock.
+
 ## 2026-08-14 — v2.2.1: reward approvals, point visibility, kid overdraw
 
 Reported by Scott: no place for parents to see kid point balances; rejecting a

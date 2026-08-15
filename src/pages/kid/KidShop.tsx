@@ -15,41 +15,48 @@ const list = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: 'easeOut' as const } } }
 
 export function KidShop() {
-  const { profile } = useStore()
+  // A parent using "view as kid" is still signed in as themselves, so every
+  // kid screen reads through viewAsKid first (see KidShell / KidHome). Reading
+  // `profile` here showed the parent's own balance — 0 — and locked the whole
+  // shop while the home screen showed the kid's real total.
+  const { profile, viewAsKid } = useStore()
+  const activeProfile = viewAsKid || profile
   const { rewards, redemptions } = useRewards()
-  const { balance } = usePoints(profile?.id)
+  const { balance } = usePoints(activeProfile?.id)
   const navigate = useNavigate()
   const [tab, setTab] = useState<'shop' | 'wallet'>('shop')
   const [claiming, setClaiming] = useState(false)
-  const [skin] = useKidSkin(profile?.id)
+  const [skin] = useKidSkin(activeProfile?.id)
   const isTeen = skin === 'teen'
 
-  const myRedemptions = redemptions.filter((r: any) => r.redeemed_by === profile?.id || r.duty_profiles?.id === profile?.id)
+  const myRedemptions = redemptions.filter((r: any) => r.redeemed_by === activeProfile?.id || r.duty_profiles?.id === activeProfile?.id)
 
   async function handleClaim(reward: any) {
-    if (!profile || claiming || balance < reward.points_cost) return
+    if (!activeProfile || claiming || balance < reward.points_cost) return
     if (!window.confirm(`Spend ${reward.points_cost} pts on ${reward.name}?`)) return
 
     // Without this lock a fast double-tap spends the same points twice: both
     // taps read the pre-deduction balance and both pass the check above.
     setClaiming(true)
     try {
+      // The claim belongs to whoever's shop this is; created_by stays the
+      // account that actually tapped, so a parent-preview claim is auditable.
       const { data: redemption } = await supabase.from('duty_redemptions').insert({
-        family_id: profile.family_id,
+        family_id: activeProfile.family_id,
         reward_id: reward.id,
-        redeemed_by: profile.id,
+        redeemed_by: activeProfile.id,
         points_spent: reward.points_cost,
         status: 'pending',
       }).select('*, duty_profiles!redeemed_by(full_name, avatar_color), duty_rewards(*)').single()
 
       const { data: txn } = await supabase.from('duty_point_transactions').insert({
-        family_id: profile.family_id,
-        profile_id: profile.id,
+        family_id: activeProfile.family_id,
+        profile_id: activeProfile.id,
         amount: -reward.points_cost,
         reason: `Redeemed: ${reward.name}`,
         reference_id: reward.id,
         reference_type: 'redemption',
-        created_by: profile.id,
+        created_by: profile?.id ?? activeProfile.id,
       }).select().single()
 
       // Write both into the store so the balance drops and the request appears
