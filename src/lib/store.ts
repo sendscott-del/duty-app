@@ -10,6 +10,10 @@ export interface Profile {
   avatar_color: string
   avatar_url: string | null
   pin: string | null
+  /** Kids only: withhold a day's chore points until every chore that day is approved. */
+  all_or_nothing?: boolean
+  /** Kids only: extra points granted on top when the whole day is done. */
+  completion_bonus?: number
 }
 
 export interface Family {
@@ -84,6 +88,7 @@ interface Store {
   addPointTransaction: (row: any) => void
   removePointTransactionById: (id: string) => void
   removePointTransactionsByCompletion: (completionId: string) => void
+  removeDayBonus: (profileId: string, awardDate: string) => void
   setChallenge: (c: Challenge | null) => void
 }
 
@@ -162,6 +167,11 @@ export const useStore = create<Store>()(
       removePointTransactionsByCompletion: (completionId) => set((s) => ({
         pointTransactions: s.pointTransactions.filter(
           (t) => !(t.reference_id === completionId && t.reference_type === 'chore')
+        ),
+      })),
+      removeDayBonus: (profileId, awardDate) => set((s) => ({
+        pointTransactions: s.pointTransactions.filter(
+          (t) => !(t.reference_type === 'day_bonus' && t.profile_id === profileId && t.award_date === awardDate)
         ),
       })),
 

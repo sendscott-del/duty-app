@@ -1,8 +1,21 @@
 import { useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useStore, type ChoreCompletion } from '../lib/store'
+import { reconcileDayAward } from '../lib/awards'
 
 export type { ChoreCompletion }
+
+/**
+ * After a completion changes, re-settle that kid's payout for that day.
+ * No-op unless the kid is on all_or_nothing — see lib/awards.ts. Looked up
+ * from the store so every caller of these mutations gets it for free.
+ */
+async function reconcileAfterChange(completionId: string, known?: ChoreCompletion) {
+  const s = useStore.getState()
+  const comp = known ?? s.completions.find((c) => c.id === completionId)
+  if (!comp) return
+  await reconcileDayAward(comp.completed_by, comp.completion_date, s.profile?.id ?? comp.completed_by)
+}
 
 export function useCompletions() {
   const completions = useStore((s) => s.completions)
@@ -66,6 +79,7 @@ export function useCompletions() {
       .select()
       .single()
     if (data) upsertCompletion(data as ChoreCompletion)
+    await reconcileAfterChange(completionId)
   }, [upsertCompletion])
 
   const unapproveCompletion = useCallback(async (completionId: string) => {
@@ -82,6 +96,10 @@ export function useCompletions() {
       .delete()
       .eq('reference_id', completionId)
       .eq('reference_type', 'chore')
+
+    // For an all-or-nothing kid the day is no longer complete, so the rest of
+    // that day's points and the bonus have to come back off too.
+    await reconcileAfterChange(completionId)
   }, [upsertCompletion, removePointTransactionsByCompletion])
 
   const undoCompletion = useCallback(async (choreId: string, date: string) => {
@@ -98,6 +116,9 @@ export function useCompletions() {
       .delete()
       .eq('reference_id', completionId)
       .eq('reference_type', 'chore')
+
+    // `comp` is captured before the store removal — the row is gone by now.
+    await reconcileAfterChange(completionId, comp)
 
     return completionId
   }, [removeCompletion, removePointTransactionsByCompletion])

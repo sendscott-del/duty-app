@@ -23,7 +23,9 @@ export interface KidScore {
   todayTotal: number
 }
 
-function isChoreActiveOnDate(chore: Chore, date: Date, dateStr: string, isToday: boolean): boolean {
+// Exported so the all-or-nothing payout in lib/awards.ts uses the exact same
+// definition of "this kid's chores for this day" that the streak counter does.
+export function isChoreActiveOnDate(chore: Chore, date: Date, dateStr: string, isToday: boolean): boolean {
   if (chore.recurrence === 'daily') return true
   if (chore.recurrence === 'weekly') {
     if (!chore.recurrence_days?.length) return true

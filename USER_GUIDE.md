@@ -80,6 +80,13 @@ If you try to sign up and are told an account already exists for your email, tha
 - **Rejecting refunds the points** — the kid is charged when they claim, so declining returns what they spent
 - **Red badge**: Rewards tab shows count of pending requests
 
+### Chore Payout (per kid)
+Settings → tap a kid → **Chore payout**. Both options are per kid and off by default.
+- **All or nothing**: none of that day's chore points are paid until every chore assigned to that kid is approved — then the whole day pays at once. Use it when a kid is doing the easy chores and skipping the hard ones
+- **Completion bonus**: extra points for finishing everything that day. Works on its own or alongside All or nothing
+- **Late chores** still count toward finishing the day, but earn nothing themselves — so one late chore won't zero out the whole day
+- If you later un-approve a chore on a completed day, that day's points (and the bonus) come back off automatically
+
 ### Kid Profile Pictures
 - Go to Settings, tap the pencil icon next to a kid
 - Tap the camera icon on their avatar to upload a photo
@@ -127,6 +134,7 @@ If you try to sign up and are told an account already exists for your email, tha
 - **Completing a chore**: Tap the chore card once to see "Mark as done?", tap again to confirm
 - **Approved notification**: Green banner shows when parents have approved your chores
 - Points pill in the top-right shows your current balance
+- If a parent has All or nothing turned on for you, the progress card shows what the day is worth ("Finish all 4 to bank ★ 65") — you get none of it until every chore is done and approved
 
 ### Reward Shop
 - **Shop tab**: Browse available rewards, sorted by what you can afford

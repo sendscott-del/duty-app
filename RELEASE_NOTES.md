@@ -5,6 +5,61 @@
 > user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
 > entries below were backfilled from `docs/SESSIONS.md` and git history.
 
+## v2.3.0 — August 15, 2026
+
+### All-or-nothing chore payout (per kid)
+
+A kid could bank points for the easy chores and skip the hard ones. Two new
+per-kid settings, both off by default:
+
+- **`all_or_nothing`** — no chore points are paid until *every* chore assigned to
+  that kid that day is approved. Then the whole day lands at once.
+- **`completion_bonus`** — extra points for finishing everything that day. Works
+  on its own or on top of the strict scheme.
+
+Per-kid rather than family-wide, so one kid can be on the strict scheme while
+their siblings keep the default per-chore payout.
+
+**Late chores count toward completing the day but still pay nothing themselves**,
+matching the existing late rule. Otherwise one late chore would zero out an
+otherwise complete day.
+
+### How the payout moved
+
+Points used to be inserted the instant a chore was approved. For a strict kid
+that can't happen — the day's outcome isn't known yet. `src/lib/awards.ts` now
+owns the decision:
+
+- `reconcileDayAward(kidId, date, by)` is called after **any** completion change
+  (approve, unapprove, reject, clear). Day complete → insert the day's rows.
+  Day no longer complete → revoke what was already awarded.
+- It reuses `isChoreActiveOnDate` from `kidScores.ts` — exported for this — so
+  "this kid's chores for this day" has exactly one definition, shared with the
+  streak counter.
+- Reversal is wired inside `useCompletions`, so every caller gets it.
+
+Awarding is re-evaluated on every approval, so a complete day can be evaluated
+more than once. Repeats are no-ops, not double payouts: chore rows dedupe on the
+existing `duty_ptx_unique_chore_ref`, and the new `duty_ptx_unique_day_bonus`
+`(profile_id, award_date)` does the same for the once-per-day bonus.
+
+### Schema + guard
+
+Migration `20260815020000_all_or_nothing_chores.sql`:
+
+- `duty_profiles.all_or_nothing`, `duty_profiles.completion_bonus` (+ non-negative check)
+- `duty_point_transactions.award_date`; `reference_type` widened with `'day_bonus'`
+  (kept distinct from `'bonus'`, which reward refunds use)
+- `duty_ptx_unique_day_bonus` partial unique index
+- **`duty_profiles_guard_payout_rules` trigger** — kids are real authenticated
+  users and `duty_profiles_update` permits `id = auth.uid()`, so a rule the kid
+  can switch off would be worthless. Same belt-and-braces approach as
+  `duty_families_guard_premium`: RLS decides who may touch the row, the trigger
+  decides who may touch these columns.
+
+Verified on the shared project: a kid's attempt to set `completion_bonus = 9999`
+did not stick, while a parent's write applied cleanly.
+
 ## v2.2.2 — August 15, 2026
 
 ### Reward Shop showed the parent's balance during "view as kid"

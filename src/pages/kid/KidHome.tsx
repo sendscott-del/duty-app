@@ -78,6 +78,14 @@ export function KidHome() {
   const progress = total > 0 ? (doneCount / total) * 100 : 0
   const remaining = total - doneCount
 
+  // All-or-nothing kids bank nothing until the whole day is approved, so show
+  // the pot riding on it instead of letting each chore look like free points.
+  const strictMode = !!activeProfile.all_or_nothing && total > 0
+  const dayPot = strictMode
+    ? enrichedChores.reduce((sum, c) => sum + (c._isLate ? 0 : (c.points ?? 0)), 0)
+      + (activeProfile.completion_bonus ?? 0)
+    : 0
+
   async function handleComplete(chore: any) {
     if (chore.requires_proof) return
     await completeChore(chore.id, activeProfile!.id, dateStr, isPast)
@@ -203,6 +211,24 @@ export function KidHome() {
                 ? remaining > 0 ? `${remaining} chore${remaining > 1 ? 's' : ''} left` : "Everything's done!"
                 : `Viewing ${formatDateLabel(viewDate)}`}
             </div>
+            {strictMode && (
+              <div
+                className="font-bold mt-2 text-xs"
+                style={{
+                  background: 'var(--yellow)',
+                  color: 'var(--ink)',
+                  border: '2px solid var(--ink)',
+                  borderRadius: 999,
+                  padding: '4px 10px',
+                  display: 'inline-block',
+                  maxWidth: '100%',
+                }}
+              >
+                {remaining > 0
+                  ? `Finish all ${total} to bank ★ ${dayPot}`
+                  : `★ ${dayPot} locked in once approved`}
+              </div>
+            )}
           </div>
         ) : (
           <div
