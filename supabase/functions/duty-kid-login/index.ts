@@ -58,7 +58,9 @@ Deno.serve(async (req) => {
     }
 
     const { data: kid } = await admin.from("duty_profiles")
-      .select("id, full_name, role, family_id, avatar_color, avatar_url, pin, auth_user_id")
+      // all_or_nothing / completion_bonus ride along so the kid's own session
+      // knows its payout rules — the shop and home screen surface them.
+      .select("id, full_name, role, family_id, avatar_color, avatar_url, pin, auth_user_id, all_or_nothing, completion_bonus")
       .eq("id", kidId).eq("family_id", familyId).eq("role", "kid").maybeSingle();
 
     const ok = !!kid && !!kid.pin && kid.pin === pin;

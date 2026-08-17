@@ -10,6 +10,7 @@ import { Badge } from '../../components/ui/Badge'
 import { Spinner } from '../../components/ui/Spinner'
 import { SirFlush } from '../../components/ui/SirFlush'
 import { pop as popConfetti } from '../../lib/confetti'
+import { reconcileDayAward } from '../../lib/awards'
 
 function formatDateHeader(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -53,7 +54,11 @@ export function Approvals() {
   async function handleApprove(row: { completion: any; chore: any }) {
     if (!profile) return
     await approveCompletion(row.completion.id, profile.id)
-    if (!row.completion.completed_late) {
+
+    const kid = kids.find(k => k.id === row.completion.completed_by)
+    if (kid?.all_or_nothing) {
+      await reconcileDayAward(kid.id, row.completion.completion_date, profile.id)
+    } else if (!row.completion.completed_late) {
       const { data } = await supabase.from('duty_point_transactions').insert({
         profile_id: row.completion.completed_by, family_id: row.chore.family_id,
         amount: row.chore.points, reason: `Completed: ${row.chore.name}`,
@@ -85,9 +90,12 @@ export function Approvals() {
       })
     }
 
+    // All-or-nothing kids are settled per-day below instead of per-chore here.
+    const strictKidIds = new Set(kids.filter(k => k.all_or_nothing).map(k => k.id))
+
     // One bulk update for completions; one bulk insert for point transactions.
     const pointRows = all
-      .filter(r => !r.completion.completed_late)
+      .filter(r => !r.completion.completed_late && !strictKidIds.has(r.completion.completed_by))
       .map(r => ({
         profile_id: r.completion.completed_by,
         family_id: r.chore.family_id,
@@ -109,6 +117,18 @@ export function Approvals() {
         : Promise.resolve(null),
     ])
     for (const row of inserted?.data ?? []) store.addPointTransaction(row)
+
+    // Settle each strict kid's affected days once, after every completion above
+    // is marked approved in the store.
+    const strictDays = new Set(
+      all
+        .filter(r => strictKidIds.has(r.completion.completed_by))
+        .map(r => `${r.completion.completed_by}|${r.completion.completion_date}`)
+    )
+    for (const key of strictDays) {
+      const [kidId, dateStr] = key.split('|')
+      await reconcileDayAward(kidId, dateStr, profile.id)
+    }
 
     popConfetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } })
     setBulkBusy(false)

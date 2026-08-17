@@ -3,6 +3,17 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.3.0',
+    date: 'August 15, 2026',
+    fixes: [],
+    features: [
+      'All or nothing: a new per-kid setting in Settings → tap a kid. With it on, none of that day\'s chore points are paid until every one of their chores is approved — then the whole day lands at once. Stops a kid banking points for the easy chores and skipping the hard ones.',
+      'Completion bonus: set extra points a kid earns for finishing everything that day. Works on its own or alongside All or nothing.',
+      'Each kid is set separately, so one kid can be on the strict scheme while their siblings keep earning per chore. Both are off by default — nothing changes until you turn them on.',
+      'Kids on All or nothing see what\'s riding on the day ("Finish all 4 to bank ★ 65") instead of each chore looking like free points.',
+    ],
+  },
+  {
     version: '2.2.2',
     date: 'August 15, 2026',
     fixes: [

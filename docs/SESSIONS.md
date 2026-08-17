@@ -2,6 +2,49 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-15 — v2.3.0: all-or-nothing chore payout (per kid)
+
+Scott: Freddy does the easy chores and skips the hard ones. Wanted a parent
+setting so partial days pay nothing. Chose (via options): strict withholding
+**plus** a completion bonus, **per kid**, with late chores counting toward
+completion but paying nothing themselves.
+
+- **Payout moved out of the approval handlers.** Points were inserted the moment
+  a chore was approved; for a strict kid the day's outcome isn't known yet. New
+  `src/lib/awards.ts` owns it — `reconcileDayAward(kidId, date, by)` runs after
+  any completion change and either inserts the day's rows or revokes them.
+  Reversal is wired inside `useCompletions` so every caller gets it. Reuses
+  `isChoreActiveOnDate` (now exported from `kidScores.ts`) so the day definition
+  is shared with the streak counter rather than duplicated.
+- **Idempotency.** Awarding is re-evaluated on every approval. Chore rows dedupe
+  on the existing `duty_ptx_unique_chore_ref`; the new
+  `duty_ptx_unique_day_bonus (profile_id, award_date)` covers the once-per-day
+  bonus. Repeat evaluation is a no-op, not a double payout.
+- **Infra facts touched (shared project `isogetmvnpimcmouakeg`, applied via Supabase MCP):**
+  migration `20260815020000_all_or_nothing_chores.sql` — adds
+  `duty_profiles.all_or_nothing` / `completion_bonus`,
+  `duty_point_transactions.award_date`, widens `reference_type` with
+  `'day_bonus'`, adds `duty_ptx_unique_day_bonus`, and adds the
+  `duty_profiles_guard_payout_rules` trigger.
+- **Why the trigger.** Kids are real authenticated users and
+  `duty_profiles_update` permits `id = auth.uid()`, so without a column-level
+  guard a kid could switch their own rule off. Same pattern as
+  `duty_families_guard_premium`. **Verified on the live DB:** a simulated kid
+  JWT setting `completion_bonus = 9999` did not stick (RLS filtered the row
+  first — the trigger is the backstop if that policy ever loosens), while a
+  simulated parent JWT wrote `all_or_nothing`/`completion_bonus` cleanly. Test
+  values were reverted; **all seven kids are `false` / `0`**, so behaviour is
+  unchanged until Scott turns it on.
+- **NOT DEPLOYED: `duty-kid-login` edge function.** Its explicit column list was
+  updated in-repo to return `all_or_nothing` / `completion_bonus`, but the
+  deploy was declined this session. Until it ships, a kid signing in with their
+  own PIN won't see the "Finish all N to bank ★X" banner (parent view-as reads
+  the parent's `kids` array, so it shows there). Payout logic is parent-side and
+  unaffected. **`verify_jwt` must stay FALSE on that function** — kids call it
+  before they have a session.
+- **Verify:** `tsc --noEmit` clean; eslint at the 107-error baseline; build
+  passes. Not click-tested (no parent login here; preview URLs firewalled).
+
 ## 2026-08-15 — v2.2.2: Reward Shop read the parent's balance in "view as kid"
 
 Reported by Scott with screenshots: viewing as Freddy, the kid home showed ★130

@@ -30,6 +30,8 @@ export function Settings() {
   const [kidColor, setKidColor] = useState('purple')
   const [kidPin, setKidPin] = useState('')
   const [kidAvatarUrl, setKidAvatarUrl] = useState<string | null>(null)
+  const [kidAllOrNothing, setKidAllOrNothing] = useState(false)
+  const [kidBonus, setKidBonus] = useState('0')
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -114,11 +116,15 @@ export function Settings() {
 
   function openAddKid() {
     setEditKid(null); setKidName(''); setKidColor(COLOR_OPTIONS[kids.length % COLOR_OPTIONS.length])
-    setKidPin(''); setKidAvatarUrl(null); setShowKidForm(true)
+    setKidPin(''); setKidAvatarUrl(null)
+    setKidAllOrNothing(false); setKidBonus('0')
+    setShowKidForm(true)
   }
   function openEditKid(kid: any) {
     setEditKid(kid); setKidName(kid.full_name); setKidColor(kid.avatar_color)
-    setKidPin(kid.pin || ''); setKidAvatarUrl(kid.avatar_url || null); setShowKidForm(true)
+    setKidPin(kid.pin || ''); setKidAvatarUrl(kid.avatar_url || null)
+    setKidAllOrNothing(!!kid.all_or_nothing); setKidBonus(String(kid.completion_bonus ?? 0))
+    setShowKidForm(true)
   }
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -158,13 +164,18 @@ export function Settings() {
   async function handleSaveKid() {
     if (!kidName.trim() || !family) return
     setSaving(true)
+    const payoutRules = {
+      all_or_nothing: kidAllOrNothing,
+      completion_bonus: Math.max(0, parseInt(kidBonus, 10) || 0),
+    }
     if (editKid) {
       const { error } = await supabase.from('duty_profiles').update({
         full_name: kidName.trim(), avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null,
+        ...payoutRules,
       }).eq('id', editKid.id)
       if (error) { alert('Failed to save: ' + error.message); setSaving(false); return }
       setKids(useStore.getState().kids.map(k => k.id === editKid.id
-        ? { ...k, full_name: kidName.trim(), avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null }
+        ? { ...k, full_name: kidName.trim(), avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null, ...payoutRules }
         : k
       ))
     } else {
@@ -172,6 +183,7 @@ export function Settings() {
       const { error } = await supabase.from('duty_profiles').insert({
         id: newId, full_name: kidName.trim(), role: 'kid',
         family_id: family.id, avatar_color: kidColor, avatar_url: kidAvatarUrl, pin: kidPin || null,
+        ...payoutRules,
       })
       if (error) { alert('Failed to save: ' + error.message); setSaving(false); return }
       const newKid: Profile = {
@@ -182,6 +194,7 @@ export function Settings() {
         avatar_color: kidColor,
         avatar_url: kidAvatarUrl,
         pin: kidPin || null,
+        ...payoutRules,
       }
       setKids([...useStore.getState().kids, newKid])
     }
@@ -465,6 +478,46 @@ export function Settings() {
                 />
               ))}
             </div>
+          </div>
+
+          <div style={{ borderTop: '2px dashed var(--ink-15)', paddingTop: 14 }}>
+            <div className="stadium-eyebrow mb-2">CHORE PAYOUT</div>
+
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-sm" style={{ color: 'var(--ink)' }}>All or nothing</div>
+                <div className="text-xs font-bold mt-0.5" style={{ color: 'var(--ink-50)' }}>
+                  No points until every chore for the day is approved — then the whole day pays at once.
+                  Stops them cherry-picking the easy ones.
+                </div>
+              </div>
+              <ToggleSwitch on={kidAllOrNothing} onChange={() => setKidAllOrNothing(v => !v)} />
+            </div>
+
+            <div className="mt-3">
+              <Input
+                label="Completion bonus (points)"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={kidBonus}
+                onChange={e => setKidBonus(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="0"
+              />
+              <div className="text-xs font-bold mt-1" style={{ color: 'var(--ink-50)' }}>
+                Extra points on top for finishing everything that day. 0 for none.
+              </div>
+            </div>
+
+            {kidAllOrNothing && (
+              <div
+                className="text-xs font-bold mt-3"
+                style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 10, padding: '8px 10px' }}
+              >
+                Heads up: on a day they miss even one chore, they earn nothing. Late chores still
+                count as done (they just don't pay on their own).
+              </div>
+            )}
           </div>
 
           <Button fullWidth onClick={handleSaveKid} loading={saving} disabled={!kidName.trim()}>

@@ -9,6 +9,7 @@ import { useStore } from '../../lib/store'
 import { supabase } from '../../lib/supabase'
 import { toLocalDateStr } from '../../lib/utils'
 import { calcChallengeProgress } from '../../lib/challenges'
+import { reconcileDayAward } from '../../lib/awards'
 import { AddChoreSheet } from '../../components/parent/AddChoreSheet'
 import { WeeklyChallenge } from '../../components/WeeklyChallenge'
 import { usePremium } from '../../hooks/usePremium'
@@ -70,7 +71,12 @@ export function Overview() {
     const comp = chore._completion
     if (!comp || !profile) return
     await approveCompletion(comp.id, profile.id)
-    if (!comp.completed_late) {
+
+    const kid = kids.find(k => k.id === comp.completed_by)
+    if (kid?.all_or_nothing) {
+      // Nothing pays until the kid's whole day is approved; then it all lands.
+      await reconcileDayAward(kid.id, comp.completion_date, profile.id)
+    } else if (!comp.completed_late) {
       // Select the row back so the awarded points land in the store — the
       // displayed balances shouldn't wait on the realtime channel.
       const { data } = await supabase.from('duty_point_transactions').insert({
