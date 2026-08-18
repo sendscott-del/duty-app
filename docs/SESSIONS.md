@@ -2,6 +2,35 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-17 (end of day) — purchase chain fully wired and verified
+
+Scott supplied a Supabase personal access token; everything below followed from it.
+
+- `DUTY_REVENUECAT_WEBHOOK_SECRET` set via the Supabase Management API (checked the
+  name was free first — the secret namespace is project-wide across all apps on
+  `isogetmvnpimcmouakeg`, and 7 other `DUTY_` secrets already live there).
+- RevenueCat webhook integration `whintgr6516c4b04e` created, all environments, all
+  event types.
+- **Verified end-to-end, not just deployed.** Against the Demo Family (a sandbox by
+  design): wrong secret -> 401; `TEST` -> 200 ignored; `INITIAL_PURCHASE` -> row went
+  `premium_status=active` with a correct one-month period end; a deliberately
+  out-of-order `EXPIRATION` -> 200 acknowledged but row unchanged, proving the
+  staleness guard. Demo Family then restored to its exact prior state
+  (`free`/null/null) and both family rows re-read to confirm nothing else moved.
+- Both Apple keys now configured on the RevenueCat app. Apple has no API to CREATE an
+  In-App Purchase key (`/v1/inAppPurchaseKeys` 404s) but RevenueCat's app-update
+  endpoint accepts both keys, so the upload needed no dashboard work.
+
+**Housekeeping note:** three In-App Purchase keys now exist in App Store Connect
+because Scott and I generated one each at the same moment. `742DQ64LX9` (Homefront,
+June), `BN52T4PN8D` (Scott's, the one in use), and `NTU62V62WC` (mine, redundant,
+never downloaded). `NTU62V62WC` should be revoked. Keys cannot be modified once
+created and Apple allows 10 active, so this is untidy rather than harmful.
+
+**Still outstanding:** ASC subscriptions remain MISSING_METADATA pending a review
+screenshot of the paywall, which needs a native build that renders it. No App Store
+user can purchase until that build ships.
+
 ## 2026-08-17 (later still) — v2.4.1: Android explicitly excluded
 
 Scott: "ignore android." Recording it as a decision, not a backlog item.
