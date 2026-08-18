@@ -39,6 +39,7 @@ export function Settings() {
 
   const [notifEnabled, setNotifEnabled] = useState(getNotifPref)
   const [notifPermission, setNotifPermission] = useState(getNotifPermission)
+  const [notifError, setNotifError] = useState('')
 
   const [isInstalled, setIsInstalled] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -76,15 +77,24 @@ export function Settings() {
   async function toggleNotifications() {
     if (!notifEnabled) {
       if (!profile?.id || !family?.id) return
+      setNotifError('')
       const ok = await enableNotifications(profile.id, family.id)
-      if (ok) { setNotifEnabled(true); setNotifPermission('granted') }
+      if (ok) { setNotifEnabled(true); setNotifPermission('granted'); setNotifError('') }
       else {
-        setNotifPermission(getNotifPermission())
-        if (getNotifPermission() === 'denied') alert('Notifications are blocked. Open browser settings to allow notifications for this site.')
+        // Never fail silently: the toggle used to just not move, with no
+        // explanation, whenever the browser blocked or didn't support push.
+        const perm = getNotifPermission()
+        setNotifPermission(perm)
+        setNotifError(
+          perm === 'denied'
+            ? "Notifications are blocked for this site. Allow them in your browser or phone settings, then try again."
+            : "Couldn't turn on notifications on this device."
+        )
       }
     } else {
       await disableNotifications()
       setNotifEnabled(false)
+      setNotifError('')
     }
   }
 
@@ -342,32 +352,52 @@ export function Settings() {
           <Bell size={14} strokeWidth={3} style={{ color: 'var(--red)' }} />
           <div className="stadium-eyebrow">NOTIFICATIONS</div>
         </div>
-        <div className="flex items-center justify-between">
-          <div>
+        {/* iOS/Android only expose Web Push to Home-Screen web apps -- never inside
+            the Capacitor WKWebView the App Store build runs in. The toggle here could
+            never turn on, so instead of a dead switch we explain the one path that
+            actually delivers notifications on this phone today. */}
+        {isNativeApp ? (
+          <>
             <div className="font-bold">Push notifications</div>
-            <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>
-              Get notified when kids complete chores or request rewards
+            <p className="text-xs font-bold mt-1" style={{ color: 'var(--ink-50)' }}>
+              Not available inside the App Store app yet. To get chore alerts and daily
+              reminders on this phone, open{' '}
+              <strong style={{ color: 'var(--ink)' }}>duty.leftfieldapps.com</strong> in Safari,
+              tap Share, then <strong style={{ color: 'var(--ink)' }}>Add to Home Screen</strong> and
+              turn notifications on there.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-bold">Push notifications</div>
+                <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>
+                  Get notified when kids complete chores or request rewards
+                </div>
+              </div>
+              <ToggleSwitch on={notifEnabled} onChange={toggleNotifications} />
             </div>
-          </div>
-          <ToggleSwitch on={notifEnabled} onChange={toggleNotifications} />
-        </div>
-        {notifPermission === 'denied' && (
-          <p className="text-xs mt-3 font-bold" style={{ color: 'var(--red)' }}>
-            Notifications are blocked. Open browser/phone settings to allow notifications for this site.
-          </p>
-        )}
-        {notifPermission === 'unsupported' && (
-          <p className="text-xs mt-3 font-bold" style={{ color: 'var(--ink-50)' }}>
-            Notifications aren't supported in this browser.
-          </p>
+            {notifError && (
+              <p className="text-xs mt-3 font-bold" style={{ color: 'var(--red)' }}>
+                {notifError}
+              </p>
+            )}
+            {!notifError && notifPermission === 'unsupported' && (
+              <p className="text-xs mt-3 font-bold" style={{ color: 'var(--ink-50)' }}>
+                This browser doesn't support notifications. On iPhone, add Duty to your Home
+                Screen from Safari to enable them.
+              </p>
+            )}
+          </>
         )}
       </Card>
 
       {/* Daily reminders (family-wide) */}
       {family && <RemindersCard familyId={family.id} />}
 
-      {/* Install App */}
-      {!isInstalled && (
+      {/* Install App -- hidden in the native build: it's already installed. */}
+      {!isInstalled && !isNativeApp && (
         <Card>
           <div className="flex items-center gap-2 mb-3">
             <Download size={14} strokeWidth={3} style={{ color: 'var(--green)' }} />
@@ -581,6 +611,15 @@ function RemindersCard({ familyId }: { familyId: string }) {
         </div>
         <ToggleSwitch on={enabled} onChange={() => save({ enabled: !enabled })} />
       </div>
+      {/* Reminders are delivered by Web Push, so they only reach devices that have
+          actually turned notifications on. Without this note the toggle looks like it
+          should work by itself and reminders silently never arrive. */}
+      {enabled && (
+        <p className="text-xs font-bold mb-3" style={{ color: 'var(--ink-50)' }}>
+          Reminders only reach devices where notifications are switched on. On iPhone that
+          means the Home Screen version of Duty, not the App Store app.
+        </p>
+      )}
       <div className="flex items-center justify-between" style={{ opacity: enabled ? 1 : 0.4 }}>
         <div>
           <div className="font-bold">Reminder time</div>

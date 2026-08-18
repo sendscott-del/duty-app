@@ -3,6 +3,18 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.4.2',
+    date: 'August 17, 2026',
+    fixes: [
+      { title: 'The notifications switch now tells you what\'s happening', desc: 'In the App Store app the push toggle could never turn on and gave no explanation at all. Settings now explains that notifications on iPhone come from the Home Screen version of Duty, and on the web the switch reports why it failed instead of silently doing nothing.' },
+      { title: 'No more install instructions inside the app', desc: 'The "Install Duty" card with Add-to-Home-Screen steps is hidden in the App Store app, where it never applied.' },
+      { title: 'Daily reminders explain what they need', desc: 'The reminders card now notes that reminders only reach devices that have notifications switched on.' },
+    ],
+    features: [
+      'Kids now get a full-screen pop-up announcing the week\'s challenge, with the goal and the bonus points front and center, so it can\'t be scrolled past. It shows once per challenge.',
+    ],
+  },
+  {
     version: '2.4.0',
     date: 'August 17, 2026',
     fixes: [],

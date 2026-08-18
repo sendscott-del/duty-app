@@ -7,6 +7,7 @@ import { useChores } from '../../hooks/useChores'
 import { useCompletions } from '../../hooks/useCompletions'
 import { useChallenges } from '../../hooks/useChallenges'
 import { WeeklyChallenge } from '../../components/WeeklyChallenge'
+import { ChallengeAnnounce } from '../../components/kid/ChallengeAnnounce'
 import { usePoints } from '../../hooks/usePoints'
 import { useRewards } from '../../hooks/useRewards'
 import { ChoreCard } from '../../components/kid/ChoreCard'
@@ -251,6 +252,13 @@ export function KidHome() {
               <div style={{ ...teenBig, color: 'var(--red)' }}>{remaining}</div>
             </div>
           </div>
+        )}
+
+        {/* One-time pop-up so kids don't scroll past the week's challenge. */}
+        {/* Only on a kid's own session -- a parent previewing "view as kid" must not
+            burn the kid's one-time announcement. */}
+        {!viewAsKid && profile?.role === 'kid' && (
+          <ChallengeAnnounce challenge={challenge} profileId={profile.id} />
         )}
 
         {/* Weekly Challenge */}
