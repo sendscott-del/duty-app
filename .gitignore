@@ -36,3 +36,8 @@ ios/App/DerivedData/
 android/.gradle/
 android/build/
 android/app/build/
+
+# iOS build artifacts
+build/export/
+build/App.xcarchive/
+build/ExportOptions.plist
