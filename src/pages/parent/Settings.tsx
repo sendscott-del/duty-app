@@ -287,7 +287,7 @@ export function Settings() {
             </button>
           )}
         </Card>
-      ) : isNativeApp ? null : (
+      ) : (
         <Link to="/parent/upgrade" style={{ textDecoration: 'none', display: 'block', marginBottom: 16 }}>
           <div
             style={{
@@ -301,7 +301,7 @@ export function Settings() {
             <div className="flex-1">
               <div className="font-bold">Upgrade to Premium</div>
               <div className="text-xs font-bold" style={{ color: 'rgba(255,247,230,0.7)' }}>
-                Challenges · Photo proof · Full history · $2.99/mo
+                Challenges · Photo proof · Full history
               </div>
             </div>
             <div className="text-xs font-bold" style={{ background: 'var(--yellow)', color: 'var(--ink)', border: '2px solid var(--ink)', borderRadius: 999, padding: '3px 8px' }}>
@@ -635,8 +635,8 @@ function RemindersCard({ familyId }: { familyId: string }) {
           should work by itself and reminders silently never arrive. */}
       {enabled && (
         <p className="text-xs font-bold mb-3" style={{ color: 'var(--ink-50)' }}>
-          Reminders only reach devices where notifications are switched on. On iPhone that
-          means the Home Screen version of Duty, not the App Store app.
+          Reminders only reach devices where notifications are switched on — turn on
+          Push notifications above on each device that should get them.
         </p>
       )}
       <div className="flex items-center justify-between" style={{ opacity: enabled ? 1 : 0.4 }}>

@@ -1,6 +1,5 @@
 import { Lock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { isNativeApp } from '../lib/platform'
 
 interface PremiumGateProps {
   isPremium: boolean
@@ -15,7 +14,6 @@ export function PremiumGate({ isPremium, children, lockedContent }: PremiumGateP
 }
 
 export function PremiumBadge({ onClick }: { onClick?: () => void }) {
-  if (isNativeApp) return null
   return (
     <button
       onClick={onClick}
@@ -35,7 +33,6 @@ export function PremiumBadge({ onClick }: { onClick?: () => void }) {
 
 export function LockedCard({ title, description }: { title: string; description: string }) {
   const navigate = useNavigate()
-  if (isNativeApp) return null
   return (
     <div
       onClick={() => navigate('/parent/upgrade')}
