@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.5.0',
+    date: 'August 17, 2026',
+    fixes: [],
+    features: [
+      'Push notifications now work in the iPhone app itself. Turn them on in Settings → Notifications and you\'ll get chore alerts and the daily reminder on your phone, without needing the Home Screen version. (Requires the next App Store update.)',
+    ],
+  },
+  {
     version: '2.4.2',
     date: 'August 17, 2026',
     fixes: [

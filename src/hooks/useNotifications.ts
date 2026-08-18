@@ -121,6 +121,9 @@ export async function requestNotifPermission(): Promise<boolean> {
 
 function notify(title: string, body: string) {
   if (!getNotifPref()) return
+  // `Notification` doesn't exist inside the native WKWebView -- referencing
+  // .permission unguarded throws and takes the watcher effect down with it.
+  if (typeof Notification === 'undefined') return
   if (Notification.permission !== 'granted') return
 
   // Use service worker registration if available for better mobile support

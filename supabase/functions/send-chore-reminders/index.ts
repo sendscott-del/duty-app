@@ -60,9 +60,11 @@ interface DutyProfile {
 interface PushSub {
   id: string
   profile_id: string
-  endpoint: string
-  p256dh: string
-  auth: string
+  platform: "web" | "ios" | "android"
+  endpoint: string | null
+  p256dh: string | null
+  auth: string | null
+  device_token: string | null
 }
 
 function isDueToday(c: DutyChore, today: Date, todayStr: string): boolean {
@@ -94,10 +96,90 @@ function nowInZone(tz: string): { hh: number; mm: number; dateStr: string; weekd
   }
 }
 
-async function sendPush(sub: PushSub, payload: unknown, supa: ReturnType<typeof createClient>) {
+// ---------------------------------------------------------------------------
+// APNs (native iOS App Store build)
+//
+// iOS exposes Web Push only to Home-Screen web apps, never inside the Capacitor
+// WKWebView, so native devices register an APNs device token instead and we
+// deliver to Apple directly. Team-scoped auth key, shared across Left Field apps.
+// ---------------------------------------------------------------------------
+const APNS_KEY_ID = Deno.env.get("DUTY_APNS_KEY_ID") ?? ""
+const APNS_TEAM_ID = Deno.env.get("DUTY_APNS_TEAM_ID") ?? ""
+const APNS_PRIVATE_KEY = Deno.env.get("DUTY_APNS_PRIVATE_KEY") ?? ""
+const APNS_BUNDLE_ID = Deno.env.get("DUTY_APNS_BUNDLE_ID") ?? "com.leftfieldapps.duty"
+// Production APNs. TestFlight/dev builds use api.sandbox.push.apple.com.
+const APNS_HOST = Deno.env.get("DUTY_APNS_HOST") ?? "https://api.push.apple.com"
+
+function b64url(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
+}
+
+let apnsJwt: { token: string; at: number } | null = null
+
+/** APNs provider token, cached ~50 min (Apple requires refresh between 20-60 min). */
+async function apnsToken(): Promise<string | null> {
+  if (!APNS_KEY_ID || !APNS_TEAM_ID || !APNS_PRIVATE_KEY) return null
+  const now = Math.floor(Date.now() / 1000)
+  if (apnsJwt && now - apnsJwt.at < 3000) return apnsJwt.token
+
+  const pem = APNS_PRIVATE_KEY.replace(/-----[A-Z ]+-----/g, "").replace(/\s+/g, "")
+  const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0))
+  const key = await crypto.subtle.importKey(
+    "pkcs8", der, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"],
+  )
+  const header = b64url(new TextEncoder().encode(JSON.stringify({ alg: "ES256", kid: APNS_KEY_ID })))
+  const claims = b64url(new TextEncoder().encode(JSON.stringify({ iss: APNS_TEAM_ID, iat: now })))
+  const sig = new Uint8Array(
+    await crypto.subtle.sign({ name: "ECDSA", hash: "SHA-256" }, key, new TextEncoder().encode(`${header}.${claims}`)),
+  )
+  const token = `${header}.${claims}.${b64url(sig)}`
+  apnsJwt = { token, at: now }
+  return token
+}
+
+async function sendApns(sub: PushSub, payload: any, supa: ReturnType<typeof createClient>) {
+  const jwt = await apnsToken()
+  if (!jwt) return { ok: false, error: "APNs not configured" }
+
+  const body = {
+    aps: {
+      alert: { title: payload.title, body: payload.body },
+      sound: "default",
+      badge: typeof payload.badge === "number" ? payload.badge : undefined,
+    },
+    url: payload.url,
+    kind: payload.kind,
+  }
+
+  const res = await fetch(`${APNS_HOST}/3/device/${sub.device_token}`, {
+    method: "POST",
+    headers: {
+      "authorization": `bearer ${jwt}`,
+      "apns-topic": APNS_BUNDLE_ID,
+      "apns-push-type": "alert",
+      "apns-priority": "10",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (res.ok) {
+    await supa.from("duty_push_subscriptions").update({ last_pushed_at: new Date().toISOString() }).eq("id", sub.id)
+    return { ok: true }
+  }
+
+  const text = await res.text().catch(() => "")
+  // Apple says this token is dead -- garbage collect it like we do web endpoints.
+  if (res.status === 410 || text.includes("BadDeviceToken") || text.includes("Unregistered")) {
+    await supa.from("duty_push_subscriptions").delete().eq("id", sub.id)
+  }
+  return { ok: false, error: `APNs ${res.status} ${text.slice(0, 120)}` }
+}
+
+async function sendWebPush(sub: PushSub, payload: unknown, supa: ReturnType<typeof createClient>) {
   try {
     await webpush.sendNotification(
-      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      { endpoint: sub.endpoint!, keys: { p256dh: sub.p256dh!, auth: sub.auth! } },
       JSON.stringify(payload)
     )
     await supa.from("duty_push_subscriptions").update({ last_pushed_at: new Date().toISOString() }).eq("id", sub.id)
@@ -110,6 +192,12 @@ async function sendPush(sub: PushSub, payload: unknown, supa: ReturnType<typeof 
     }
     return { ok: false, error: String(err) }
   }
+}
+
+/** Route each subscription to the right transport. */
+async function sendPush(sub: PushSub, payload: unknown, supa: ReturnType<typeof createClient>) {
+  if (sub.platform === "ios" || sub.platform === "android") return await sendApns(sub, payload, supa)
+  return await sendWebPush(sub, payload, supa)
 }
 
 Deno.serve(async (req: Request) => {
@@ -157,7 +245,7 @@ Deno.serve(async (req: Request) => {
       supa.from("duty_chores").select("id, family_id, assigned_to, name, emoji, recurrence, recurrence_days, due_date").eq("family_id", f.id),
       supa.from("duty_profiles").select("id, family_id, full_name, role").eq("family_id", f.id),
       supa.from("duty_chore_completions").select("chore_id, completion_date, completed_by, status").eq("completion_date", now.dateStr),
-      supa.from("duty_push_subscriptions").select("id, profile_id, endpoint, p256dh, auth").eq("family_id", f.id),
+      supa.from("duty_push_subscriptions").select("id, profile_id, platform, endpoint, p256dh, auth, device_token").eq("family_id", f.id),
     ])
 
     const allChores = (chores ?? []) as DutyChore[]

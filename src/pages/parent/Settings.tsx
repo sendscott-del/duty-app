@@ -8,12 +8,13 @@ import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
 import { SirFlush } from '../../components/ui/SirFlush'
 import { AVATAR_COLORS } from '../../lib/utils'
-import { getNotifPref, getNotifPermission, enableNotifications, disableNotifications } from '../../hooks/useNotifications'
+import { getNotifPref, getNotifPermission, setNotifPref, enableNotifications, disableNotifications } from '../../hooks/useNotifications'
 import { useKidSkin, type KidSkin } from '../../hooks/useKidSkin'
 import { LogOut, Plus, Pencil, Trash2, Camera, BookOpen, FileText, Bell, BellRing, Download, Copy, Sparkles, Lock } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { usePremium } from '../../hooks/usePremium'
 import { isNativeApp } from '../../lib/platform'
+import { enableNativePush, disableNativePush } from '../../lib/nativePush'
 
 const COLOR_OPTIONS = Object.keys(AVATAR_COLORS)
 
@@ -78,6 +79,19 @@ export function Settings() {
     if (!notifEnabled) {
       if (!profile?.id || !family?.id) return
       setNotifError('')
+
+      // Native builds use APNs (Web Push doesn't exist inside the WKWebView).
+      if (isNativeApp) {
+        const res = await enableNativePush(profile.id, family.id)
+        if (res.ok) { setNotifEnabled(true); setNotifPref(true) }
+        else setNotifError(
+          res.reason === 'denied'
+            ? 'Notifications are turned off for Duty. Open iPhone Settings → Notifications → Duty to allow them.'
+            : "Couldn't turn on notifications on this device. Please try again."
+        )
+        return
+      }
+
       const ok = await enableNotifications(profile.id, family.id)
       if (ok) { setNotifEnabled(true); setNotifPermission('granted'); setNotifError('') }
       else {
@@ -92,7 +106,8 @@ export function Settings() {
         )
       }
     } else {
-      await disableNotifications()
+      if (isNativeApp) { await disableNativePush(); setNotifPref(false) }
+      else await disableNotifications()
       setNotifEnabled(false)
       setNotifError('')
     }
@@ -358,14 +373,18 @@ export function Settings() {
             actually delivers notifications on this phone today. */}
         {isNativeApp ? (
           <>
-            <div className="font-bold">Push notifications</div>
-            <p className="text-xs font-bold mt-1" style={{ color: 'var(--ink-50)' }}>
-              Not available inside the App Store app yet. To get chore alerts and daily
-              reminders on this phone, open{' '}
-              <strong style={{ color: 'var(--ink)' }}>duty.leftfieldapps.com</strong> in Safari,
-              tap Share, then <strong style={{ color: 'var(--ink)' }}>Add to Home Screen</strong> and
-              turn notifications on there.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-bold">Push notifications</div>
+                <div className="text-xs font-bold" style={{ color: 'var(--ink-50)' }}>
+                  Chore alerts and daily reminders on this phone
+                </div>
+              </div>
+              <ToggleSwitch on={notifEnabled} onChange={toggleNotifications} />
+            </div>
+            {notifError && (
+              <p className="text-xs mt-3 font-bold" style={{ color: 'var(--red)' }}>{notifError}</p>
+            )}
           </>
         ) : (
           <>
