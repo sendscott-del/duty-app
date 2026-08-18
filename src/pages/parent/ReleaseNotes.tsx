@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.4.0',
+    date: 'August 17, 2026',
+    fixes: [],
+    features: [
+      'You can now upgrade to Premium right inside the iPhone app, paid with your Apple ID \u2014 $2.99/month or $19.99/year, the same as on the website. Tap "Restore purchases" if you already bought it and are setting up a new phone.',
+    ],
+  },
+  {
     version: '2.3.1',
     date: 'August 17, 2026',
     fixes: [

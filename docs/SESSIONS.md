@@ -2,6 +2,53 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-17 (later) — v2.4.0: Apple in-app purchase
+
+Scott's goal: Duty makes money, tracked, and marketed. Prerequisite fixed earlier
+today (v2.3.1 signup dead-end); this is the money half.
+
+**Why Apple IAP and not Stripe:** Apple does not allow outside payment for digital
+subscriptions inside an app. The US external-link route now exists post-Epic, but it
+needs an Apple entitlement, StoreKit's disclosure sheet, Safari (not the webview),
+transaction reporting back to Apple, and a custom Capacitor plugin since none exists
+off the shelf — and its 0% commission is unsettled (9th Cir. vacated the ban Dec 2025;
+SCOTUS took a narrow question Jun 2026). Apple IAP at the 15% Small Business rate was
+the stable choice.
+
+**Built:**
+- RevenueCat project Duty `proj3cf3350c`, app `appd65b7750dd`, entitlement `premium`
+  `entl7b4258f7e3`, offering `default` `ofrng4f5241a7f9` with $rc_monthly / $rc_annual.
+- ASC subscription group `Duty Premium` 22316548 with
+  `com.leftfieldapps.duty.premium.monthly` ($2.99) and `.annual` ($19.99), localized,
+  175 territories. Proceeds confirm 15%: $2.54 and $16.99.
+- `src/lib/revenuecat.ts` + native branch in `Upgrade.tsx`.
+- `supabase/functions/revenuecat-webhook` (verify_jwt false), writing the same
+  premium columns as the Stripe webhook and sharing its `stripe_event_at` ordering
+  clock so a late redelivery from one source cannot clobber the other.
+
+**The constraint that shaped the client code:** the Capacitor shells render the
+DEPLOYED SITE via `server.url`, so this code reaches the CURRENT App Store build the
+moment Vercel deploys — a build with no RevenueCat plugin in it. Everything in
+`lib/revenuecat.ts` fails soft, gated on `Capacitor.isPluginAvailable('Purchases')`;
+old builds keep the pre-IAP message instead of a broken button. Do not remove that gate.
+
+**ASC API gotcha, cost ~20 min:** `POST /v1/subscriptionPrices` returns 409
+ENTITY_ERROR.RELATIONSHIP.INVALID until a `subscriptionAvailability` exists for the
+subscription. Territories first, then price. The error names the price point, which
+is misleading.
+
+**Not done / blocked:**
+- `DUTY_REVENUECAT_WEBHOOK_SECRET` is NOT set, so the webhook 401s everything (verified).
+  No Supabase management token on this machine and no MCP tool for secrets.
+- In-App Purchase key not uploaded to RevenueCat — Apple exposes no API to create one
+  (`/v1/inAppPurchaseKeys` 404s); dashboard only. ASC API key WAS uploaded via the RC API.
+- ASC subscriptions sit in MISSING_METADATA pending a review screenshot of the paywall,
+  which needs a build that renders it.
+- Android/Play billing not started. iOS first, deliberately.
+
+**State left in:** v2.4.0 deployed to web. No new native binary yet, so no App Store
+user can purchase until one ships.
+
 ## 2026-08-17 — v2.3.1: the signup dead-end
 
 **What prompted it:** Scott asked to build in-app purchase so Duty could make

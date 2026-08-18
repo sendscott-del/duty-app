@@ -23,6 +23,18 @@ The skin lives in browser storage on the device that views the kid screen, so di
 3. Add your kids (name, avatar color, optional profile photo, 4-digit PIN)
 4. Create chores and rewards
 
+### Upgrading to Premium
+
+Premium can be bought two ways, and both unlock the same features for everyone in
+your family:
+
+- **In the iPhone app** — Settings, then Upgrade. Charged to your Apple ID.
+- **On the website** — duty.leftfieldapps.com, paid by card.
+
+$2.99/month or $19.99/year either way. Only one parent needs to buy it. If you get
+a new phone, or the other parent wants it on their device, use **Restore purchases**
+on the Upgrade screen.
+
 ### If setup was interrupted
 
 If you created an account but never finished naming your family, Duty will take

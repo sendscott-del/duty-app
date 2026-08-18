@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Sparkles, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
@@ -6,6 +6,10 @@ import { SirFlush } from '../../components/ui/SirFlush'
 import { usePremium } from '../../hooks/usePremium'
 import { useStore } from '../../lib/store'
 import { isNativeApp } from '../../lib/platform'
+import {
+  getPremiumPackages, initPurchases, purchasePremium, restorePremium,
+  type PremiumPackage,
+} from '../../lib/revenuecat'
 
 const FEATURES = [
   { label: 'Weekly family challenges with bonus points' },
@@ -19,6 +23,45 @@ export function Upgrade() {
   const [loading, setLoading] = useState(false)
   const { isPremium } = usePremium()
   const family = useStore((s) => s.family)
+
+  // Native in-app purchase state. `iapPackages` stays empty on web, and also on any
+  // App Store build that predates the RevenueCat plugin — see lib/revenuecat.ts for
+  // why that case has to degrade rather than throw.
+  const [iapPackages, setIapPackages] = useState<PremiumPackage[]>([])
+  const [iapChecked, setIapChecked] = useState(false)
+  const [iapError, setIapError] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    if (!isNativeApp || !family?.id) { setIapChecked(true); return }
+    ;(async () => {
+      const ready = await initPurchases(family.id)
+      const pkgs = ready ? await getPremiumPackages() : []
+      if (!cancelled) { setIapPackages(pkgs); setIapChecked(true) }
+    })()
+    return () => { cancelled = true }
+  }, [family?.id])
+
+  async function handleNativePurchase(pkg: PremiumPackage) {
+    setLoading(true); setIapError('')
+    try {
+      const res = await purchasePremium(pkg)
+      if (res.status === 'error') { setIapError(res.message); return }
+      if (res.status === 'cancelled') return
+      // Premium columns are server-truth, written by the RevenueCat webhook, so
+      // reload rather than optimistically flipping anything client-side.
+      window.location.reload()
+    } finally { setLoading(false) }
+  }
+
+  async function handleRestore() {
+    setLoading(true); setIapError('')
+    try {
+      const res = await restorePremium()
+      if (res.status === 'success') window.location.reload()
+      else if (res.status === 'error') setIapError(res.message)
+    } finally { setLoading(false) }
+  }
 
   async function handleUpgrade() {
     if (!family) return
@@ -75,6 +118,44 @@ export function Upgrade() {
               : 'All features unlocked.'}
           </p>
         </div>
+      ) : isNativeApp && iapPackages.length > 0 ? (
+        <div style={{ marginBottom: 24 }}>
+          {iapPackages
+            .slice()
+            .sort((a) => (a.period === 'annual' ? -1 : 1))
+            .map((pkg) => (
+              <button
+                key={pkg.id}
+                onClick={() => handleNativePurchase(pkg)}
+                disabled={loading}
+                style={{
+                  width: '100%', background: pkg.period === 'annual' ? 'var(--yellow)' : '#fff',
+                  color: 'var(--ink)', border: '2.5px solid var(--ink)', borderRadius: 14,
+                  padding: '16px 18px', marginBottom: 12, boxShadow: 'var(--shadow-sm)',
+                  fontWeight: 800, fontSize: 16, cursor: loading ? 'default' : 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}
+              >
+                <span>{pkg.period === 'annual' ? 'Yearly' : 'Monthly'}</span>
+                {/* Store-formatted price: correct currency and locale for the buyer. */}
+                <span>{pkg.priceString}</span>
+              </button>
+            ))}
+          <button
+            onClick={handleRestore}
+            disabled={loading}
+            style={{
+              width: '100%', background: 'transparent', border: 'none', padding: '6px 0',
+              color: 'var(--ink-50)', fontWeight: 800, fontSize: 13,
+              textDecoration: 'underline', cursor: 'pointer',
+            }}
+          >
+            Restore purchases
+          </button>
+          {iapError && (
+            <div className="text-sm font-bold mt-2" style={{ color: 'var(--red, #c0392b)' }}>{iapError}</div>
+          )}
+        </div>
       ) : isNativeApp ? (
         <div
           style={{
@@ -84,9 +165,11 @@ export function Upgrade() {
         >
           <div className="stadium-eyebrow mb-2">PREMIUM</div>
           <div className="font-bold text-sm" style={{ color: 'var(--ink-50)' }}>
-            Duty works great on the free plan — unlimited kids, chores, approvals, rewards,
-            30-day history, and push notifications are all included. Optional extra features
-            are managed on the Duty website.
+            {iapChecked
+              ? // Reached on App Store builds without the RevenueCat plugin. Keep the
+                // pre-IAP wording: on those builds there is genuinely no purchase path.
+                "Duty works great on the free plan — unlimited kids, chores, approvals, rewards, 30-day history, and push notifications are all included. Optional extra features are managed on the Duty website."
+              : 'Loading…'}
           </div>
         </div>
       ) : (

@@ -5,6 +5,25 @@
 > user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
 > entries below were backfilled from `docs/SESSIONS.md` and git history.
 
+## v2.4.0 — August 17, 2026
+
+### Premium can be bought inside the iPhone app
+
+Until now Premium could only be bought on the Duty website. Apple doesn't allow
+outside payment for digital subscriptions inside an app, so the upgrade screen in
+the App Store version simply said the extras were "managed on the Duty website" —
+which meant the people actually using the app couldn't buy the thing being sold.
+
+Duty now offers Apple in-app purchase: $2.99/month or $19.99/year, the same prices
+as the web, paid with the Apple ID already on the phone. A Restore Purchases option
+is there for a new phone or a second parent.
+
+- Premium is a family-level purchase. Either parent can buy it, and it covers the
+  whole family on every device.
+- Buying on the web still works exactly as before, through Stripe.
+- Older App Store builds are unaffected: they keep showing the previous message
+  rather than a broken button.
+
 ## v2.3.1 — August 17, 2026
 
 ### Fixed: new parents could get stranded with no family
