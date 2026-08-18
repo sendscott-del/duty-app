@@ -3,6 +3,14 @@ import { ArrowLeft } from 'lucide-react'
 
 const RELEASES = [
   {
+    version: '2.3.1',
+    date: 'August 17, 2026',
+    fixes: [
+      { title: 'Setup no longer leaves you stuck', desc: 'If you created an account but never finished naming your family, Duty could open to an empty screen with no way forward. Now it takes you straight back to setup whenever you open the app, so you can pick up where you left off.' },
+    ],
+    features: [],
+  },
+  {
     version: '2.3.0',
     date: 'August 15, 2026',
     fixes: [],

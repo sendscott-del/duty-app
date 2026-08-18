@@ -2,6 +2,49 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-17 — v2.3.1: the signup dead-end
+
+**What prompted it:** Scott asked to build in-app purchase so Duty could make
+money. Before starting, checked whether anyone actually buys: `duty_families`
+holds exactly two rows — "Shurtliff" (premium_status active, but with sentinel
+dates `premium_period_end 2099-12-31` / `stripe_event_at 2099-01-01`, i.e. hand
+granted) and "Demo Family" (free). Zero paying customers, ever. So the payment
+path was never the constraint.
+
+**What the data actually showed:** four `duty_profiles` rows with `family_id IS
+NULL` — parent accounts created 2026-04-09, 2026-08-01, 2026-08-03 and
+2026-08-09. Three real people tried Duty in three weeks and every one dead-ended.
+
+**Root cause:** `Login.tsx:34` redirected family-less parents to `/setup`, but
+that only fires on a login-form submit. The `/` route and the `*` catch-all in
+`App.tsx` sent any parent to `/parent/overview` with no family check at all, and
+`RequireAuth` only checked for a profile, never `family_id`. The Capacitor shells
+load the live site at `/`, so every reopen of the store app bypassed the one
+check that existed.
+
+**Fix:** moved the check into `RequireAuth` and the root route via a shared
+`needsSetup()` helper, so it holds on every parent route regardless of entry
+point. `Setup.tsx` now guards both directions: redirects to `/login` with no
+profile, and to `/parent/overview` if the user already had a family on arrival.
+That second guard captures `arrivedWithFamily` once on mount deliberately — a
+live read of `profile.family_id` would eject the user from the wizard the moment
+step 0 succeeded and set it.
+
+**Deliberately NOT done:** did not hand-create families for the four stranded
+accounts. They are real people; the app now recovers them on next open, which is
+the right repair.
+
+**Note on versioning:** this work was written against v2.2.0 and rebased onto
+origin/main, which had meanwhile shipped v2.2.1-v2.3.0 (reward approve/reject,
+kid balances, all-or-nothing payouts) from another session. Re-cut as v2.3.1.
+Only `src/App.tsx` and `src/pages/auth/Setup.tsx` carry the fix; neither was
+touched by that other work.
+
+**State left in:** v2.3.1, deployed. IAP work is queued but not started — the
+funnel fix comes first, since selling to users who cannot finish onboarding is
+pointless.
+
+
 ## 2026-08-15 — v2.3.0: all-or-nothing chore payout (per kid)
 
 Scott: Freddy does the easy chores and skips the hard ones. Wanted a parent

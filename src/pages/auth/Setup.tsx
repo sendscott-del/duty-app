@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useStore } from '../../lib/store'
 import { useAuth } from '../../hooks/useAuth'
@@ -38,6 +38,12 @@ export function Setup() {
   const { profile, setFamily } = useStore()
   const { loadProfile } = useAuth()
   const navigate = useNavigate()
+
+  // Whether this user ALREADY had a family when they arrived here — captured once,
+  // on mount. It cannot be a live read of profile.family_id: step 0 sets family_id
+  // as soon as the family is created, so a live check would eject the user from
+  // their own wizard the instant it started working.
+  const [arrivedWithFamily] = useState(() => !!useStore.getState().profile?.family_id)
 
   async function createFamily() {
     if (!profile) return
@@ -96,6 +102,11 @@ export function Setup() {
     }
     navigate('/parent/overview')
   }
+
+  // Setup sits outside RequireAuth (it has to be reachable while the profile is
+  // still settling), so it does its own guarding.
+  if (!profile) return <Navigate to="/login" replace />
+  if (arrivedWithFamily) return <Navigate to="/parent/overview" replace />
 
   return (
     <div className="min-h-dvh flex items-center justify-center px-5" style={{ background: 'var(--cream)' }}>

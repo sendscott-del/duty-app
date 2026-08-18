@@ -5,6 +5,29 @@
 > user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
 > entries below were backfilled from `docs/SESSIONS.md` and git history.
 
+## v2.3.1 — August 17, 2026
+
+### Fixed: new parents could get stranded with no family
+
+Signing up creates your account; a separate setup wizard creates your family.
+If you closed the app, lost signal, or hit an error on that first "name your
+family" screen, you were left with an account and no family — and the app has
+nothing to show without one. No chores, no kids, no rewards, and no way back to
+setup short of typing the URL by hand.
+
+Only the login form checked for this, so signing in again would rescue you. But
+reopening the app would not: the iOS and Android apps always open at the home
+route, which sent you straight to an empty Overview instead. Four real accounts
+were sitting in this state, three of them created in the last three weeks.
+
+- The family check now lives in the route guard, so **every** parent route and
+  the home route send a family-less parent back into setup — however they got
+  there, and however many times they come back.
+- Setup now bounces anyone who already has a family, so it can't create a second
+  one by accident.
+- Anyone currently stranded is recovered automatically: their next visit lands
+  them in setup where they left off.
+
 ## v2.3.0 — August 15, 2026
 
 ### All-or-nothing chore payout (per kid)

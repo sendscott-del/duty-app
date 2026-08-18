@@ -35,7 +35,19 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   const { profile } = useStore()
   const location = useLocation()
   if (!profile) return <Navigate to="/login" replace state={{ from: location }} />
+  // A parent with no family has nothing to render: no kids, no chores, no rewards.
+  // Setup is where the family record gets created, so send them there from ANY
+  // parent route — not just off the login form. Login.tsx used to be the only
+  // place that checked, which stranded anyone who reopened the app instead of
+  // signing in again (the native shell always opens at "/"). Four real accounts
+  // sat unusable this way. See docs/SESSIONS.md 2026-08-17.
+  if (needsSetup(profile)) return <Navigate to="/setup" replace />
   return children
+}
+
+// True when a signed-in parent still has no family record.
+export function needsSetup(profile: { role: string; family_id: string | null } | null) {
+  return !!profile && profile.role === 'parent' && !profile.family_id
 }
 
 function AppRoutes() {
@@ -77,6 +89,8 @@ function AppRoutes() {
           element={
             !profile
               ? <Navigate to="/login" replace />
+              : needsSetup(profile)
+              ? <Navigate to="/setup" replace />
               : profile.role === 'parent'
               ? <Navigate to="/parent/overview" replace />
               : <Navigate to="/kid" replace />

@@ -23,6 +23,12 @@ The skin lives in browser storage on the device that views the kid screen, so di
 3. Add your kids (name, avatar color, optional profile photo, 4-digit PIN)
 4. Create chores and rewards
 
+### If setup was interrupted
+
+If you created an account but never finished naming your family, Duty will take
+you straight back to setup the next time you open it. Nothing was lost — pick up
+where you left off.
+
 ### If You Can't Sign In
 Tap **Forgot password?** on the sign-in screen. From there you can either:
 
