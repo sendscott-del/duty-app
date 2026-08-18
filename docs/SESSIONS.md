@@ -363,3 +363,48 @@ manual step outstanding. Both are now done and the feature is verified live.
 - 2026-05-01/02 — Stadium redesign (arcade visual language); v1.4.1/v1.4.2 RLS tightening for cross-app isolation + fix for `duty_profiles` RLS recursion that broke parent login; v1.5.0 kid scorecards.
 - 2026-04-09–22 — mobile polish wave: approvals queue, action sheets, avatar upload fixes, PWA auto-update, notifications + app badge, in-app Release Notes / User Guide.
 - 2026-03/04 — initial build: families/profiles/chores/rewards/points schema (`duty_` prefix on shared Supabase `isogetmvnpimcmouakeg`), kid no-auth login, RLS, realtime + storage.
+
+## 2026-08-17 — Native push, paywall reachability, App Store submission (v2.5.0)
+
+**Diagnosed why notifications never worked.** iOS exposes Web Push only to Home-Screen
+web apps, never inside the Capacitor WKWebView the App Store build runs in. The toggle
+bailed at `'PushManager' in window` and only reported failure when permission was
+`'denied'` (never true there), so tapping it did nothing. Reminders shared the root
+cause: nothing could ever register a subscription from the native app.
+
+**Shipped**
+- v2.4.2 - hid the irrelevant "Install Duty" card in the native build, made the web
+  toggle report failures instead of silently not moving, corrected the reminders copy,
+  and added a branded one-time weekly-challenge pop-up for kids
+  (`src/components/kid/ChallengeAnnounce.tsx`).
+- v2.5.0 - native APNs push: `@capacitor/push-notifications`, `src/lib/nativePush.ts`,
+  `App.entitlements` (aps-environment=production), AppDelegate token forwarding,
+  `duty_push_subscriptions.platform` + `device_token`, and APNs delivery in
+  `send-chore-reminders` (ES256 provider JWT, dead-token GC). Also guarded an unguarded
+  `Notification.permission` read that throws in the WKWebView.
+- Restored the Premium entry points in the native app. v2.4.0 shipped working IAP on
+  `/parent/upgrade`, but Settings / LockedCard / PremiumBadge all still returned `null`
+  in native from the Stripe-only era, so nobody could reach the paywall and a reviewer
+  could not exercise the IAP.
+
+**App Store:** built, signed, uploaded and submitted 2.5.0 (build 2).
+State WAITING_FOR_REVIEW, release type MANUAL so the go-live moment stays Scott's.
+
+**Gotchas discovered (each cost real time)**
+1. Enabling a capability on an App ID INVALIDATES existing provisioning profiles. The
+   Duty profile went INVALID the moment Push was enabled, and the old one carried
+   `aps-environment: None`. It had to be deleted and recreated via the ASC API.
+2. The subscriptions were available in 175 territories but priced only in USA, which
+   pins them at MISSING_METADATA forever
+   (`IAP_SUBMISSION_NOT_ALLOWED_MISSING_PRICING_DATA`). Fixed with
+   `/v1/subscriptionPricePoints/{id}/equalizations` plus one `subscriptionPrices` POST
+   per territory (see `scripts/price_all_territories.py`). Both are now READY_TO_SUBMIT.
+3. Subscriptions CANNOT be attached to a review submission through the ASC API -
+   neither `reviewSubmissionItems` nor `appStoreVersions` exposes such a relationship.
+   They have to be included from the App Store Connect UI.
+
+**State left in:** app v2.5.0 WAITING_FOR_REVIEW (manual release). Subscriptions
+READY_TO_SUBMIT but not attached to a submission - needs one action in the ASC UI.
+Native push is verified as far as it can be without hardware (entitlement signed into
+the binary; Apple accepts the provider token) - no real device token has ever been
+registered, so TestFlight verification is still outstanding.
