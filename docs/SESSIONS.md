@@ -2,6 +2,26 @@
 
 Append-only, newest first. Every working session gets an entry: date, what changed, any infra facts touched.
 
+## 2026-08-17 (later still) — v2.4.1: Android explicitly excluded
+
+Scott: "ignore android." Recording it as a decision, not a backlog item.
+
+**This was a latent bug, not just a doc change.** `lib/revenuecat.ts` gated on
+`isNativeApp` (`Capacitor.isNativePlatform()`), which is true on Android too. The
+only thing keeping Android safe was that its build had no RevenueCat plugin — but
+`npx cap sync` installs plugins to BOTH platforms, so the next Android build would
+have reported `isPluginAvailable('Purchases') === true` and then configured
+RevenueCat with `appl_…`, an Apple key. Now gated on `isIOSApp`
+(`Capacitor.getPlatform() === 'ios'`, new export in `lib/platform.ts`).
+
+Android therefore falls through to the pre-IAP "managed on the Duty website"
+message, which is the same safe path old iOS builds take. `Upgrade.tsx` still
+branches on `isNativeApp` deliberately: Android is a native app with no purchase
+path, and that branch is exactly the right thing to show it.
+
+If Play billing is ever built, it needs its own RevenueCat Play Store app, its own
+`goog_…` public key, and a platform-aware key selection here.
+
 ## 2026-08-17 (later) — v2.4.0: Apple in-app purchase
 
 Scott's goal: Duty makes money, tracked, and marketed. Prerequisite fixed earlier

@@ -6,3 +6,10 @@ import { Capacitor } from '@capacitor/core'
 // in-app billing. Premium features themselves still unlock normally for families
 // who subscribed on the web — we only suppress the purchase path here.
 export const isNativeApp = Capacitor.isNativePlatform()
+
+// True only in the iOS shell. Needed because Capacitor syncs plugins to BOTH
+// platforms: once @revenuecat/purchases-capacitor is installed, an Android build
+// would also report the Purchases plugin as available and would then configure
+// RevenueCat with an Apple public key. Android billing is deliberately not built
+// (Scott, 2026-08-17: "ignore android"), so the purchase path is gated on iOS.
+export const isIOSApp = Capacitor.getPlatform() === 'ios'

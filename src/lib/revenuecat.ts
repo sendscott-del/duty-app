@@ -1,4 +1,4 @@
-// RevenueCat / Apple in-app purchase, native only.
+// RevenueCat / Apple in-app purchase, iOS only.
 //
 // READ THIS BEFORE CHANGING ANYTHING HERE.
 //
@@ -11,8 +11,11 @@
 // here would break the paywall for people already on the App Store.
 //
 // Web is unaffected — it keeps using Stripe Checkout. See Upgrade.tsx.
+// Android is deliberately excluded (Scott, 2026-08-17). Play billing is a separate
+// product with its own key and its own store config; until it is built, Android must
+// fall through to the pre-IAP message exactly like an old iOS build.
 
-import { isNativeApp } from './platform'
+import { isIOSApp } from './platform'
 
 // Public SDK key for the Duty (App Store) app in RevenueCat project proj3cf3350c.
 // Public keys are designed to ship in the client; the secret key never leaves
@@ -37,9 +40,12 @@ type PurchasesModule = typeof import('@revenuecat/purchases-capacitor')
 let modulePromise: Promise<PurchasesModule | null> | null = null
 let configuredFor: string | null = null
 
-/** Loads the plugin, or null when it isn't there (web, or a pre-IAP native build). */
+/**
+ * Loads the plugin, or null when it isn't usable: web, Android (deliberately not
+ * built — the key below is an Apple key), or a pre-IAP iOS build.
+ */
 async function loadPurchases(): Promise<PurchasesModule | null> {
-  if (!isNativeApp) return null
+  if (!isIOSApp) return null
   if (!modulePromise) {
     modulePromise = (async () => {
       try {

@@ -5,6 +5,15 @@
 > user-facing list and stayed current. Both are updated for v2.2.0; the v2.1.x
 > entries below were backfilled from `docs/SESSIONS.md` and git history.
 
+## v2.4.1 — August 17, 2026
+
+### In-app purchase is iOS only, on purpose
+
+Android billing is a separate product with its own store setup, and it isn't being
+built. The purchase code is now explicitly limited to iPhone rather than to "any
+native app," so the Android version keeps showing the previous message instead of
+attempting a purchase it can't complete.
+
 ## v2.4.0 — August 17, 2026
 
 ### Premium can be bought inside the iPhone app
